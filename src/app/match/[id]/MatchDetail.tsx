@@ -3,10 +3,17 @@
 import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName } from "@/lib/data";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 export default function MatchDetail({ match: initial }: { match: Match }) {
   const [match, setMatch] = useState(initial);
   const isLive = match.status === "live";
+
+  const homeId = getTeamIdByName(match.homeTeam) || "";
+  const awayId = getTeamIdByName(match.awayTeam) || "";
+  const homeFlag = getTeamFlagUrlBig(homeId);
+  const awayFlag = getTeamFlagUrlBig(awayId);
 
   // Fetch latest scores from /api/scores on mount
   useEffect(() => {
@@ -72,17 +79,20 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
         </p>
 
         {isLive && (
-          <span className="inline-block px-2 py-0.5 text-xs font-semibold text-green-400 bg-green-400/10 rounded-full mb-4">
-            🔴 Live
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-green-400 bg-green-400/10 rounded-full mb-4">
+            <span className="live-dot" />
+            Live
           </span>
         )}
 
         <h1 className="text-4xl sm:text-5xl font-bold mb-2">
+          {homeFlag && <img src={homeFlag} alt="" className="w-6 h-4.5 inline-block mr-2 align-middle" />}
           {match.homeTeam}{" "}
-          <span className={isLive ? "text-green-400" : ""}>
+          <span className={`${isLive ? "text-green-400 animate-glow rounded-lg px-2" : ""}`}>
             {scoreDisplay}
           </span>{" "}
           {match.awayTeam}
+          {awayFlag && <img src={awayFlag} alt="" className="w-6 h-4.5 inline-block ml-2 align-middle" />}
         </h1>
 
         <p className="text-[#888] mb-6">
@@ -111,6 +121,11 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
           </svg>
           Share on X
         </button>
+      </div>
+
+      {/* Ad banner */}
+      <div className="mt-8">
+        <AdPlaceholder size="banner" />
       </div>
     </div>
   );

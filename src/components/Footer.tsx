@@ -4,6 +4,7 @@ const footerLinks = [
   { href: "/", label: "Home" },
   { href: "/schedule", label: "Schedule" },
   { href: "/standings", label: "Standings" },
+  { href: "/groups", label: "Groups" },
   { href: "/teams", label: "Teams" },
   { href: "/subscribe", label: "Get Alerts" },
 ];
@@ -37,6 +38,35 @@ export default function Footer() {
                   {link.label}
                 </Link>
               ))}
+            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mt-4 mb-3">
+              Legal
+            </h4>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/tos"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Terms of Service
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/refund"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Refund Policy
+              </Link>
+              <Link
+                href="/premium"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Pricing
+              </Link>
             </div>
           </div>
 

@@ -2,6 +2,8 @@
 
 import { StandingEntry, TeamInfo } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { getTeamFlagUrl, getTeamIdByName } from "@/lib/data";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 interface LiveMatch {
   api_id: number;
@@ -163,7 +165,10 @@ export default function LiveStandings({
                       className="border-t border-[#222] hover:bg-[#1a1a1a] transition-colors"
                     >
                       <td className="px-4 py-3 text-[#888]">{entry.pos}</td>
-                      <td className="px-2 py-3 font-medium">{entry.team}</td>
+                      <td className="px-2 py-3 font-medium">
+                        <img src={getTeamFlagUrl(getTeamIdByName(entry.team) || "")} alt="" className="w-5 h-3.5 inline-block mr-2 align-middle" />
+                        {entry.team}
+                      </td>
                       <td className="text-center px-2 py-3">{entry.played}</td>
                       <td className="text-center px-2 py-3 text-green-400">
                         {entry.won}
@@ -196,6 +201,10 @@ export default function LiveStandings({
             )}
           </div>
         ))}
+      </div>
+
+      <div className="mt-8">
+        <AdPlaceholder size="banner" />
       </div>
     </div>
   );

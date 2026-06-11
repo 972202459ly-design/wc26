@@ -1,6 +1,7 @@
-import { groups, teams } from "@/lib/data";
+import { groups, teams, getTeamFlagUrl } from "@/lib/data";
 import Link from "next/link";
 import type { Metadata } from "next";
+import AdPlaceholder from "@/components/AdPlaceholder";
 
 export const metadata: Metadata = {
   title: "Teams",
@@ -16,15 +17,20 @@ export default function TeamsPage() {
         {teams.map((team) => (
           <Link
             key={team.id}
-            href={`/match?team=${encodeURIComponent(team.name)}`}
+            href={`/teams/${team.id}`}
             className="flex items-center gap-3 p-4 rounded-xl border border-[#222] bg-[#111] hover:border-[#f0a500]/50 transition-all"
           >
+            <img src={getTeamFlagUrl(team.id)} alt="" className="w-6 h-4.5 flex-shrink-0" />
             <div>
               <p className="font-semibold">{team.name}</p>
               <p className="text-xs text-[#888]">{team.group}</p>
             </div>
           </Link>
         ))}
+      </div>
+
+      <div className="mt-8">
+        <AdPlaceholder size="banner" />
       </div>
     </div>
   );

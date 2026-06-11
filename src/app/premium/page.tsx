@@ -1,11 +1,12 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Premium",
-  description:
-    "Upgrade to WC26 Live Premium for real-time goal alerts, match reminders, and more.",
-};
+import { useEffect } from "react";
+
+declare global {
+  interface Window {
+    Paddle: any;
+  }
+}
 
 const plans = [
   {
@@ -20,7 +21,8 @@ const plans = [
       "Daily digest",
       "Ad-free experience",
     ],
-    variantId: process.env.LEMON_VARIANT_MONTHLY || "1772028",
+    priceId:
+      process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || "pri_monthly_fallback",
     popular: false,
   },
   {
@@ -34,12 +36,44 @@ const plans = [
       "Priority support",
       "No recurring charges",
     ],
-    variantId: process.env.LEMON_VARIANT_TOURNAMENT || "1772088",
+    priceId:
+      process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID ||
+      "pri_tournament_fallback",
     popular: true,
   },
 ];
 
 export default function PremiumPage() {
+  useEffect(() => {
+    document.title =
+      "Premium - WC26 Live";
+  }, []);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+    script.async = true;
+    script.onload = () => {
+      if (window.Paddle && process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN) {
+        window.Paddle.Initialize({
+          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
+        });
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleCheckout = (priceId: string) => {
+    if (!window.Paddle) return;
+    window.Paddle.Checkout.open({
+      items: [{ priceId, quantity: 1 }],
+      allowLogout: false,
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
@@ -91,23 +125,23 @@ export default function PremiumPage() {
                 </li>
               ))}
             </ul>
-            <Link
-              href={`/api/create-checkout?variant_id=${plan.variantId}`}
+            <button
+              onClick={() => handleCheckout(plan.priceId)}
               className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
             >
               Subscribe Now
-            </Link>
+            </button>
           </div>
         ))}
       </div>
 
       <div className="text-center mt-8">
-        <Link
+        <a
           href="/subscribe"
           className="text-sm text-[#888] hover:text-white underline"
         >
           Start with free instead
-        </Link>
+        </a>
       </div>
     </div>
   );

@@ -69,3 +69,29 @@ export async function getLastSyncTime(): Promise<Date | null> {
   if (rows.length === 0) return null;
   return new Date((rows as any)[0].updated_at);
 }
+
+// ─── Tweet tracking ───────────────────────────────────────────────────
+
+export async function ensureTweetTable(): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS tweeted_matches (
+      api_id INTEGER PRIMARY KEY,
+      tweet_id TEXT NOT NULL,
+      tweeted_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+}
+
+export async function isMatchTweeted(apiId: number): Promise<boolean> {
+  const rows = await sql`
+    SELECT 1 FROM tweeted_matches WHERE api_id = ${apiId}
+  `;
+  return rows.length > 0;
+}
+
+export async function markMatchTweeted(apiId: number, tweetId: string): Promise<void> {
+  await sql`
+    INSERT INTO tweeted_matches (api_id, tweet_id) VALUES (${apiId}, ${tweetId})
+    ON CONFLICT (api_id) DO NOTHING
+  `;
+}

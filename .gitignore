@@ -2,3 +2,4 @@
 .next
 node_modules
 .env*.local
+scripts/tweeted_matches.json

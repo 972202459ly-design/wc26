@@ -2,6 +2,7 @@
 
 import { matches } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
+import AdPlaceholder from "@/components/AdPlaceholder";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
 
@@ -47,7 +48,7 @@ export default function SchedulePage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Match Schedule</h1>
 
-      {matchDays.map((date) => {
+      {matchDays.map((date, idx) => {
         const dayMatches = merged.filter((m) => m.date === date);
         return (
           <section key={date} className="mb-8">
@@ -63,6 +64,12 @@ export default function SchedulePage() {
                 <MatchCard key={match.id} match={match} />
               ))}
             </div>
+            {/* Ad between match days */}
+            {idx > 0 && idx % 3 === 0 && (
+              <div className="mt-6">
+                <AdPlaceholder size="banner" />
+              </div>
+            )}
           </section>
         );
       })}

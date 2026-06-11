@@ -52,6 +52,34 @@ const teamNames: Record<string, string> = {
   uzb: "Uzbekistan",
 };
 
+// ─── FIFA 3-letter → ISO 2-letter mapping (for flag CDN) ─────────────
+const fifaToIso2: Record<string, string> = {
+  alg: "dz", arg: "ar", aus: "au", aut: "at", bel: "be", bih: "ba",
+  bra: "br", can: "ca", civ: "ci", cod: "cd", col: "co", cpv: "cv",
+  cro: "hr", cuw: "cw", cze: "cz", ecu: "ec", egy: "eg", eng: "gb",
+  esp: "es", fra: "fr", ger: "de", gha: "gh", hai: "ht", irn: "ir",
+  irq: "iq", jor: "jo", jpn: "jp", kor: "kr", ksa: "sa", mar: "ma",
+  mex: "mx", ned: "nl", nor: "no", nzl: "nz", pan: "pa", par: "py",
+  por: "pt", qat: "qa", rsa: "za", sco: "gb", sen: "sn", sui: "ch",
+  swe: "se", tun: "tn", tur: "tr", ury: "uy", usa: "us", uzb: "uz",
+};
+
+export function getTeamFlagUrl(id: string): string {
+  const iso2 = fifaToIso2[id];
+  if (!iso2) return "";
+  return `https://flagcdn.com/24x18/${iso2}.png`;
+}
+
+export function getTeamFlagUrlBig(id: string): string {
+  const iso2 = fifaToIso2[id];
+  if (!iso2) return "";
+  return `https://flagcdn.com/32x24/${iso2}.png`;
+}
+
+export function getTeamIdByName(name: string): string | undefined {
+  return Object.entries(teamNames).find(([, v]) => v === name)?.[0];
+}
+
 // ─── Groups ───────────────────────────────────────────────────────────
 export const groups: string[] = [
 
@@ -1791,5 +1819,48 @@ export function getUpcomingMatches(limit: number = 6): Match[] {
   return matches
     .filter((m) => new Date(m.date + "T" + m.time) > now)
     .slice(0, limit);
+}
+
+// ─── Group helpers ────────────────────────────────────────────────────
+export function getGroupSlug(groupName: string): string {
+  return groupName.replace("Group ", "").toLowerCase();
+}
+
+export function getGroupFromSlug(slug: string): string | undefined {
+  return groups.find((g) => getGroupSlug(g) === slug);
+}
+
+export function getTeamsByGroup(groupName: string): TeamInfo[] {
+  return teams.filter((t) => t.group === groupName);
+}
+
+export function getMatchesByGroup(groupName: string): Match[] {
+  const groupTeams = getTeamsByGroup(groupName).map((t) => t.name);
+  return matches.filter(
+    (m) =>
+      m.stage === "GROUP_STAGE" &&
+      groupTeams.includes(m.homeTeam) &&
+      groupTeams.includes(m.awayTeam)
+  );
+}
+
+export function getGroupStandings(groupName: string): StandingEntry[] {
+  const groupTeams = getTeamsByGroup(groupName).map((t) => t.name);
+  return standings.filter((s) => groupTeams.includes(s.team));
+}
+
+// ─── Team helpers ─────────────────────────────────────────────────────
+export function getTeamById(id: string): TeamInfo | undefined {
+  return teams.find((t) => t.id === id);
+}
+
+export function getMatchesByTeam(teamName: string): Match[] {
+  return matches.filter(
+    (m) => m.homeTeam === teamName || m.awayTeam === teamName
+  );
+}
+
+export function getTeamFlag(id: string): string {
+  return getTeamFlagUrl(id);
 }
 

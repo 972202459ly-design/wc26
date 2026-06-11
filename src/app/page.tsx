@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { matches, getTodayMatches, getUpcomingMatches } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
+import AdPlaceholder from "@/components/AdPlaceholder";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
 
@@ -48,27 +49,43 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative py-20 sm:py-28 text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h1 className="text-4xl sm:text-6xl font-bold mb-4">
+      <section className="relative py-24 sm:py-32 text-center overflow-hidden">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1400&q=80')",
+            backgroundPosition: "center 30%",
+          }}
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-[#0a0a0a]" />
+        {/* Animated gradient accent */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-b from-[#f0a500]/10 to-transparent blur-3xl" />
+
+        <div className="relative max-w-3xl mx-auto px-4">
+          <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a500] mb-4">
+            June 11 — July 19, 2026
+          </span>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
             2026 FIFA World Cup
           </h1>
-          <p className="text-lg text-[#888] mb-8">
+          <p className="text-lg sm:text-xl text-[#aaa] mb-8 max-w-2xl mx-auto">
             Hosted across the United States, Canada, and Mexico. 48 teams. One
             trophy.
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
               href="/schedule"
-              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+              className="px-6 py-3 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
             >
-              View Schedule
+              View Full Schedule
             </Link>
             <Link
               href="/standings"
               className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
             >
-              Standings
+              Live Standings
             </Link>
           </div>
         </div>
@@ -113,6 +130,11 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Ad banner */}
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <AdPlaceholder size="banner" />
+      </section>
+
       {/* Upcoming Matches */}
       <section className="max-w-7xl mx-auto px-4 pb-16">
         <h2 className="text-xl font-bold mb-4">Upcoming Matches</h2>
@@ -121,6 +143,11 @@ export default function HomePage() {
             <MatchCard key={match.id} match={match} />
           ))}
         </div>
+      </section>
+
+      {/* Ad banner */}
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <AdPlaceholder size="banner" />
       </section>
 
       {/* CTA */}
