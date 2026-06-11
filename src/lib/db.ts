@@ -70,6 +70,56 @@ export async function getLastSyncTime(): Promise<Date | null> {
   return new Date((rows as any)[0].updated_at);
 }
 
+// ─── Subscribers ──────────────────────────────────────────────────────
+
+export async function ensureSubscribersTable(): Promise<void> {
+  await sql`DROP TABLE IF EXISTS sub_test`; // cleanup from debugging
+  await sql`
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      preferences TEXT NOT NULL DEFAULT 'daily',
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+}
+
+export async function subscribeEmail(
+  email: string,
+  preferences: string
+): Promise<{ id: number; email: string; preferences: string }> {
+  const result = await sql`
+    INSERT INTO subscribers (email, preferences)
+    VALUES (${email}, ${preferences})
+    ON CONFLICT (email) DO UPDATE SET preferences = EXCLUDED.preferences
+    RETURNING id, email, preferences
+  `;
+  return result[0] as unknown as { id: number; email: string; preferences: string };
+}
+
+export async function getSubscribers(): Promise<{ email: string; preferences: string }[]> {
+  const rows = await sql`
+    SELECT email, preferences FROM subscribers
+  `;
+  return rows as unknown as { email: string; preferences: string }[];
+}
+
+// ─── Subscriptions (Paddle) ───────────────────────────────────────────
+
+export async function ensureSubscriptionsTable(): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id SERIAL PRIMARY KEY,
+      paddle_subscription_id TEXT UNIQUE NOT NULL,
+      customer_id TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'active',
+      plan_type TEXT NOT NULL DEFAULT 'monthly',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `;
+}
+
 // ─── Tweet tracking ───────────────────────────────────────────────────
 
 export async function ensureTweetTable(): Promise<void> {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
+import { ensureSubscribersTable, subscribeEmail } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,16 +13,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sql = neon(process.env.DATABASE_URL!);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Invalid email format" },
+        { status: 400 }
+      );
+    }
 
-    const result = await sql`
-      INSERT INTO subscribers (email, preferences, created_at)
-      VALUES (${email}, ${preferences || "daily"}, NOW())
-      ON CONFLICT (email) DO UPDATE SET preferences = ${preferences || "daily"}
-      RETURNING id, email, preferences
-    `;
+    await ensureSubscribersTable();
+    const subscriber = await subscribeEmail(email, preferences || "daily");
 
-    return NextResponse.json({ success: true, subscriber: result[0] });
+    return NextResponse.json({ success: true, subscriber });
   } catch (error) {
     console.error("Subscribe error:", error);
     return NextResponse.json(

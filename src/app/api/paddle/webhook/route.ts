@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
+import { ensureSubscriptionsTable, ensureSubscribersTable, subscribeEmail } from "@/lib/db";
 import { EventName, Webhooks } from "@paddle/paddle-node-sdk";
 
 export async function POST(request: NextRequest) {
@@ -58,6 +59,8 @@ export async function POST(request: NextRequest) {
 
     const sql = neon(process.env.DATABASE_URL!);
 
+    await ensureSubscriptionsTable();
+
     if (eventType === EventName.SubscriptionCanceled) {
       await sql`
         UPDATE subscriptions
@@ -75,6 +78,18 @@ export async function POST(request: NextRequest) {
           plan_type = ${planType},
           updated_at = NOW()
       `;
+
+      // Auto-subscribe paying users to email notifications
+      const customerEmail: string | undefined = data.customerEmail || data.customer_email || data.email;
+      if (
+        customerEmail &&
+        (eventType === EventName.SubscriptionCreated ||
+          eventType === EventName.SubscriptionActivated)
+      ) {
+        await ensureSubscribersTable();
+        await subscribeEmail(customerEmail, "all");
+        console.log(`Auto-subscribed ${customerEmail} to email notifications`);
+      }
     }
 
     return NextResponse.json({ received: true });

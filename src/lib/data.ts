@@ -1367,7 +1367,7 @@ export const matches: Match[] = [
     stage: "GROUP_STAGE",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1380,7 +1380,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-2",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1393,7 +1393,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-3",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1406,7 +1406,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-4",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1419,7 +1419,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-5",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1432,7 +1432,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-6",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1445,7 +1445,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-7",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1458,7 +1458,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-8",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1471,7 +1471,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-9",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1484,7 +1484,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-10",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1497,7 +1497,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-11",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1510,7 +1510,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-12",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1523,7 +1523,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-13",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1536,7 +1536,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-14",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1549,7 +1549,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-15",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1562,7 +1562,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_32-16",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1575,7 +1575,7 @@ export const matches: Match[] = [
     stage: "LAST_32",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1588,7 +1588,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-2",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1601,7 +1601,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-3",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1614,7 +1614,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-4",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1627,7 +1627,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-5",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1640,7 +1640,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-6",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1653,7 +1653,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-7",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1666,7 +1666,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-last_16-8",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1679,7 +1679,7 @@ export const matches: Match[] = [
     stage: "LAST_16",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-quarter_finals-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1692,7 +1692,7 @@ export const matches: Match[] = [
     stage: "QUARTER_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-quarter_finals-2",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1705,7 +1705,7 @@ export const matches: Match[] = [
     stage: "QUARTER_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-quarter_finals-3",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1718,7 +1718,7 @@ export const matches: Match[] = [
     stage: "QUARTER_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-quarter_finals-4",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1731,7 +1731,7 @@ export const matches: Match[] = [
     stage: "QUARTER_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-semi_finals-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1744,7 +1744,7 @@ export const matches: Match[] = [
     stage: "SEMI_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-semi_finals-2",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1757,7 +1757,7 @@ export const matches: Match[] = [
     stage: "SEMI_FINALS",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-third_place-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
@@ -1770,7 +1770,7 @@ export const matches: Match[] = [
     stage: "THIRD_PLACE",
   },
   {
-    id: "tbd-tbd",
+    id: "ko-final-1",
     homeTeam: "TBD",
     awayTeam: "TBD",
     homeScore: null,
