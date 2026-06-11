@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-
-declare global {
-  interface Window {
-    Paddle: any;
-  }
-}
+import { useEffect, useState } from "react";
+import type { Paddle } from "@paddle/paddle-js";
 
 const plans = [
   {
@@ -21,8 +16,7 @@ const plans = [
       "Daily digest",
       "Ad-free experience",
     ],
-    priceId:
-      process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || "pri_monthly_fallback",
+    priceId: process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || "",
     popular: false,
   },
   {
@@ -36,41 +30,45 @@ const plans = [
       "Priority support",
       "No recurring charges",
     ],
-    priceId:
-      process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID ||
-      "pri_tournament_fallback",
+    priceId: process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID || "",
     popular: true,
   },
 ];
 
 export default function PremiumPage() {
+  const [paddle, setPaddle] = useState<Paddle | null>(null);
+
   useEffect(() => {
-    document.title =
-      "Premium - WC26 Live";
+    document.title = "Premium - WC26 Live";
   }, []);
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.Paddle && process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN) {
-        window.Paddle.Initialize({
-          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
+    const initPaddle = async () => {
+      try {
+        const { initializePaddle } = await import("@paddle/paddle-js");
+        const instance = await initializePaddle({
+          environment:
+            process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
+              ? "production"
+              : "sandbox",
+          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!,
         });
+        if (instance) setPaddle(instance);
+      } catch {
+        console.warn("Paddle failed to initialize");
       }
     };
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
+    initPaddle();
   }, []);
 
   const handleCheckout = (priceId: string) => {
-    if (!window.Paddle) return;
-    window.Paddle.Checkout.open({
+    if (!paddle) return;
+    paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
-      allowLogout: false,
+      settings: {
+        displayMode: "overlay",
+        theme: "dark",
+      },
     });
   };
 
@@ -127,9 +125,10 @@ export default function PremiumPage() {
             </ul>
             <button
               onClick={() => handleCheckout(plan.priceId)}
-              className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
+              disabled={!paddle}
+              className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Subscribe Now
+              {paddle ? "Subscribe Now" : "Loading..."}
             </button>
           </div>
         ))}
