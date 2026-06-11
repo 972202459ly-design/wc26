@@ -5,10 +5,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import MatchCountdown from "@/components/MatchCountdown";
+import EventsTimeline from "@/components/EventsTimeline";
+import { useTranslations } from "next-intl";
 
 export default function MatchDetail({ match: initial }: { match: Match }) {
   const [match, setMatch] = useState(initial);
   const isLive = match.status === "live";
+  const t = useTranslations("match");
 
   const homeId = getTeamIdByName(match.homeTeam) || "";
   const awayId = getTeamIdByName(match.awayTeam) || "";
@@ -70,7 +74,7 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
         href="/schedule"
         className="text-sm text-[#888] hover:text-white mb-6 inline-block"
       >
-        &larr; Back to Schedule
+        {t("backToSchedule")}
       </Link>
 
       <div className="text-center">
@@ -81,7 +85,7 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
         {isLive && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-green-400 bg-green-400/10 rounded-full mb-4">
             <span className="live-dot" />
-            Live
+            {t("live")}
           </span>
         )}
 
@@ -105,6 +109,13 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
           , {match.time}
         </p>
 
+        {/* Countdown for upcoming matches */}
+        {match.status === "upcoming" && (
+          <div className="mb-6">
+            <MatchCountdown date={match.date} time={match.time} />
+          </div>
+        )}
+
         {/* Share button */}
         <button
           onClick={() =>
@@ -119,9 +130,20 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
           </svg>
-          Share on X
+          {t("shareOnX")}
         </button>
       </div>
+
+      {/* Match Events Timeline */}
+      {(match.status === "live" || match.status === "finished") && (
+        <EventsTimeline
+          matchId={match.id}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          isFinished={match.status === "finished"}
+          isLive={match.status === "live"}
+        />
+      )}
 
       {/* Ad banner */}
       <div className="mt-8">
@@ -130,25 +152,25 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
 
       {/* Affiliate — team gear */}
       <div className="mt-6 rounded-xl border border-[#222] bg-[#111] p-5 text-center">
-        <p className="text-sm font-semibold mb-3">Get Team Gear</p>
+        <p className="text-sm font-semibold mb-3">{t("getTeamGear")}</p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <a
             href={amazonSearchLink(`${match.homeTeam} jersey World Cup 2026`)}
             target="_blank" rel="noopener noreferrer"
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            {match.homeTeam} Jersey
+            {match.homeTeam} {t("jersey")}
           </a>
           <a
             href={amazonSearchLink(`${match.awayTeam} jersey World Cup 2026`)}
             target="_blank" rel="noopener noreferrer"
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            {match.awayTeam} Jersey
+            {match.awayTeam} {t("jersey")}
           </a>
         </div>
         <p className="text-[10px] text-[#555] mt-2">
-          As an Amazon Associate we earn from qualifying purchases.
+          {t("affiliateNotice")}
         </p>
       </div>
     </div>

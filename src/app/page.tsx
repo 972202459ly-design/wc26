@@ -6,6 +6,7 @@ import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 interface LiveMatch {
   match_id: string;
@@ -32,6 +33,10 @@ function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
 
 export default function HomePage() {
   const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
+  const t = useTranslations("home");
+  const navT = useTranslations("home.quickNav");
+  const shopT = useTranslations("home.shop");
+  const ctaT = useTranslations("home.cta");
 
   useEffect(() => {
     fetch("/api/scores")
@@ -50,7 +55,6 @@ export default function HomePage() {
     <div>
       {/* Hero Section */}
       <section className="relative py-24 sm:py-32 text-center overflow-hidden">
-        {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -58,34 +62,31 @@ export default function HomePage() {
             backgroundPosition: "center 30%",
           }}
         />
-        {/* Dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-[#0a0a0a]" />
-        {/* Animated gradient accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-b from-[#f0a500]/10 to-transparent blur-3xl" />
 
         <div className="relative max-w-3xl mx-auto px-4">
           <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a500] mb-4">
-            June 11 — July 19, 2026
+            {t("heroDate")}
           </span>
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-            2026 FIFA World Cup
+            {t("heroTitle")}
           </h1>
           <p className="text-lg sm:text-xl text-[#aaa] mb-8 max-w-2xl mx-auto">
-            Hosted across the United States, Canada, and Mexico. 48 teams. One
-            trophy.
+            {t("heroSubtitle")}
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
               href="/schedule"
               className="px-6 py-3 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
             >
-              View Full Schedule
+              {t("viewFullSchedule")}
             </Link>
             <Link
               href="/standings"
               className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
             >
-              Live Standings
+              {t("liveStandings")}
             </Link>
           </div>
         </div>
@@ -95,10 +96,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-12">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { href: "/schedule", label: "Schedule", desc: "Full match schedule" },
-            { href: "/standings", label: "Standings", desc: "Group standings" },
-            { href: "/teams", label: "Teams", desc: "All 48 teams" },
-            { href: "/subscribe", label: "Subscribe", desc: "Free match alerts" },
+            { href: "/schedule", label: navT("schedule"), desc: navT("scheduleDesc") },
+            { href: "/standings", label: navT("standings"), desc: navT("standingsDesc") },
+            { href: "/teams", label: navT("teams"), desc: navT("teamsDesc") },
+            { href: "/subscribe", label: navT("subscribe"), desc: navT("subscribeDesc") },
           ].map((card) => (
             <Link
               key={card.href}
@@ -114,7 +115,7 @@ export default function HomePage() {
 
       {/* Today's Matches */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-xl font-bold mb-4">Today&apos;s Matches</h2>
+        <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>
         {mergedToday.length > 0 ? (
           <div className="grid gap-3">
             {mergedToday.map((match) => (
@@ -124,7 +125,7 @@ export default function HomePage() {
         ) : (
           <div className="text-center py-12 bg-[#111] rounded-xl border border-[#222]">
             <p className="text-[#888]">
-              No matches scheduled for today.
+              {t("noMatchesToday")}
             </p>
           </div>
         )}
@@ -137,7 +138,7 @@ export default function HomePage() {
 
       {/* Upcoming Matches */}
       <section className="max-w-7xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-bold mb-4">Upcoming Matches</h2>
+        <h2 className="text-xl font-bold mb-4">{t("upcomingMatches")}</h2>
         <div className="grid gap-3">
           {mergedUpcoming.map((match) => (
             <MatchCard key={match.id} match={match} />
@@ -154,12 +155,11 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <div className="rounded-xl border border-[#f0a500]/20 bg-gradient-to-br from-[#1e1e35] to-[#111] p-8 text-center">
           <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-4">
-            Sponsored
+            {shopT("sponsored")}
           </span>
-          <h2 className="text-2xl font-bold mb-2">🏆 Official World Cup Shop</h2>
+          <h2 className="text-2xl font-bold mb-2">{shopT("title")}</h2>
           <p className="text-sm text-[#888] mb-6 max-w-lg mx-auto">
-            Rep your favorite team with official jerseys, flags, balls &amp; fan gear.
-            Best prices on Amazon.
+            {shopT("description")}
           </p>
           <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
             <a
@@ -168,7 +168,7 @@ export default function HomePage() {
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
               <span className="text-3xl">👕</span>
-              <span className="text-xs font-semibold">Jerseys</span>
+              <span className="text-xs font-semibold">{shopT("jerseys")}</span>
             </a>
             <a
               href={amazonSearchLink("World Cup 2026 flag")}
@@ -176,7 +176,7 @@ export default function HomePage() {
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
               <span className="text-3xl">🚩</span>
-              <span className="text-xs font-semibold">Flags</span>
+              <span className="text-xs font-semibold">{shopT("flags")}</span>
             </a>
             <a
               href={amazonSearchLink("soccer ball size 5 official match")}
@@ -184,7 +184,7 @@ export default function HomePage() {
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
               <span className="text-3xl">⚽</span>
-              <span className="text-xs font-semibold">Balls</span>
+              <span className="text-xs font-semibold">{shopT("balls")}</span>
             </a>
           </div>
           <a
@@ -192,10 +192,10 @@ export default function HomePage() {
             target="_blank" rel="noopener noreferrer"
             className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            Browse All Fan Gear &rarr;
+            {shopT("browseAll")}
           </a>
           <p className="text-[10px] text-[#555] mt-3">
-            As an Amazon Associate we earn from qualifying purchases.
+            {shopT("affiliateNotice")}
           </p>
         </div>
       </section>
@@ -203,16 +203,15 @@ export default function HomePage() {
       {/* CTA */}
       <section className="border-t border-[#222] py-16 text-center">
         <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-3">Never Miss a Goal</h2>
+          <h2 className="text-2xl font-bold mb-3">{ctaT("title")}</h2>
           <p className="text-[#888] mb-6">
-            Get real-time goal alerts, match reminders, and daily digests
-            delivered to your inbox. Free.
+            {ctaT("description")}
           </p>
           <Link
             href="/subscribe"
             className="inline-block px-6 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
           >
-            Subscribe Free
+            {ctaT("button")}
           </Link>
         </div>
       </section>

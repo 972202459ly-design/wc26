@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AmazonStickyBar from "@/components/AmazonStickyBar";
 import Script from "next/script";
+import { NextIntlClientProvider } from "next-intl";
+import { getServerLocale } from "@/i18n/request";
 
 export const metadata: Metadata = {
   title: {
@@ -37,18 +39,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getServerLocale();
+
+  let messages: Record<string, unknown>;
+  try {
+    messages = (await import(`../../messages/${locale}.json`)).default as Record<string, unknown>;
+  } catch {
+    messages = (await import(`../../messages/en.json`)).default as Record<string, unknown>;
+  }
+
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang={locale} className="h-full antialiased">
       <head>
-        {/* Google AdSense — plain <script> for crawler detection */}
         {adsenseClient && (
           <script
             async
@@ -56,14 +66,17 @@ export default function RootLayout({
             crossOrigin="anonymous"
           />
         )}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0a0a0a" />
       </head>
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-[#e5e5e5]">
-        <Header />
-        <main className="flex-1 pb-14">{children}</main>
-        <AmazonStickyBar />
-        <Footer />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Header />
+          <main className="flex-1 pb-14">{children}</main>
+          <AmazonStickyBar />
+          <Footer />
+        </NextIntlClientProvider>
 
-        {/* Google Analytics */}
         {gaId && (
           <>
             <Script

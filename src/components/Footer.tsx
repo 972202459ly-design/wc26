@@ -1,71 +1,93 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { getServerLocale } from "@/i18n/request";
 
-const footerLinks = [
-  { href: "/", label: "Home" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/standings", label: "Standings" },
-  { href: "/groups", label: "Groups" },
-  { href: "/teams", label: "Teams" },
-  { href: "/subscribe", label: "Get Alerts" },
-];
+export default async function Footer() {
+  const locale = await getServerLocale();
+  const t = await getTranslations({ locale, namespace: "footer" });
 
-export default function Footer() {
   return (
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-bg)]">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
         <div className="grid gap-8 sm:grid-cols-3">
           {/* Brand */}
           <div>
-            <h3 className="font-bold text-lg mb-3">WC26 Live</h3>
+            <h3 className="font-bold text-lg mb-3">{t("brand")}</h3>
             <p className="text-sm text-[#888] leading-relaxed">
-              Your free, real-time tracker for the 2026 FIFA World Cup. Live
-              scores, schedules, standings, and match alerts.
+              {t("description")}
             </p>
           </div>
 
           {/* Navigation */}
           <div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-3">
-              Links
+              {t("linksTitle")}
             </h4>
             <div className="grid grid-cols-2 gap-2">
-              {footerLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-[#888] hover:text-white transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              <Link
+                href="/"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("home")}
+              </Link>
+              <Link
+                href="/schedule"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("schedule")}
+              </Link>
+              <Link
+                href="/standings"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("standings")}
+              </Link>
+              <Link
+                href="/groups"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("groups")}
+              </Link>
+              <Link
+                href="/teams"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("teams")}
+              </Link>
+              <Link
+                href="/subscribe"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("getAlerts")}
+              </Link>
             </div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mt-4 mb-3">
-              Legal
+              {t("legalTitle")}
             </h4>
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/tos"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >
-                Terms of Service
+                {t("tos")}
               </Link>
               <Link
                 href="/privacy"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >
-                Privacy Policy
+                {t("privacy")}
               </Link>
               <Link
                 href="/refund"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >
-                Refund Policy
+                {t("refund")}
               </Link>
               <Link
                 href="/premium"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >
-                Pricing
+                {t("pricing")}
               </Link>
             </div>
           </div>
@@ -73,18 +95,16 @@ export default function Footer() {
           {/* Disclaimer */}
           <div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-3">
-              Disclaimer
+              {t("disclaimerTitle")}
             </h4>
             <p className="text-xs text-[#888] leading-relaxed">
-              WC26 Live is an independent fan project and is not affiliated with
-              FIFA or any official football governing body. All data is for
-              informational purposes only.
+              {t("disclaimerText")}
             </p>
           </div>
         </div>
 
         <div className="mt-8 pt-6 border-t border-[var(--color-border)] text-center text-xs text-[#888]">
-          &copy; {new Date().getFullYear()} WC26 Live. All rights reserved.
+          {t("copyright", { year: new Date().getFullYear() })}
         </div>
       </div>
     </footer>

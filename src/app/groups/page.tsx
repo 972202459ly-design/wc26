@@ -2,17 +2,26 @@ import { groups, teams, getGroupSlug, getTeamFlagUrl } from "@/lib/data";
 import Link from "next/link";
 import type { Metadata } from "next";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import { getTranslations } from "next-intl/server";
+import { getServerLocale } from "@/i18n/request";
 
-export const metadata: Metadata = {
-  title: "Groups",
-  description: "2026 FIFA World Cup group standings and schedules — all 12 groups.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  const t = await getTranslations({ locale, namespace: "groups" });
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
-export default function GroupsPage() {
+export default async function GroupsPage() {
+  const locale = await getServerLocale();
+  const t = await getTranslations({ locale, namespace: "groups" });
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Groups</h1>
-      <p className="text-[#888] mb-8">2026 FIFA World Cup — 12 groups, 48 teams</p>
+      <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+      <p className="text-[#888] mb-8">{t("subtitle")}</p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {groups.map((group) => {

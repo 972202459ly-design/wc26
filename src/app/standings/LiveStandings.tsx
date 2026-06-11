@@ -2,8 +2,9 @@
 
 import { StandingEntry, TeamInfo } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { getTeamFlagUrl, getTeamIdByName } from "@/lib/data";
+import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import { useTranslations } from "next-intl";
 
 interface LiveMatch {
   api_id: number;
@@ -89,6 +90,9 @@ export default function LiveStandings({
 }) {
   const [liveGroups, setLiveGroups] = useState<GroupTable[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("standings");
+  const h = useTranslations("standings.tableHeaders");
+  const shopT = useTranslations("standings.shop");
 
   useEffect(() => {
     fetch("/api/scores")
@@ -121,13 +125,13 @@ export default function LiveStandings({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Group Standings</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
       {loading && liveGroups === null && (
-        <p className="text-sm text-[#888] mb-6">Loading live scores...</p>
+        <p className="text-sm text-[#888] mb-6">{t("loading")}</p>
       )}
       {liveGroups && (
         <p className="text-sm text-green-400 mb-6">
-          Live — auto-updating from official FIFA data
+          {t("liveBadge")}
         </p>
       )}
 
@@ -142,20 +146,20 @@ export default function LiveStandings({
             </div>
             {teams.length === 0 ? (
               <div className="px-4 py-6 text-center text-sm text-[#666]">
-                No matches played yet
+                {t("noMatches")}
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-[#888] uppercase tracking-wider">
-                    <th className="text-left px-4 py-2 w-8">#</th>
-                    <th className="text-left px-2 py-2">Team</th>
-                    <th className="text-center px-2 py-2">P</th>
-                    <th className="text-center px-2 py-2">W</th>
-                    <th className="text-center px-2 py-2">D</th>
-                    <th className="text-center px-2 py-2">L</th>
-                    <th className="text-center px-2 py-2">GD</th>
-                    <th className="text-center px-2 py-2 font-bold">Pts</th>
+                    <th className="text-left px-4 py-2 w-8">{h("pos")}</th>
+                    <th className="text-left px-2 py-2">{h("team")}</th>
+                    <th className="text-center px-2 py-2">{h("played")}</th>
+                    <th className="text-center px-2 py-2">{h("won")}</th>
+                    <th className="text-center px-2 py-2">{h("drawn")}</th>
+                    <th className="text-center px-2 py-2">{h("lost")}</th>
+                    <th className="text-center px-2 py-2">{h("gd")}</th>
+                    <th className="text-center px-2 py-2 font-bold">{h("pts")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,6 +205,64 @@ export default function LiveStandings({
             )}
           </div>
         ))}
+      </div>
+
+      {/* Amazon Affiliate — Top Teams Gear */}
+      <div className="mt-10 rounded-xl border border-[#f0a500]/20 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center">
+        <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-3">
+          {shopT("sponsored")}
+        </span>
+        <h2 className="text-xl font-bold mb-2">{shopT("title")}</h2>
+        <p className="text-sm text-[#888] mb-5 max-w-lg mx-auto">
+          {shopT("description")}
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <a
+            href={amazonSearchLink("Brazil jersey 2026 World Cup")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+          >
+            {shopT("brazil")}
+          </a>
+          <a
+            href={amazonSearchLink("Argentina jersey 2026 World Cup")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#222] text-white hover:bg-[#333] border border-[#444] transition-colors"
+          >
+            {shopT("argentina")}
+          </a>
+          <a
+            href={amazonSearchLink("Germany jersey 2026 World Cup")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#222] text-white hover:bg-[#333] border border-[#444] transition-colors"
+          >
+            {shopT("germany")}
+          </a>
+          <a
+            href={amazonSearchLink("France jersey 2026 World Cup")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#222] text-white hover:bg-[#333] border border-[#444] transition-colors"
+          >
+            {shopT("france")}
+          </a>
+          <a
+            href={amazonSearchLink("England jersey 2026 World Cup")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#222] text-white hover:bg-[#333] border border-[#444] transition-colors"
+          >
+            {shopT("england")}
+          </a>
+        </div>
+        <a
+          href={amazonSearchLink("World Cup 2026 fan gear")}
+          target="_blank" rel="noopener noreferrer"
+          className="inline-block mt-3 px-6 py-2 text-xs font-bold rounded-lg border border-[#f0a500]/40 text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
+        >
+          {shopT("browseAll")}
+        </a>
+        <p className="text-[10px] text-[#555] mt-3">
+          {shopT("affiliateNotice")}
+        </p>
       </div>
 
       <div className="mt-8">

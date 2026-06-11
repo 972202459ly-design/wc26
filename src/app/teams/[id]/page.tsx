@@ -4,12 +4,15 @@ import {
   getMatchesByTeam,
   getTeamFlagUrl,
   getTeamIdByName,
+  amazonSearchLink,
 } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import { getTranslations } from "next-intl/server";
+import { getServerLocale } from "@/i18n/request";
 
 export function generateStaticParams() {
   return teams.map((t) => ({ id: t.id }));
@@ -43,6 +46,10 @@ export default async function TeamPage({
   const team = getTeamById(id);
   if (!team) notFound();
 
+  const locale = await getServerLocale();
+  const t = await getTranslations({ locale, namespace: "team" });
+  const shopT = await getTranslations({ locale, namespace: "team.shop" });
+
   const teamMatches = getMatchesByTeam(team.name);
   const teamFlag = getTeamFlagUrl(team.id);
 
@@ -56,7 +63,7 @@ export default async function TeamPage({
     <div className="max-w-4xl mx-auto px-4 py-8">
       <nav className="text-sm text-[#888] mb-4">
         <Link href="/teams" className="hover:text-white transition-colors">
-          Teams
+          {t("breadcrumb")}
         </Link>
         <span className="mx-2">/</span>
         <span className="text-white">{team.name}</span>
@@ -82,7 +89,7 @@ export default async function TeamPage({
       {live.length > 0 && (
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-4 text-green-400">
-            Live Now
+            {t("liveNow")}
           </h2>
           <div className="space-y-3">
             {live.map((m) => (
@@ -94,9 +101,9 @@ export default async function TeamPage({
 
       {/* Upcoming matches */}
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">Upcoming Matches</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("upcoming")}</h2>
         {upcoming.length === 0 ? (
-          <p className="text-[#888]">No upcoming matches.</p>
+          <p className="text-[#888]">{t("noUpcoming")}</p>
         ) : (
           <div className="space-y-3">
             {upcoming.map((m) => (
@@ -109,7 +116,7 @@ export default async function TeamPage({
       {/* Finished matches */}
       {finished.length > 0 && (
         <section>
-          <h2 className="text-xl font-semibold mb-4">Results</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("results")}</h2>
           <div className="space-y-3">
             {finished.map((m) => (
               <MatchCard key={m.id} match={m} team={team.name} />
@@ -120,7 +127,33 @@ export default async function TeamPage({
 
       {/* No matches at all */}
       {teamMatches.length === 0 && (
-        <p className="text-[#888]">No matches found for this team.</p>
+        <p className="text-[#888]">{t("noMatches")}</p>
+      )}
+
+      {/* Amazon Affiliate — Team gear */}
+      {teamMatches.length > 0 && (
+        <div className="mt-8 rounded-xl border border-[#f0a500]/20 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center">
+          <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-3">
+            {shopT("sponsored")}
+          </span>
+          <h2 className="text-xl font-bold mb-2">
+            {teamFlag && <img src={teamFlag} alt="" className="w-6 h-4 inline-block mr-2 align-middle" />}
+            {shopT("getGear", { team: team.name })}
+          </h2>
+          <p className="text-sm text-[#888] mb-5 max-w-lg mx-auto">
+            {shopT("description", { team: team.name })}
+          </p>
+          <a
+            href={amazonSearchLink(`${team.name} jersey World Cup 2026`)}
+            target="_blank" rel="noopener noreferrer"
+            className="inline-block px-6 py-2.5 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+          >
+            {shopT("shopJerseys", { team: team.name })}
+          </a>
+          <p className="text-[10px] text-[#555] mt-3">
+            {shopT("affiliateNotice")}
+          </p>
+        </div>
       )}
 
       <div className="mt-8">

@@ -12,6 +12,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import { getTranslations } from "next-intl/server";
+import { getServerLocale } from "@/i18n/request";
 
 export function generateStaticParams() {
   return groups.map((g) => ({ slug: getGroupSlug(g) }));
@@ -48,6 +50,10 @@ export default async function GroupPage({
   const group = getGroupFromSlug(slug);
   if (!group) notFound();
 
+  const locale = await getServerLocale();
+  const t = await getTranslations({ locale, namespace: "group" });
+  const h = await getTranslations({ locale, namespace: "group.tableHeaders" });
+
   const groupTeams = getTeamsByGroup(group);
   const groupMatches = getMatchesByGroup(group);
   const groupStandings = getGroupStandings(group);
@@ -56,7 +62,7 @@ export default async function GroupPage({
     <div className="max-w-4xl mx-auto px-4 py-8">
       <nav className="text-sm text-[#888] mb-4">
         <Link href="/groups" className="hover:text-white transition-colors">
-          Groups
+          {t("breadcrumb")}
         </Link>
         <span className="mx-2">/</span>
         <span className="text-white">{group}</span>
@@ -71,21 +77,21 @@ export default async function GroupPage({
 
       {/* Standings Table */}
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">Standings</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("standings")}</h2>
         <div className="overflow-x-auto rounded-xl border border-[#222]">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[#111] text-[#888] text-xs uppercase tracking-wider">
-                <th className="p-3 text-left">#</th>
-                <th className="p-3 text-left">Team</th>
-                <th className="p-3 text-center">P</th>
-                <th className="p-3 text-center">W</th>
-                <th className="p-3 text-center">D</th>
-                <th className="p-3 text-center">L</th>
-                <th className="p-3 text-center">GF</th>
-                <th className="p-3 text-center">GA</th>
-                <th className="p-3 text-center">GD</th>
-                <th className="p-3 text-center font-bold text-white">Pts</th>
+                <th className="p-3 text-left">{h("pos")}</th>
+                <th className="p-3 text-left">{h("team")}</th>
+                <th className="p-3 text-center">{h("played")}</th>
+                <th className="p-3 text-center">{h("won")}</th>
+                <th className="p-3 text-center">{h("drawn")}</th>
+                <th className="p-3 text-center">{h("lost")}</th>
+                <th className="p-3 text-center">{h("gf")}</th>
+                <th className="p-3 text-center">{h("ga")}</th>
+                <th className="p-3 text-center">{h("gd")}</th>
+                <th className="p-3 text-center font-bold text-white">{h("pts")}</th>
               </tr>
             </thead>
             <tbody>
@@ -113,7 +119,7 @@ export default async function GroupPage({
 
       {/* Teams */}
       <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">Teams</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("teams")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {groupTeams.map((t) => (
             <Link
@@ -135,9 +141,9 @@ export default async function GroupPage({
 
       {/* Matches */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Match Schedule</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("matchSchedule")}</h2>
         {groupMatches.length === 0 ? (
-          <p className="text-[#888]">No matches scheduled yet.</p>
+          <p className="text-[#888]">{t("noMatches")}</p>
         ) : (
           <div className="space-y-3">
             {groupMatches.map((m) => {

@@ -1,0 +1,187 @@
+{
+  "nav": {
+    "home": "Home",
+    "schedule": "Schedule",
+    "standings": "Standings",
+    "groups": "Groups",
+    "teams": "Teams",
+    "premium": "Premium"
+  },
+  "home": {
+    "heroDate": "June 11 — July 19, 2026",
+    "heroTitle": "2026 FIFA World Cup",
+    "heroSubtitle": "Hosted across the United States, Canada, and Mexico. 48 teams. One trophy.",
+    "viewFullSchedule": "View Full Schedule",
+    "liveStandings": "Live Standings",
+    "quickNav": {
+      "schedule": "Schedule",
+      "scheduleDesc": "Full match schedule",
+      "standings": "Standings",
+      "standingsDesc": "Group standings",
+      "teams": "Teams",
+      "teamsDesc": "All 48 teams",
+      "subscribe": "Subscribe",
+      "subscribeDesc": "Free match alerts"
+    },
+    "todaysMatches": "Today's Matches",
+    "noMatchesToday": "No matches scheduled for today.",
+    "upcomingMatches": "Upcoming Matches",
+    "shop": {
+      "sponsored": "Sponsored",
+      "title": "🏆 Official World Cup Shop",
+      "description": "Rep your favorite team with official jerseys, flags, balls & fan gear. Best prices on Amazon.",
+      "jerseys": "Jerseys",
+      "flags": "Flags",
+      "balls": "Balls",
+      "browseAll": "Browse All Fan Gear →",
+      "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
+    },
+    "cta": {
+      "title": "Never Miss a Goal",
+      "description": "Get real-time goal alerts, match reminders, and daily digests delivered to your inbox. Free.",
+      "button": "Subscribe Free"
+    }
+  },
+  "schedule": {
+    "title": "Match Schedule",
+    "shop": {
+      "sponsored": "Sponsored",
+      "title": "🎽 Match Day Gear",
+      "description": "Get kitted out for match day — official jerseys, training wear & fan essentials.",
+      "shopJerseys": "👕 Shop Jerseys",
+      "tShirts": "🇺🇸 T-Shirts",
+      "hats": "🧢 Hats",
+      "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
+    }
+  },
+  "standings": {
+    "title": "Group Standings",
+    "loading": "Loading live scores...",
+    "liveBadge": "Live — auto-updating from official FIFA data",
+    "tableHeaders": {
+      "pos": "#",
+      "team": "Team",
+      "played": "P",
+      "won": "W",
+      "drawn": "D",
+      "lost": "L",
+      "gd": "GD",
+      "pts": "Pts"
+    },
+    "noMatches": "No matches played yet",
+    "shop": {
+      "sponsored": "Sponsored",
+      "title": "🏆 Top Teams — Official Gear",
+      "description": "Support the top contenders with official jerseys, training kits & fan merchandise.",
+      "brazil": "🇧🇷 Brazil",
+      "argentina": "🇦🇷 Argentina",
+      "germany": "🇩🇪 Germany",
+      "france": "🇫🇷 France",
+      "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England",
+      "browseAll": "Browse All Teams →",
+      "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
+    }
+  },
+  "teams": {
+    "title": "Teams",
+    "description": "All 48 teams competing in the 2026 FIFA World Cup.",
+    "shop": {
+      "sponsored": "Sponsored",
+      "title": "🏆 Official Team Fan Gear",
+      "description": "Rep your favorite World Cup team with official jerseys, scarves & fan apparel.",
+      "jerseys": "👕 Jerseys",
+      "scarves": "🧣 Scarves",
+      "flags": "🚩 Flags",
+      "balls": "⚽ Balls",
+      "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
+    }
+  },
+  "team": {
+    "notFound": "Team Not Found",
+    "breadcrumb": "Teams",
+    "liveNow": "Live Now",
+    "upcoming": "Upcoming Matches",
+    "noUpcoming": "No upcoming matches.",
+    "results": "Results",
+    "noMatches": "No matches found for this team.",
+    "homeAbbr": "H",
+    "awayAbbr": "A",
+    "shop": {
+      "sponsored": "Sponsored",
+      "getGear": "Get {team} Gear",
+      "description": "Official {team} jerseys, shirts & fan merchandise. Best prices on Amazon.",
+      "shopJerseys": "Shop {team} Jerseys →",
+      "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
+    }
+  },
+  "match": {
+    "backToSchedule": "← Back to Schedule",
+    "live": "Live",
+    "shareOnX": "Share on X",
+    "getTeamGear": "Get Team Gear",
+    "jersey": "Jersey",
+    "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases.",
+    "timeline": {
+      "title": "Match Timeline",
+      "waiting": "Waiting for match events...",
+      "noEvents": "No events recorded for this match."
+    }
+  },
+  "groups": {
+    "title": "Groups",
+    "description": "2026 FIFA World Cup group standings and schedules — all 12 groups.",
+    "subtitle": "2026 FIFA World Cup — 12 groups, 48 teams"
+  },
+  "group": {
+    "breadcrumb": "Groups",
+    "standings": "Standings",
+    "teams": "Teams",
+    "matchSchedule": "Match Schedule",
+    "noMatches": "No matches scheduled yet.",
+    "tableHeaders": {
+      "pos": "#",
+      "team": "Team",
+      "played": "P",
+      "won": "W",
+      "drawn": "D",
+      "lost": "L",
+      "gf": "GF",
+      "ga": "GA",
+      "gd": "GD",
+      "pts": "Pts"
+    }
+  },
+  "footer": {
+    "brand": "WC26 Live",
+    "description": "Your free, real-time tracker for the 2026 FIFA World Cup. Live scores, schedules, standings, and match alerts.",
+    "linksTitle": "Links",
+    "home": "Home",
+    "schedule": "Schedule",
+    "standings": "Standings",
+    "groups": "Groups",
+    "teams": "Teams",
+    "getAlerts": "Get Alerts",
+    "legalTitle": "Legal",
+    "tos": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "pricing": "Pricing",
+    "disclaimerTitle": "Disclaimer",
+    "disclaimerText": "WC26 Live is an independent fan project and is not affiliated with FIFA or any official football governing body. All data is for informational purposes only.",
+    "copyright": "© {year} WC26 Live. All rights reserved."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page Not Found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go Home",
+    "viewSchedule": "View Schedule"
+  },
+  "common": {
+    "loading": "Loading..."
+  },
+  "amazon": {
+    "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases.",
+    "sponsored": "Sponsored"
+  }
+}

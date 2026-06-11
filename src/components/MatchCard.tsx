@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 
+import MatchCountdown from "./MatchCountdown";
+
 export default function MatchCard({ match }: { match: Match }) {
   const [showShare, setShowShare] = useState(false);
   const isLive = match.status === "live";
@@ -62,6 +64,9 @@ export default function MatchCard({ match }: { match: Match }) {
             <span className="text-xs text-[#888] block">
               {match.date} {match.time}
             </span>
+          )}
+          {!isLive && !isFinished && (
+            <MatchCountdown date={match.date} time={match.time} />
           )}
         </div>
         <div className="flex-1 text-right">

@@ -1,0 +1,187 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "schedule": "Calendario",
+    "standings": "Clasificaciones",
+    "groups": "Grupos",
+    "teams": "Equipos",
+    "premium": "Premium"
+  },
+  "home": {
+    "heroDate": "11 de junio — 19 de julio de 2026",
+    "heroTitle": "Copa Mundial de la FIFA 2026",
+    "heroSubtitle": "Organizada en Estados Unidos, Canadá y México. 48 equipos. Un trofeo.",
+    "viewFullSchedule": "Ver Calendario Completo",
+    "liveStandings": "Clasificaciones en Vivo",
+    "quickNav": {
+      "schedule": "Calendario",
+      "scheduleDesc": "Calendario completo de partidos",
+      "standings": "Clasificaciones",
+      "standingsDesc": "Clasificaciones de grupos",
+      "teams": "Equipos",
+      "teamsDesc": "Los 48 equipos",
+      "subscribe": "Suscribirse",
+      "subscribeDesc": "Alertas gratuitas de partidos"
+    },
+    "todaysMatches": "Partidos de Hoy",
+    "noMatchesToday": "No hay partidos programados para hoy.",
+    "upcomingMatches": "Próximos Partidos",
+    "shop": {
+      "sponsored": "Patrocinado",
+      "title": "🏆 Tienda Oficial del Mundial",
+      "description": "Apoya a tu equipo favorito con camisetas, banderas, balones y artículos oficiales. Los mejores precios en Amazon.",
+      "jerseys": "Camisetas",
+      "flags": "Banderas",
+      "balls": "Balones",
+      "browseAll": "Ver Todos los Artículos →",
+      "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
+    },
+    "cta": {
+      "title": "No te Pierdas un Gol",
+      "description": "Recibe alertas de goles en tiempo real, recordatorios de partidos y resúmenes diarios en tu correo. Gratis.",
+      "button": "Suscríbete Gratis"
+    }
+  },
+  "schedule": {
+    "title": "Calendario de Partidos",
+    "shop": {
+      "sponsored": "Patrocinado",
+      "title": "🎽 Equipo para el Día del Partido",
+      "description": "Prepárate para el partido con camisetas oficiales, ropa de entrenamiento y artículos esenciales.",
+      "shopJerseys": "👕 Comprar Camisetas",
+      "tShirts": "🇺🇸 Camisetas",
+      "hats": "🧢 Gorras",
+      "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
+    }
+  },
+  "standings": {
+    "title": "Clasificaciones de Grupo",
+    "loading": "Cargando resultados en vivo...",
+    "liveBadge": "En vivo — actualizado automáticamente con datos oficiales de la FIFA",
+    "tableHeaders": {
+      "pos": "#",
+      "team": "Equipo",
+      "played": "PJ",
+      "won": "G",
+      "drawn": "E",
+      "lost": "P",
+      "gd": "DG",
+      "pts": "Pts"
+    },
+    "noMatches": "Aún no se han jugado partidos",
+    "shop": {
+      "sponsored": "Patrocinado",
+      "title": "🏆 Equipos Destacados — Artículos Oficiales",
+      "description": "Apoya a los contendientes con camisetas oficiales, kits de entrenamiento y mercancía.",
+      "brazil": "🇧🇷 Brasil",
+      "argentina": "🇦🇷 Argentina",
+      "germany": "🇩🇪 Alemania",
+      "france": "🇫🇷 Francia",
+      "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra",
+      "browseAll": "Ver Todos los Equipos →",
+      "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
+    }
+  },
+  "teams": {
+    "title": "Equipos",
+    "description": "Los 48 equipos que compiten en la Copa Mundial de la FIFA 2026.",
+    "shop": {
+      "sponsored": "Patrocinado",
+      "title": "🏆 Artículos Oficiales para Fanáticos",
+      "description": "Apoya a tu equipo favorito del Mundial con camisetas oficiales, bufandas y ropa.",
+      "jerseys": "👕 Camisetas",
+      "scarves": "🧣 Bufandas",
+      "flags": "🚩 Banderas",
+      "balls": "⚽ Balones",
+      "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
+    }
+  },
+  "team": {
+    "notFound": "Equipo No Encontrado",
+    "breadcrumb": "Equipos",
+    "liveNow": "En Vivo",
+    "upcoming": "Próximos Partidos",
+    "noUpcoming": "No hay próximos partidos.",
+    "results": "Resultados",
+    "noMatches": "No se encontraron partidos para este equipo.",
+    "homeAbbr": "L",
+    "awayAbbr": "V",
+    "shop": {
+      "sponsored": "Patrocinado",
+      "getGear": "Compra Artículos de {team}",
+      "description": "Camisetas, camisas y artículos oficiales de {team}. Los mejores precios en Amazon.",
+      "shopJerseys": "Comprar Camisetas de {team} →",
+      "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
+    }
+  },
+  "match": {
+    "backToSchedule": "← Volver al Calendario",
+    "live": "En Vivo",
+    "shareOnX": "Compartir en X",
+    "getTeamGear": "Compra Artículos del Equipo",
+    "jersey": "Camiseta",
+    "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas.",
+    "timeline": {
+      "title": "Línea de Tiempo del Partido",
+      "waiting": "Esperando eventos del partido...",
+      "noEvents": "No hay eventos registrados para este partido."
+    }
+  },
+  "groups": {
+    "title": "Grupos",
+    "description": "Clasificaciones y calendarios de grupos de la Copa Mundial de la FIFA 2026 — los 12 grupos.",
+    "subtitle": "Copa Mundial de la FIFA 2026 — 12 grupos, 48 equipos"
+  },
+  "group": {
+    "breadcrumb": "Grupos",
+    "standings": "Clasificaciones",
+    "teams": "Equipos",
+    "matchSchedule": "Calendario de Partidos",
+    "noMatches": "Aún no hay partidos programados.",
+    "tableHeaders": {
+      "pos": "#",
+      "team": "Equipo",
+      "played": "PJ",
+      "won": "G",
+      "drawn": "E",
+      "lost": "P",
+      "gf": "GF",
+      "ga": "GC",
+      "gd": "DG",
+      "pts": "Pts"
+    }
+  },
+  "footer": {
+    "brand": "WC26 Live",
+    "description": "Tu rastreador gratuito en tiempo real para la Copa Mundial de la FIFA 2026. Resultados en vivo, calendarios, clasificaciones y alertas.",
+    "linksTitle": "Enlaces",
+    "home": "Inicio",
+    "schedule": "Calendario",
+    "standings": "Clasificaciones",
+    "groups": "Grupos",
+    "teams": "Equipos",
+    "getAlerts": "Alertas",
+    "legalTitle": "Legal",
+    "tos": "Términos del Servicio",
+    "privacy": "Política de Privacidad",
+    "refund": "Política de Reembolso",
+    "pricing": "Precios",
+    "disclaimerTitle": "Aviso",
+    "disclaimerText": "WC26 Live es un proyecto independiente de fanáticos y no está afiliado a la FIFA ni a ningún organismo oficial de fútbol. Todos los datos son solo para fines informativos.",
+    "copyright": "© {year} WC26 Live. Todos los derechos reservados."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Página No Encontrada",
+    "description": "La página que buscas no existe o ha sido movida.",
+    "goHome": "Ir al Inicio",
+    "viewSchedule": "Ver Calendario"
+  },
+  "common": {
+    "loading": "Cargando..."
+  },
+  "amazon": {
+    "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas.",
+    "sponsored": "Patrocinado"
+  }
+}

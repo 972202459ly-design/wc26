@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy } from "lucide-react";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/standings", label: "Standings" },
-  { href: "/groups", label: "Groups" },
-  { href: "/teams", label: "Teams" },
-  { href: "/premium", label: "Premium" },
-];
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+
+  const navLinks = [
+    { href: "/", label: t("home") },
+    { href: "/schedule", label: t("schedule") },
+    { href: "/standings", label: t("standings") },
+    { href: "/groups", label: t("groups") },
+    { href: "/teams", label: t("teams") },
+    { href: "/premium", label: t("premium") },
+  ];
 
   return (
     <header className="border-b border-[var(--color-border)] bg-[#0a0a0a]/90 backdrop-blur-sm sticky top-0 z-50">
@@ -29,8 +32,9 @@ export default function Header() {
             {navLinks.map((link) => {
               const isActive =
                 link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
+                  ? pathname === "/" || pathname === "/es"
+                  : pathname.startsWith(link.href) ||
+                    pathname.startsWith(`/es${link.href}`);
               return (
                 <Link
                   key={link.href}
@@ -45,6 +49,9 @@ export default function Header() {
                 </Link>
               );
             })}
+            <div className="ml-2 pl-2 border-l border-[#333]">
+              <LanguageSwitcher />
+            </div>
           </nav>
         </div>
       </div>
