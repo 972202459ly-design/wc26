@@ -1,10 +1,49 @@
+"use client";
+
 import Link from "next/link";
 import { matches, getTodayMatches, getUpcomingMatches } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
+import { useEffect, useState } from "react";
+import type { Match } from "@/lib/types";
+
+interface LiveMatch {
+  match_id: string;
+  home_score: number | null;
+  away_score: number | null;
+  status: string;
+}
+
+function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
+  const map = new Map<string, LiveMatch>();
+  for (const lm of live) map.set(lm.match_id, lm);
+
+  return staticMatches.map((m) => {
+    const live = map.get(m.id);
+    if (!live) return m;
+    return {
+      ...m,
+      homeScore: live.home_score ?? m.homeScore,
+      awayScore: live.away_score ?? m.awayScore,
+      status: live.status === "FINISHED" ? "finished" : live.status === "IN_PLAY" ? "live" : m.status,
+    };
+  });
+}
 
 export default function HomePage() {
-  const todayMatches = getTodayMatches();
-  const upcomingMatches = getUpcomingMatches(6);
+  const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/scores")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.matches) setLiveScores(data.matches);
+      })
+      .catch(() => {});
+  }, []);
+
+  const merged = liveScores ? mergeScores(matches, liveScores) : matches;
+  const mergedToday = liveScores ? mergeScores(getTodayMatches(), liveScores) : getTodayMatches();
+  const mergedUpcoming = liveScores ? mergeScores(getUpcomingMatches(6), liveScores) : getUpcomingMatches(6);
 
   return (
     <div>
@@ -59,17 +98,16 @@ export default function HomePage() {
       {/* Today's Matches */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
         <h2 className="text-xl font-bold mb-4">Today&apos;s Matches</h2>
-        {todayMatches.length > 0 ? (
+        {mergedToday.length > 0 ? (
           <div className="grid gap-3">
-            {todayMatches.map((match) => (
+            {mergedToday.map((match) => (
               <MatchCard key={match.id} match={match} />
             ))}
           </div>
         ) : (
           <div className="text-center py-12 bg-[#111] rounded-xl border border-[#222]">
             <p className="text-[#888]">
-              No matches scheduled for today. The tournament kicks off on June
-              11, 2026.
+              No matches scheduled for today.
             </p>
           </div>
         )}
@@ -79,7 +117,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-16">
         <h2 className="text-xl font-bold mb-4">Upcoming Matches</h2>
         <div className="grid gap-3">
-          {upcomingMatches.map((match) => (
+          {mergedUpcoming.map((match) => (
             <MatchCard key={match.id} match={match} />
           ))}
         </div>

@@ -8,8 +8,33 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
   const [match, setMatch] = useState(initial);
   const isLive = match.status === "live";
 
+  // Fetch latest scores from /api/scores on mount
   useEffect(() => {
-    if (!isLive) return;
+    fetch("/api/scores")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.matches) return;
+        const live = data.matches.find(
+          (lm: any) => lm.match_id === initial.id
+        );
+        if (!live) return;
+        setMatch((prev) => ({
+          ...prev,
+          homeScore: live.home_score ?? prev.homeScore,
+          awayScore: live.away_score ?? prev.awayScore,
+          status:
+            live.status === "FINISHED"
+              ? "finished"
+              : live.status === "IN_PLAY"
+                ? "live"
+                : prev.status,
+        }));
+      })
+      .catch(() => {});
+  }, [initial.id]);
+
+  // Poll for live updates (always, in case status changes)
+  useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`/api/match/${match.id}`);
@@ -22,7 +47,7 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, [isLive, match.id]);
+  }, [match.id]);
 
   const scoreDisplay =
     match.homeScore !== null && match.awayScore !== null
