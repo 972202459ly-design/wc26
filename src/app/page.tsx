@@ -152,34 +152,48 @@ export default function HomePage() {
 
       {/* Shop — Amazon Affiliate */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="rounded-xl border border-[#222] bg-[#111] p-6 text-center">
-          <h2 className="text-lg font-bold mb-2">Official World Cup Gear</h2>
-          <p className="text-sm text-[#888] mb-4">
-            Jerseys, flags, balls &amp; more — shop the best prices on Amazon
+        <div className="rounded-xl border border-[#f0a500]/20 bg-gradient-to-br from-[#1e1e35] to-[#111] p-8 text-center">
+          <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-4">
+            Sponsored
+          </span>
+          <h2 className="text-2xl font-bold mb-2">🏆 Official World Cup Shop</h2>
+          <p className="text-sm text-[#888] mb-6 max-w-lg mx-auto">
+            Rep your favorite team with official jerseys, flags, balls &amp; fan gear.
+            Best prices on Amazon.
           </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
             <a
               href={amazonSearchLink("World Cup 2026 jersey")}
               target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              Shop Jerseys
+              <span className="text-3xl">👕</span>
+              <span className="text-xs font-semibold">Jerseys</span>
             </a>
             <a
               href={amazonSearchLink("World Cup 2026 flag")}
               target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              Shop Flags
+              <span className="text-3xl">🚩</span>
+              <span className="text-xs font-semibold">Flags</span>
             </a>
             <a
-              href={amazonSearchLink("football soccer ball size 5")}
+              href={amazonSearchLink("soccer ball size 5 official match")}
               target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              Shop Balls
+              <span className="text-3xl">⚽</span>
+              <span className="text-xs font-semibold">Balls</span>
             </a>
           </div>
+          <a
+            href={amazonSearchLink("World Cup 2026 fan gear")}
+            target="_blank" rel="noopener noreferrer"
+            className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+          >
+            Browse All Fan Gear &rarr;
+          </a>
           <p className="text-[10px] text-[#555] mt-3">
             As an Amazon Associate we earn from qualifying purchases.
           </p>
