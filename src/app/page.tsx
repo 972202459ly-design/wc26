@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { matches, getTodayMatches, getUpcomingMatches } from "@/lib/data";
+import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { useEffect, useState } from "react";
@@ -148,6 +148,42 @@ export default function HomePage() {
       {/* Ad banner */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <AdPlaceholder size="banner" />
+      </section>
+
+      {/* Shop — Amazon Affiliate */}
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <div className="rounded-xl border border-[#222] bg-[#111] p-6 text-center">
+          <h2 className="text-lg font-bold mb-2">Official World Cup Gear</h2>
+          <p className="text-sm text-[#888] mb-4">
+            Jerseys, flags, balls &amp; more — shop the best prices on Amazon
+          </p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <a
+              href={amazonSearchLink("World Cup 2026 jersey")}
+              target="_blank" rel="noopener noreferrer"
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+            >
+              Shop Jerseys
+            </a>
+            <a
+              href={amazonSearchLink("World Cup 2026 flag")}
+              target="_blank" rel="noopener noreferrer"
+              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+            >
+              Shop Flags
+            </a>
+            <a
+              href={amazonSearchLink("football soccer ball size 5")}
+              target="_blank" rel="noopener noreferrer"
+              className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+            >
+              Shop Balls
+            </a>
+          </div>
+          <p className="text-[10px] text-[#555] mt-3">
+            As an Amazon Associate we earn from qualifying purchases.
+          </p>
+        </div>
       </section>
 
       {/* CTA */}

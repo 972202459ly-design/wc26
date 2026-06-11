@@ -3,7 +3,7 @@
 import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName } from "@/lib/data";
+import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
 
 export default function MatchDetail({ match: initial }: { match: Match }) {
@@ -126,6 +126,30 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
       {/* Ad banner */}
       <div className="mt-8">
         <AdPlaceholder size="banner" />
+      </div>
+
+      {/* Affiliate — team gear */}
+      <div className="mt-6 rounded-xl border border-[#222] bg-[#111] p-5 text-center">
+        <p className="text-sm font-semibold mb-3">Get Team Gear</p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <a
+            href={amazonSearchLink(`${match.homeTeam} jersey World Cup 2026`)}
+            target="_blank" rel="noopener noreferrer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+          >
+            {match.homeTeam} Jersey
+          </a>
+          <a
+            href={amazonSearchLink(`${match.awayTeam} jersey World Cup 2026`)}
+            target="_blank" rel="noopener noreferrer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+          >
+            {match.awayTeam} Jersey
+          </a>
+        </div>
+        <p className="text-[10px] text-[#555] mt-2">
+          As an Amazon Associate we earn from qualifying purchases.
+        </p>
       </div>
     </div>
   );

@@ -1,5 +1,13 @@
 import { Match, StandingEntry, TeamInfo } from "./types";
 
+// ─── Amazon Associates ─────────────────────────────────────────────────
+export const AMAZON_TAG = "none03e04-20";
+
+/** Generate an Amazon search affiliate link */
+export function amazonSearchLink(keywords: string): string {
+  return `https://www.amazon.com/s?k=${encodeURIComponent(keywords)}&tag=${AMAZON_TAG}`;
+}
+
 // ─── Team names & flags ───────────────────────────────────────────────
 const teamNames: Record<string, string> = {
   alg: "Algeria",
