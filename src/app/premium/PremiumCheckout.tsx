@@ -37,7 +37,6 @@ const plans = [
 
 export default function PremiumCheckout() {
   const [paddle, setPaddle] = useState<Paddle | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     const initPaddle = async () => {
@@ -49,28 +48,17 @@ export default function PremiumCheckout() {
               ? "production"
               : "sandbox",
           token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!,
-          eventCallback: (event: any) => {
-            if (event.name === "checkout.error") {
-              console.error("Paddle checkout error event:", event);
-              setCheckoutError(JSON.stringify(event.data || event, null, 2));
-            }
-          },
         });
         if (instance) setPaddle(instance);
-      } catch (e) {
-        console.error("Paddle failed to initialize:", e);
+      } catch {
+        console.warn("Paddle failed to initialize");
       }
     };
     initPaddle();
   }, []);
 
   const handleCheckout = (priceId: string) => {
-    if (!paddle) return;
-    if (!priceId) {
-      console.error("Paddle priceId is empty — NEXT_PUBLIC_PADDLE_*_PRICE_ID not set in build");
-      return;
-    }
-    console.log("Opening Paddle checkout with priceId:", priceId);
+    if (!paddle || !priceId) return;
     paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
       settings: {
@@ -151,11 +139,6 @@ export default function PremiumCheckout() {
         </a>
       </div>
 
-      {checkoutError && (
-        <div className="mt-8 max-w-2xl mx-auto p-4 bg-red-900/30 border border-red-500/40 rounded-lg">
-          <p className="text-xs font-mono text-red-400 whitespace-pre-wrap break-all">{checkoutError}</p>
-        </div>
-      )}
     </div>
   );
 }
