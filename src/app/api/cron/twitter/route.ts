@@ -65,30 +65,40 @@ export async function GET(request: Request) {
     let tweeted = 0;
     const results: { match: string; tweetId: string }[] = [];
 
+    const errors: string[] = [];
+    const skipped: string[] = [];
+    let eligible = 0;
+
     for (const m of allMatches) {
       if (m.status !== "FINISHED" && m.status !== "IN_PLAY" && m.status !== "PAUSED") continue;
       if (m.home_score === null || m.away_score === null) continue;
 
       const alreadyTweeted = await isMatchTweeted(m.api_id);
-      if (alreadyTweeted) continue;
+      if (alreadyTweeted) { skipped.push(m.match_id); continue; }
 
       const text = formatTweet(m);
       if (!text) continue;
 
+      eligible++;
       try {
         const tweet = await client.v2.tweet(text);
         await markMatchTweeted(m.api_id, tweet.data.id);
         tweeted++;
         results.push({ match: `${m.home_team} vs ${m.away_team}`, tweetId: tweet.data.id });
       } catch (tweetErr: any) {
-        console.error(`Failed to tweet match ${m.match_id}:`, tweetErr.message);
+        const msg = tweetErr?.data ? JSON.stringify(tweetErr.data) : tweetErr.message;
+        errors.push(`${m.match_id}: ${msg}`);
+        console.error(`Failed to tweet match ${m.match_id}:`, msg);
       }
     }
 
     return NextResponse.json({
       success: true,
       tweeted,
+      eligible,
+      skippedAlreadyTweeted: skipped.length,
       results,
+      errors,
     });
   } catch (err: any) {
     console.error("Twitter cron error:", err);
