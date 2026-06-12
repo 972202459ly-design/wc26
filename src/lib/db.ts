@@ -73,7 +73,6 @@ export async function getLastSyncTime(): Promise<Date | null> {
 // ─── Subscribers ──────────────────────────────────────────────────────
 
 export async function ensureSubscribersTable(): Promise<void> {
-  await sql`DROP TABLE IF EXISTS sub_test`; // cleanup from debugging
   await sql`
     CREATE TABLE IF NOT EXISTS subscribers (
       id SERIAL PRIMARY KEY,
@@ -142,6 +141,31 @@ export async function isMatchTweeted(apiId: number): Promise<boolean> {
 export async function markMatchTweeted(apiId: number, tweetId: string): Promise<void> {
   await sql`
     INSERT INTO tweeted_matches (api_id, tweet_id) VALUES (${apiId}, ${tweetId})
+    ON CONFLICT (api_id) DO NOTHING
+  `;
+}
+
+// ─── Pre-match reminders ──────────────────────────────────────────────
+
+export async function ensurePrematchRemindersTable(): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS prematch_reminders (
+      api_id INTEGER PRIMARY KEY,
+      reminded_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+}
+
+export async function isReminderSent(apiId: number): Promise<boolean> {
+  const rows = await sql`
+    SELECT 1 FROM prematch_reminders WHERE api_id = ${apiId}
+  `;
+  return rows.length > 0;
+}
+
+export async function markReminderSent(apiId: number): Promise<void> {
+  await sql`
+    INSERT INTO prematch_reminders (api_id) VALUES (${apiId})
     ON CONFLICT (api_id) DO NOTHING
   `;
 }

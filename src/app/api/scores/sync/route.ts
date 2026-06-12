@@ -125,19 +125,22 @@ export async function GET(request: Request) {
     // Send emails — filter subscribers by preference
     const allSubs = await getSubscribers();
 
-    // "all" gets everything; "goals" gets only goals
+    // "all" gets everything; "goals" gets only goals; "daily" gets everything (same as "all" for now)
     const allPrefSubs = allSubs.filter((s) => s.preferences === "all");
     const goalsPrefSubs = allSubs.filter((s) => s.preferences === "goals");
+    const dailyPrefSubs = allSubs.filter((s) => s.preferences === "daily");
 
-    // Kickoff → "all" only
-    const kickoffResult = await sendKickoffEmails(allPrefSubs, kickoffChanges);
+    // Kickoff → "all" + "daily"
+    const kickoffSubs = [...allPrefSubs, ...dailyPrefSubs];
+    const kickoffResult = await sendKickoffEmails(kickoffSubs, kickoffChanges);
 
-    // Goals → "all" + "goals"
-    const goalSubs = [...allPrefSubs, ...goalsPrefSubs];
+    // Goals → "all" + "goals" + "daily"
+    const goalSubs = [...allPrefSubs, ...goalsPrefSubs, ...dailyPrefSubs];
     const goalResult = await sendGoalEmails(goalSubs, goalChanges);
 
-    // Finals → "all" only
-    const finalResult = await sendFinalEmails(allPrefSubs, finalChanges);
+    // Finals → "all" + "daily"
+    const finalSubs = [...allPrefSubs, ...dailyPrefSubs];
+    const finalResult = await sendFinalEmails(finalSubs, finalChanges);
 
     const totalSent = kickoffResult.sent + goalResult.sent + finalResult.sent;
     const totalFailed = kickoffResult.failed + goalResult.failed + finalResult.failed;

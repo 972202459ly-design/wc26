@@ -3,6 +3,16 @@ import { Resend } from "resend";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
+export interface UpcomingMatch {
+  home_team: string;
+  away_team: string;
+  utc_date: string;
+  stage: string | null;
+  group_name: string | null;
+  match_id: string;
+  api_id: number;
+}
+
 export interface ScoreChange {
   home_team: string;
   away_team: string;
@@ -211,6 +221,55 @@ async function sendBatch(
   }
 
   return { sent, failed };
+}
+
+// ── Pre-match reminder emails ──
+
+function countdownText(utcDate: string): string {
+  const diff = new Date(utcDate).getTime() - Date.now();
+  const mins = Math.round(diff / 60000);
+  if (mins <= 0) return "Kicking off now!";
+  if (mins < 60) return `Kicks off in about ${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `Kicks off in about ${h}h ${m}min`;
+}
+
+function prematchHtml(matches: UpcomingMatch[]): string {
+  const cards = matches.map((m) => {
+    const stageLine = stageLabel(m.stage);
+    const dateLine = formatDate(m.utc_date);
+    const countdown = countdownText(m.utc_date);
+    const matchUrl = m.match_id ? `https://wc26live.org/match/${m.match_id}` : "https://wc26live.org";
+
+    return `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-bottom:16px">
+      <div style="display:inline-block;background:#3498db;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:12px;color:#fff">UPCOMING</div>
+      <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">
+        ${esc(m.home_team)} vs ${esc(m.away_team)}
+      </div>
+      <div style="color:#3498db;font-size:15px;font-weight:600;margin-top:6px">${countdown}</div>
+      <div style="color:#666;font-size:12px;margin-top:8px">${[stageLine, dateLine].filter(Boolean).join(" · ")}</div>
+      <a href="${matchUrl}" style="display:inline-block;margin-top:14px;padding:8px 20px;background:#3498db;color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600">View Match →</a>
+    </div>`;
+  }).join("");
+
+  return wrapHtml("", `${matches.length} match${matches.length > 1 ? "es" : ""} starting soon`, cards);
+}
+
+function prematchText(matches: UpcomingMatch[]): string {
+  return matches
+    .map((m) => `UPCOMING | ${m.home_team} vs ${m.away_team} | ${countdownText(m.utc_date)} | ${stageLabel(m.stage)} | ${formatDate(m.utc_date)}`)
+    .join("\n");
+}
+
+export async function sendPrematchEmails(
+  subscribers: { email: string }[],
+  matches: UpcomingMatch[]
+): Promise<{ sent: number; failed: number }> {
+  if (matches.length === 0) return { sent: 0, failed: 0 };
+  const subject = `Match Reminder — ${matches[0].home_team} vs ${matches[0].away_team}${matches.length > 1 ? ` (+${matches.length - 1} more)` : ""}`;
+  return sendBatch(subscribers, subject, prematchHtml(matches), prematchText(matches));
 }
 
 // ── Kickoff alerts ──

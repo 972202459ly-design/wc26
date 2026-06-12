@@ -1,0 +1,17 @@
+name: Pre-match Reminders
+
+on:
+  schedule:
+    # Every 10 minutes during match hours (8:00-23:59 UTC)
+    - cron: "*/10 8-23 * * *"
+    # After-hours check (0:00-5:59 UTC) for late/early matches
+    - cron: "*/10 0-5 * * *"
+  workflow_dispatch:
+
+jobs:
+  prematch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call prematch endpoint
+        run: |
+          curl -s -f "${{ secrets.PREMATCH_URL }}" || echo "Prematch skipped (no PREMATCH_URL configured)"
