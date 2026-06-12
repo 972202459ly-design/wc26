@@ -1,15 +1,18 @@
-import { matches } from "@/lib/data";
+import { getMergedMatches } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
 import type { Metadata } from "next";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Match Schedule",
   description: "Full 2026 FIFA World Cup match schedule with dates, times, and venues.",
 };
 
-const matchDays = [...new Set(matches.map((m) => m.date))].sort();
+export default async function SchedulePage() {
+  const matches = await getMergedMatches();
+  const matchDays = [...new Set(matches.map((m) => m.date))].sort();
 
-export default function SchedulePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Match Schedule</h1>

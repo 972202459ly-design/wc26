@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { matches, getTodayMatches, getUpcomingMatches } from "@/lib/data";
+import { getMergedMatches } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
 
-export default function HomePage() {
-  const todayMatches = getTodayMatches();
-  const upcomingMatches = getUpcomingMatches(6);
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const allMatches = await getMergedMatches();
+  const today = new Date().toISOString().split("T")[0];
+  const todayMatches = allMatches.filter((m) => m.date === today);
+  const upcomingMatches = allMatches
+    .filter((m) => m.status === "upcoming" && m.date !== today)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+    .slice(0, 6);
 
   return (
     <div>

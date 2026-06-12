@@ -69,3 +69,25 @@ export async function getLastSyncTime(): Promise<Date | null> {
   if (rows.length === 0) return null;
   return new Date((rows as any)[0].updated_at);
 }
+
+export interface Subscriber {
+  id: number;
+  email: string;
+  preferences: string;
+}
+
+export async function ensureSubscribersTable(): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      preferences TEXT DEFAULT 'daily',
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+}
+
+export async function getSubscribers(): Promise<Subscriber[]> {
+  const rows = await sql`SELECT id, email, preferences FROM subscribers`;
+  return rows as unknown as Subscriber[];
+}

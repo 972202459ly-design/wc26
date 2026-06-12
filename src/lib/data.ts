@@ -1,4 +1,5 @@
 import { Match, StandingEntry, TeamInfo } from "./types";
+import { getAllScores } from "./db";
 
 // ─── Team names & flags ───────────────────────────────────────────────
 const teamNames: Record<string, string> = {
@@ -308,3 +309,49 @@ export function computeStandings(): StandingEntry[] {
 }
 
 export const standings: StandingEntry[] = computeStandings();
+
+// ─── Build live match list from DB ───────────────────────────────────
+function mapDbStatus(dbStatus: string): "upcoming" | "live" | "finished" {
+  if (dbStatus === "FINISHED") return "finished";
+  if (dbStatus === "IN_PLAY" || dbStatus === "PAUSED") return "live";
+  return "upcoming";
+}
+
+function formatStage(groupName: string | null, stage: string | null): string {
+  const s = groupName || stage || "";
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export async function getMergedMatches(): Promise<Match[]> {
+  try {
+    const dbMatches = await getAllScores();
+    if (dbMatches.length === 0) return matches;
+
+    const knownMatches = dbMatches.filter(
+      (db) => db.home_team !== "Unknown" && db.away_team !== "Unknown"
+    );
+    if (knownMatches.length === 0) return matches;
+
+    return knownMatches.map((db) => {
+      const [homeFlag = "", awayFlag = ""] = db.match_id.split("-");
+      const utcDate = new Date(db.utc_date);
+      return {
+        id: String(db.api_id),
+        homeTeam: db.home_team,
+        awayTeam: db.away_team,
+        homeScore: db.home_score,
+        awayScore: db.away_score,
+        status: mapDbStatus(db.status),
+        minute: null,
+        date: utcDate.toISOString().split("T")[0],
+        time: utcDate.toISOString().split("T")[1].slice(0, 5),
+        venue: "",
+        stage: formatStage(db.group_name, db.stage),
+        homeFlag,
+        awayFlag,
+      };
+    });
+  } catch {
+    return matches;
+  }
+}
