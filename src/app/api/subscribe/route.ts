@@ -13,8 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sql = neon(process.env.DATABASE_URL!);
-
+    const sql = neon(process.env.DATABASE_URL!); // runtime only — safe
     const result = await sql`
       INSERT INTO subscribers (email, preferences, created_at)
       VALUES (${email}, ${preferences || "daily"}, NOW())

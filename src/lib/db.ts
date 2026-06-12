@@ -1,6 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.DATABASE_URL!);
+function getSql() {
+  return neon(process.env.DATABASE_URL!);
+}
 
 export interface SyncedMatch {
   api_id: number;
@@ -16,6 +18,7 @@ export interface SyncedMatch {
 }
 
 export async function ensureTable(): Promise<void> {
+  const sql = getSql();
   await sql`
     CREATE TABLE IF NOT EXISTS match_scores (
       api_id INTEGER PRIMARY KEY,
@@ -34,6 +37,7 @@ export async function ensureTable(): Promise<void> {
 }
 
 export async function upsertMatch(m: SyncedMatch): Promise<void> {
+  const sql = getSql();
   await sql`
     INSERT INTO match_scores (api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, updated_at)
     VALUES (${m.api_id}, ${m.match_id}, ${m.home_team}, ${m.away_team}, ${m.home_score}, ${m.away_score}, ${m.status}, ${m.stage}, ${m.group_name}, ${m.utc_date}, NOW())
@@ -49,6 +53,7 @@ export async function upsertMatch(m: SyncedMatch): Promise<void> {
 }
 
 export async function getAllScores(): Promise<SyncedMatch[]> {
+  const sql = getSql();
   const rows = await sql`
     SELECT * FROM match_scores ORDER BY utc_date ASC
   `;
@@ -56,6 +61,7 @@ export async function getAllScores(): Promise<SyncedMatch[]> {
 }
 
 export async function getScoreByApiId(apiId: number): Promise<SyncedMatch | null> {
+  const sql = getSql();
   const rows = await sql`
     SELECT * FROM match_scores WHERE api_id = ${apiId}
   `;
@@ -63,6 +69,7 @@ export async function getScoreByApiId(apiId: number): Promise<SyncedMatch | null
 }
 
 export async function getLastSyncTime(): Promise<Date | null> {
+  const sql = getSql();
   const rows = await sql`
     SELECT updated_at FROM match_scores ORDER BY updated_at DESC LIMIT 1
   `;
@@ -77,6 +84,7 @@ export interface Subscriber {
 }
 
 export async function ensureSubscribersTable(): Promise<void> {
+  const sql = getSql();
   await sql`
     CREATE TABLE IF NOT EXISTS subscribers (
       id SERIAL PRIMARY KEY,
@@ -88,6 +96,7 @@ export async function ensureSubscribersTable(): Promise<void> {
 }
 
 export async function getSubscribers(): Promise<Subscriber[]> {
+  const sql = getSql();
   const rows = await sql`SELECT id, email, preferences FROM subscribers`;
   return rows as unknown as Subscriber[];
 }
