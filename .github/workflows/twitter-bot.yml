@@ -1,0 +1,17 @@
+name: Twitter Bot
+
+on:
+  schedule:
+    # Every 30 minutes during match hours (8:00-23:59 UTC)
+    - cron: "15,45 8-23 * * *"
+    # After-hours for late matches (0:00-2:59 UTC)
+    - cron: "15,45 0-2 * * *"
+  workflow_dispatch:
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post match results to X/Twitter
+        run: |
+          curl -s -f "${{ secrets.TWITTER_URL }}" || echo "Twitter bot skipped (no TWITTER_URL configured)"
