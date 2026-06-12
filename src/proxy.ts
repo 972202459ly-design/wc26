@@ -53,7 +53,7 @@ function setLocaleHeader(headers: Headers, locale: string): Headers {
   return newHeaders;
 }
 
-export default function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip non-page routes

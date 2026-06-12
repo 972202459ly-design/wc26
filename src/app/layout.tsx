@@ -8,6 +8,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getServerLocale } from "@/i18n/request";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wc26live.org"),
   title: {
     default: "WC26 Live — 2026 FIFA World Cup Live Scores & Schedule",
     template: "%s | WC26 Live",

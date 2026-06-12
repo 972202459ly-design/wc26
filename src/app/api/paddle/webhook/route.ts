@@ -20,16 +20,10 @@ export async function POST(request: NextRequest) {
     try {
       event = await webhooks.unmarshal(rawBody, secret, signature);
     } catch {
-      // Fallback: parse raw body directly (useful during initial testing)
-      try {
-        const parsed = JSON.parse(rawBody);
-        event = Webhooks.fromJson(parsed);
-      } catch {
-        return NextResponse.json(
-          { error: "Invalid signature or body" },
-          { status: 401 }
-        );
-      }
+      return NextResponse.json(
+        { error: "Invalid signature" },
+        { status: 401 }
+      );
     }
 
     const eventType: string = event.eventType;
