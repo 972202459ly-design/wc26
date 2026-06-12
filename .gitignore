@@ -3,3 +3,6 @@
 node_modules
 .env*.local
 scripts/tweeted_matches.json
+scripts/tmp_*.json
+tmp/
+tsconfig.tsbuildinfo
