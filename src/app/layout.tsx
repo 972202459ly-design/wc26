@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import Script from "next/script";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wc26live.org"),
   title: {
     default: "WC26 Live — 2026 FIFA World Cup Live Scores & Schedule",
     template: "%s | WC26 Live",
