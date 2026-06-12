@@ -323,6 +323,7 @@ function formatStage(groupName: string | null, stage: string | null): string {
 }
 
 export async function getMergedMatches(): Promise<Match[]> {
+  if (!process.env.DATABASE_URL) return matches;
   try {
     const dbMatches = await getAllScores();
     if (dbMatches.length === 0) return matches;

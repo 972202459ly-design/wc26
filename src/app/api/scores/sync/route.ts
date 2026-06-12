@@ -5,8 +5,11 @@ import { Resend } from "resend";
 
 const API_KEY = process.env.FOOTBALL_DATA_API_KEY!;
 const CRON_SECRET = process.env.CRON_SECRET;
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "WC26 Live <notifications@wc26live.org>";
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 async function fetchFromFootballData(): Promise<SyncedMatch[]> {
   const res = await fetch(
@@ -106,7 +109,7 @@ async function sendNotifications(justFinished: SyncedMatch[]): Promise<void> {
   for (const sub of subscribers) {
     const html = buildEmailHtml(justFinished, sub.email);
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: FROM_EMAIL,
         to: sub.email,
         subject,
