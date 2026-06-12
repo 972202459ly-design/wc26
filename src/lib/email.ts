@@ -155,7 +155,10 @@ function matchCardHtml(c: ScoreChange, accentColor: string, accentLabel: string,
 
 // ── Shared email wrapper ──
 
-function wrapHtml(title: string, subtitle: string, body: string): string {
+function wrapHtml(title: string, subtitle: string, body: string, email?: string): string {
+  const unsubscribeUrl = email
+    ? `https://wc26live.org/api/unsubscribe?email=${encodeURIComponent(email)}`
+    : "https://wc26live.org/subscribe";
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -169,7 +172,7 @@ function wrapHtml(title: string, subtitle: string, body: string): string {
     <hr style="border:none;border-top:1px solid #333;margin:24px 0">
     <p style="color:#555;font-size:12px;text-align:center">
       <a href="https://wc26live.org" style="color:#666">wc26live.org</a> —
-      <a href="https://wc26live.org/subscribe" style="color:#666">Manage subscription</a>
+      <a href="${unsubscribeUrl}" style="color:#666">Unsubscribe</a>
     </p>
   </div>
 </body>
@@ -179,7 +182,7 @@ function wrapHtml(title: string, subtitle: string, body: string): string {
 async function sendBatch(
   subscribers: { email: string }[],
   subject: string,
-  html: string,
+  htmlBuilder: (email: string) => string,
   text: string
 ): Promise<{ sent: number; failed: number }> {
   if (!resend) {
@@ -196,11 +199,11 @@ async function sendBatch(
 
   const results = await Promise.allSettled(
     subscribers.map((sub) =>
-      resend.emails.send({
+      resend!.emails.send({
         from: "WC26 Live <noreply@wc26live.org>",
         to: sub.email,
         subject,
-        html,
+        html: htmlBuilder(sub.email),
         text,
       })
     )
@@ -235,7 +238,7 @@ function countdownText(utcDate: string): string {
   return `Kicks off in about ${h}h ${m}min`;
 }
 
-function prematchHtml(matches: UpcomingMatch[]): string {
+function prematchHtml(matches: UpcomingMatch[], email?: string): string {
   const cards = matches.map((m) => {
     const stageLine = stageLabel(m.stage);
     const dateLine = formatDate(m.utc_date);
@@ -254,7 +257,7 @@ function prematchHtml(matches: UpcomingMatch[]): string {
     </div>`;
   }).join("");
 
-  return wrapHtml("", `${matches.length} match${matches.length > 1 ? "es" : ""} starting soon`, cards);
+  return wrapHtml("", `${matches.length} match${matches.length > 1 ? "es" : ""} starting soon`, cards, email);
 }
 
 function prematchText(matches: UpcomingMatch[]): string {
@@ -269,14 +272,14 @@ export async function sendPrematchEmails(
 ): Promise<{ sent: number; failed: number }> {
   if (matches.length === 0) return { sent: 0, failed: 0 };
   const subject = `Match Reminder — ${matches[0].home_team} vs ${matches[0].away_team}${matches.length > 1 ? ` (+${matches.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, prematchHtml(matches), prematchText(matches));
+  return sendBatch(subscribers, subject, (email) => prematchHtml(matches, email), prematchText(matches));
 }
 
 // ── Kickoff alerts ──
 
-function kickoffHtml(changes: ScoreChange[]): string {
+function kickoffHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#f0a500", "KICKOFF")).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards, email);
 }
 
 function kickoffText(changes: ScoreChange[]): string {
@@ -291,14 +294,14 @@ export async function sendKickoffEmails(
 ): Promise<{ sent: number; failed: number }> {
   if (changes.length === 0) return { sent: 0, failed: 0 };
   const subject = `KICKOFF — ${changes[0].home_team} vs ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, kickoffHtml(changes), kickoffText(changes));
+  return sendBatch(subscribers, subject, (email) => kickoffHtml(changes, email), kickoffText(changes));
 }
 
 // ── Goal alerts ──
 
-function goalHtml(changes: ScoreChange[]): string {
+function goalHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#e74c3c", "GOAL", goalNarrative(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards, email);
 }
 
 function goalText(changes: ScoreChange[]): string {
@@ -316,14 +319,14 @@ export async function sendGoalEmails(
 ): Promise<{ sent: number; failed: number }> {
   if (changes.length === 0) return { sent: 0, failed: 0 };
   const subject = `GOAL! ${changes[0].home_team} ${changes[0].home_score} - ${changes[0].away_score} ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, goalHtml(changes), goalText(changes));
+  return sendBatch(subscribers, subject, (email) => goalHtml(changes, email), goalText(changes));
 }
 
 // ── Final-score (post-match) emails ──
 
-function finalHtml(changes: ScoreChange[]): string {
+function finalHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#2ecc71", "FINAL", matchSummary(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards, email);
 }
 
 function finalText(changes: ScoreChange[]): string {
@@ -341,5 +344,5 @@ export async function sendFinalEmails(
 ): Promise<{ sent: number; failed: number }> {
   if (changes.length === 0) return { sent: 0, failed: 0 };
   const subject = `FINAL — ${changes[0].home_team} ${changes[0].home_score} - ${changes[0].away_score} ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, finalHtml(changes), finalText(changes));
+  return sendBatch(subscribers, subject, (email) => finalHtml(changes, email), finalText(changes));
 }

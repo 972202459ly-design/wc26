@@ -105,6 +105,12 @@ export async function getSubscribers(): Promise<{ email: string; preferences: st
   return rows as unknown as { email: string; preferences: string }[];
 }
 
+export async function deleteSubscriber(email: string): Promise<void> {
+  await getSql()`
+    DELETE FROM subscribers WHERE email = ${email}
+  `;
+}
+
 // ─── Subscriptions (Paddle) ───────────────────────────────────────────
 
 export async function ensureSubscriptionsTable(): Promise<void> {
