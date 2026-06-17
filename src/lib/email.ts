@@ -157,6 +157,17 @@ function matchCardHtml(c: ScoreChange, accentColor: string, accentLabel: string,
     </div>`;
 }
 
+// Compact upgrade promo appended to alert emails — converts engaged readers
+// at peak excitement (a goal just happened) without a heavy sell.
+function promoBlock(): string {
+  return `
+    <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:14px 16px;margin-bottom:16px;text-align:center">
+      <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:6px">⚡ Want goal alerts the second they happen?</div>
+      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Tournament Pass: instant alerts (with scorer), kickoff reminders, follow your team, ad-free — all the way to the final.</div>
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Get the Tournament Pass — $4.99 →</a>
+    </div>`;
+}
+
 // ── Shared email wrapper ──
 
 function wrapHtml(title: string, subtitle: string, body: string, email?: string): string {
@@ -329,7 +340,7 @@ export async function sendPrematchEmails(
 
 function kickoffHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#f0a500", "KICKOFF")).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards, email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards + promoBlock(), email);
 }
 
 function kickoffText(changes: ScoreChange[]): string {
@@ -360,7 +371,7 @@ function goalLine(c: ScoreChange): string {
 
 function goalHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#e74c3c", "GOAL", goalLine(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards, email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards + promoBlock(), email);
 }
 
 function goalText(changes: ScoreChange[]): string {
@@ -385,7 +396,7 @@ export async function sendGoalEmails(
 
 function finalHtml(changes: ScoreChange[], email?: string): string {
   const cards = changes.map((c) => matchCardHtml(c, "#2ecc71", "FINAL", matchSummary(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards, email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards + promoBlock(), email);
 }
 
 function finalText(changes: ScoreChange[]): string {

@@ -77,8 +77,14 @@ export default function HomePage() {
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
-              href="/schedule"
+              href="/subscribe"
               className="px-6 py-3 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+            >
+              {t("heroSubscribe")}
+            </Link>
+            <Link
+              href="/schedule"
+              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
             >
               {t("viewFullSchedule")}
             </Link>
