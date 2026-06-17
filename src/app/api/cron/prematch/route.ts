@@ -67,11 +67,9 @@ export async function GET(request: Request) {
       });
     }
 
-    // Get subscribers — "all" and "daily" get pre-match reminders
+    // Pre-match (kickoff) reminders are a Premium feature.
     const allSubs = await getSubscribers();
-    const reminderSubs = allSubs.filter(
-      (s) => s.preferences === "all" || s.preferences === "daily"
-    );
+    const reminderSubs = allSubs.filter((s) => s.preferences === "premium");
 
     if (reminderSubs.length === 0) {
       return NextResponse.json({

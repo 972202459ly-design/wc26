@@ -5,7 +5,7 @@ import { sendWelcomeEmail } from "@/lib/email";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, preferences } = body;
+    const { email } = body;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json(
@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
     }
 
     await ensureSubscribersTable();
-    const subscriber = await subscribeEmail(email, preferences || "daily");
+    // New tiering: free signups are "free" (final scores only). Real-time
+    // alerts are the premium tier (granted via Paddle purchase).
+    const subscriber = await subscribeEmail(email, "free");
 
     // Fire-and-forget welcome email (whitelist guidance for deliverability).
     sendWelcomeEmail(email).catch(() => {});

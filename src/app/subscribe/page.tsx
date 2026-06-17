@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function SubscribePage() {
   const [email, setEmail] = useState("");
-  const [preferences, setPreferences] = useState("daily");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   // Chinese/strict providers frequently route mail from new foreign domains to
@@ -20,7 +20,7 @@ export default function SubscribePage() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, preferences }),
+        body: JSON.stringify({ email }),
       });
 
       if (res.ok) {
@@ -39,7 +39,7 @@ export default function SubscribePage() {
         Never Miss a Match
       </h1>
       <p className="text-[#888] mb-8 text-center">
-        Sign up for free match alerts and goal notifications.
+        Get free World Cup match results in your inbox.
       </p>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -63,32 +63,13 @@ export default function SubscribePage() {
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Notification preferences
-          </label>
-          <div className="space-y-2">
-            {[
-              { value: "daily", label: "Daily digest only (free)" },
-              { value: "goals", label: "Real-time goal alerts" },
-              { value: "all", label: "All match updates" },
-            ].map((opt) => (
-              <label
-                key={opt.value}
-                className="flex items-center gap-2 p-3 rounded-lg border border-[#222] bg-[#111] cursor-pointer hover:bg-[#1a1a2e]"
-              >
-                <input
-                  type="radio"
-                  name="preferences"
-                  value={opt.value}
-                  checked={preferences === opt.value}
-                  onChange={() => setPreferences(opt.value)}
-                  className="accent-[#f0a500]"
-                />
-                <span className="text-sm">{opt.label}</span>
-              </label>
-            ))}
-          </div>
+        <div className="rounded-lg border border-[#222] bg-[#111] p-4">
+          <p className="text-sm font-semibold text-white mb-1">Free plan</p>
+          <p className="text-sm text-[#888]">✅ Final scores &amp; post-match summaries for every match.</p>
+          <p className="mt-3 text-xs text-[#666]">
+            Want <span className="text-[#f0a500]">instant goal alerts (with scorer)</span>, kickoff reminders and ad-free?{" "}
+            <Link href="/premium" className="text-[#f0a500] underline">Go Premium — $4.99</Link>
+          </p>
         </div>
 
         <button
