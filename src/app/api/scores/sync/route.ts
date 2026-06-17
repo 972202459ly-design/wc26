@@ -94,17 +94,19 @@ export async function GET(request: Request) {
 
     // Send emails by preference.
     const allSubs = await getSubscribers();
+    // "premium" gets every alert type (paid Tournament Pass holders).
+    const premiumSubs = allSubs.filter((s) => s.preferences === "premium");
     const allPrefSubs = allSubs.filter((s) => s.preferences === "all");
     const goalsPrefSubs = allSubs.filter((s) => s.preferences === "goals");
     const dailyPrefSubs = allSubs.filter((s) => s.preferences === "daily");
 
-    const kickoffSubs = [...allPrefSubs, ...dailyPrefSubs];
+    const kickoffSubs = [...premiumSubs, ...allPrefSubs, ...dailyPrefSubs];
     const kickoffResult = await sendKickoffEmails(kickoffSubs, kickoffChanges);
 
-    const goalSubs = [...allPrefSubs, ...goalsPrefSubs, ...dailyPrefSubs];
+    const goalSubs = [...premiumSubs, ...allPrefSubs, ...goalsPrefSubs, ...dailyPrefSubs];
     const goalResult = await sendGoalEmails(goalSubs, goalChanges.map((g) => g.change));
 
-    const finalSubs = [...allPrefSubs, ...dailyPrefSubs];
+    const finalSubs = [...premiumSubs, ...allPrefSubs, ...dailyPrefSubs];
     const finalResult = await sendFinalEmails(finalSubs, finalChanges);
 
     const totalSent = kickoffResult.sent + goalResult.sent + finalResult.sent;

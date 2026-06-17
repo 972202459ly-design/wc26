@@ -84,6 +84,56 @@ export interface GoalEvent {
   detail: string;
 }
 
+export type MatchEventType = "goal" | "yellow_card" | "red_card" | "substitution" | "var";
+export interface MatchEvent {
+  minute: number;
+  type: MatchEventType;
+  teamName: string;
+  player: string | null;
+  assist: string | null;
+  detail: string;
+}
+
+function classify(e: any): MatchEventType | null {
+  const type = e.type;
+  const detail = (e.detail || "").toLowerCase();
+  if (type === "Goal") return "goal";
+  if (type === "Card") return detail.includes("red") ? "red_card" : "yellow_card";
+  if (type === "subst") return "substitution";
+  if (type === "Var") return "var";
+  return null;
+}
+
+// All timeline events for a fixture (goals, cards, subs, VAR), chronological.
+// Cached ~20s so concurrent viewers don't multiply API usage.
+export async function getMatchEvents(fixtureId: number): Promise<MatchEvent[]> {
+  try {
+    const res = await fetch(`${BASE}/fixtures/events?fixture=${fixtureId}`, {
+      headers: headers(),
+      next: { revalidate: 20 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.response || [])
+      .map((e: any): MatchEvent | null => {
+        const type = classify(e);
+        if (!type) return null;
+        return {
+          minute: (e.time?.elapsed ?? 0) + (e.time?.extra ?? 0),
+          type,
+          teamName: e.team?.name ?? "",
+          player: e.player?.name ?? null,
+          assist: e.assist?.name ?? null,
+          detail: e.detail ?? "",
+        };
+      })
+      .filter((e: MatchEvent | null): e is MatchEvent => e !== null)
+      .sort((a: MatchEvent, b: MatchEvent) => a.minute - b.minute);
+  } catch {
+    return [];
+  }
+}
+
 // Goal events for a fixture, in chronological order (used to name the scorer).
 export async function getGoalEvents(fixtureId: number): Promise<GoalEvent[]> {
   try {
