@@ -5,30 +5,16 @@ import type { Paddle } from "@paddle/paddle-js";
 
 const plans = [
   {
-    name: "Monthly Pass",
-    price: "$2.99",
-    period: "/month",
-    description: "Perfect for casual fans",
-    features: [
-      "Real-time goal alerts",
-      "Match reminders",
-      "Post-match summaries",
-      "Daily digest",
-      "Ad-free experience",
-    ],
-    priceId: process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID || "",
-    popular: false,
-  },
-  {
     name: "Tournament Pass",
-    price: "$19.99",
+    price: "$4.99",
     period: " one-time",
-    description: "Best value for dedicated fans",
+    description: "Everything through the July 19 final — no recurring charges",
     features: [
-      "Everything in Monthly Pass",
-      "Full tournament coverage",
-      "Priority support",
-      "No recurring charges",
+      "⚡ Instant goal alerts (with scorer & live score)",
+      "⏰ Kickoff reminders before every match",
+      "📊 Detailed post-match summaries",
+      "⭐ Follow your team — only the matches you care about",
+      "🚫 Completely ad-free",
     ],
     priceId: process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID || "",
     popular: true,
@@ -78,7 +64,7 @@ export default function PremiumCheckout() {
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2 max-w-3xl mx-auto">
+      <div className="grid gap-8 max-w-md mx-auto">
         {plans.map((plan) => (
           <div
             key={plan.name}

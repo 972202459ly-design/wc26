@@ -198,15 +198,22 @@ async function sendBatch(
   let failed = 0;
 
   const results = await Promise.allSettled(
-    subscribers.map((sub) =>
-      resend!.emails.send({
+    subscribers.map((sub) => {
+      const unsubscribeUrl = `https://wc26live.org/api/unsubscribe?email=${encodeURIComponent(sub.email)}`;
+      return resend!.emails.send({
         from: "WC26 Live <noreply@wc26live.org>",
         to: sub.email,
         subject,
         html: htmlBuilder(sub.email),
         text,
-      })
-    )
+        // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
+        // rules and a strong inbox-placement (anti-spam) signal.
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      });
+    })
   );
 
   for (const r of results) {
@@ -224,6 +231,46 @@ async function sendBatch(
   }
 
   return { sent, failed };
+}
+
+// ── Welcome email (on signup) ──
+
+export async function sendWelcomeEmail(email: string): Promise<void> {
+  if (!resend) return;
+  const body = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:24px">
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">You're all set! ⚽</div>
+      <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 16px">
+        You'll now get 2026 World Cup match alerts straight to your inbox —
+        kickoffs, goals and final results.
+      </p>
+      <div style="background:#0f0f0f;border-left:3px solid #f0a500;border-radius:4px;padding:12px 14px;margin-bottom:16px">
+        <div style="color:#f0a500;font-size:13px;font-weight:700;margin-bottom:4px">📥 So our alerts don't land in spam</div>
+        <p style="color:#aaa;font-size:13px;line-height:1.5;margin:0">
+          Add <b style="color:#fff">noreply@wc26live.org</b> to your contacts.
+          If you use QQ / 163 / Outlook, please also check your
+          <b style="color:#fff">Spam / 垃圾邮件</b> folder and mark us as
+          "Not spam" so you never miss a goal.
+        </p>
+      </div>
+      <a href="https://wc26live.org" style="display:inline-block;padding:10px 22px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600">Open WC26 Live →</a>
+    </div>`;
+  const text = `You're subscribed to WC26 Live match alerts! To make sure our emails reach your inbox, add noreply@wc26live.org to your contacts, and check your spam folder (especially QQ/163/Outlook). wc26live.org`;
+  try {
+    await resend.emails.send({
+      from: "WC26 Live <noreply@wc26live.org>",
+      to: email,
+      subject: "Welcome to WC26 Live ⚽ — please whitelist us",
+      html: wrapHtml("", "You're subscribed to World Cup 2026 alerts", body, email),
+      text,
+      headers: {
+        "List-Unsubscribe": `<https://wc26live.org/api/unsubscribe?email=${encodeURIComponent(email)}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
+    });
+  } catch (e) {
+    console.error("Welcome email failed:", e);
+  }
 }
 
 // ── Pre-match reminder emails ──

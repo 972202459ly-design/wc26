@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureSubscribersTable, subscribeEmail } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +24,9 @@ export async function POST(request: NextRequest) {
 
     await ensureSubscribersTable();
     const subscriber = await subscribeEmail(email, preferences || "daily");
+
+    // Fire-and-forget welcome email (whitelist guidance for deliverability).
+    sendWelcomeEmail(email).catch(() => {});
 
     return NextResponse.json({ success: true, subscriber });
   } catch (error) {

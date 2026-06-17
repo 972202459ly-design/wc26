@@ -15,3 +15,18 @@ export async function GET(request: NextRequest) {
     new URL(`/unsubscribe?done=1&email=${encodeURIComponent(email)}`, request.url)
   );
 }
+
+// RFC 8058 one-click unsubscribe: mail providers POST to the List-Unsubscribe
+// URL. Must process the unsubscribe and return 200 (no redirect).
+export async function POST(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get("email");
+
+  if (!email) {
+    return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
+  await deleteSubscriber(email);
+
+  return NextResponse.json({ success: true });
+}

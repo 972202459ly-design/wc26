@@ -7,6 +7,11 @@ export default function SubscribePage() {
   const [preferences, setPreferences] = useState("daily");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
+  // Chinese/strict providers frequently route mail from new foreign domains to
+  // spam — warn at signup so users still find our alerts (and recover delivery).
+  const domain = email.split("@")[1]?.toLowerCase() ?? "";
+  const strictProvider = /^(qq\.com|163\.com|126\.com|foxmail\.com|sina\.com|sina\.cn|yeah\.net)$/.test(domain);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
@@ -51,6 +56,11 @@ export default function SubscribePage() {
             placeholder="you@example.com"
             className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] text-white placeholder:text-[#666] focus:outline-none focus:border-[#f0a500]"
           />
+          {strictProvider && (
+            <p className="mt-2 text-xs text-[#f0a500] leading-relaxed">
+              ⚠️ {domain} 常把境外邮件放进「垃圾邮件」。订阅后请到垃圾箱把我们标为「非垃圾」并加白名单 —— 或改用 Gmail 收提醒更稳。
+            </p>
+          )}
         </div>
 
         <div>
