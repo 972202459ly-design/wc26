@@ -27,6 +27,10 @@ export interface ScoreChange {
   half_time_away?: number | null;
   utc_date?: string | null;
   match_id?: string;
+  // Goal scorer (from API-Football events)
+  scorer?: string | null;
+  goal_minute?: number | null;
+  assist?: string | null;
 }
 
 function esc(s: string): string {
@@ -345,16 +349,25 @@ export async function sendKickoffEmails(
 
 // ── Goal alerts ──
 
+function goalLine(c: ScoreChange): string {
+  if (c.scorer) {
+    const min = c.goal_minute ? `${c.goal_minute}' ` : "";
+    const assist = c.assist ? ` <span style="color:#aaa;font-weight:400">(assist: ${esc(c.assist)})</span>` : "";
+    return `⚽ ${min}${esc(c.scorer)}${assist}`;
+  }
+  return goalNarrative(c);
+}
+
 function goalHtml(changes: ScoreChange[], email?: string): string {
-  const cards = changes.map((c) => matchCardHtml(c, "#e74c3c", "GOAL", goalNarrative(c))).join("");
+  const cards = changes.map((c) => matchCardHtml(c, "#e74c3c", "GOAL", goalLine(c))).join("");
   return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards, email);
 }
 
 function goalText(changes: ScoreChange[]): string {
   return changes
     .map((c) => {
-      const prev = (c.prev_home_score != null && c.prev_away_score != null) ? ` (was ${c.prev_home_score}-${c.prev_away_score})` : "";
-      return `GOAL | ${c.home_team} ${c.home_score} - ${c.away_score} ${c.away_team}${prev} | ${stageLabel(c.stage)}`;
+      const who = c.scorer ? ` | ⚽ ${c.goal_minute ? c.goal_minute + "' " : ""}${c.scorer}` : "";
+      return `GOAL | ${c.home_team} ${c.home_score} - ${c.away_score} ${c.away_team}${who} | ${stageLabel(c.stage)}`;
     })
     .join("\n");
 }

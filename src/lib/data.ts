@@ -88,6 +88,35 @@ export function getTeamIdByName(name: string): string | undefined {
   return Object.entries(teamNames).find(([, v]) => v === name)?.[0];
 }
 
+// Map an external (API-Football) team name to our static TLA so DB match_ids
+// stay consistent with the site's static match pages. Normalizes punctuation/
+// accents and covers known FIFA naming differences.
+function normTeam(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[^a-z0-9]/g, "");
+}
+const TEAM_NAME_ALIASES: Record<string, string> = {
+  korearepublic: "kor",
+  korea: "kor",
+  cotedivoire: "civ",
+  turkiye: "tur",
+  capeverde: "cpv",
+  usa: "usa",
+  unitedstatesofamerica: "usa",
+  irislamicrepublicofiran: "irn",
+  iran: "irn",
+  czechrepublic: "cze",
+};
+const NORM_NAME_TO_TLA: Record<string, string> = Object.fromEntries(
+  Object.entries(teamNames).map(([tla, name]) => [normTeam(name), tla])
+);
+export function tlaFromName(name: string): string | undefined {
+  const n = normTeam(name);
+  return TEAM_NAME_ALIASES[n] ?? NORM_NAME_TO_TLA[n];
+}
+
 // ─── Groups ───────────────────────────────────────────────────────────
 export const groups: string[] = [
   "Group A", "Group B", "Group C", "Group D",

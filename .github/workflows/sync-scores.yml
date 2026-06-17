@@ -2,10 +2,12 @@ name: Sync Match Scores
 
 on:
   schedule:
-    # Every 30 minutes during match hours (8:00-23:59 UTC)
-    - cron: "*/30 8-23 * * *"
-    # After-hours sync (0:00-2:59 UTC) for late matches
-    - cron: "0 0,1,2 * * *"
+    # Every 5 minutes during match hours (8:00-23:59 UTC) — GitHub's practical
+    # minimum. For true real-time goal alerts, an external 1-min cron
+    # (cron-job.org) also hits SYNC_URL; this workflow is the reliable baseline.
+    - cron: "*/5 8-23 * * *"
+    # After-hours sync (0:00-5:59 UTC) for late/early matches
+    - cron: "*/5 0-5 * * *"
   workflow_dispatch:
 
 jobs:
