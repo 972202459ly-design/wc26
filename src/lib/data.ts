@@ -448,6 +448,84 @@ export async function getMatchByIdWithScore(id: string): Promise<Match | undefin
   }
 }
 
+// ─── Knockout bracket ─────────────────────────────────────────────────
+export interface BracketMatch {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  status: Match["status"];
+  date: string;
+  time: string;
+  venue: string;
+}
+
+export interface BracketRound {
+  key: string;
+  label: string;
+  matches: BracketMatch[];
+}
+
+const KNOCKOUT_ROUNDS: { key: string; label: string; stages: string[] }[] = [
+  { key: "r16", label: "Round of 16", stages: ["LAST_16", "ROUND_OF_16"] },
+  { key: "qf", label: "Quarter-finals", stages: ["QUARTER_FINALS"] },
+  { key: "sf", label: "Semi-finals", stages: ["SEMI_FINALS"] },
+  { key: "tp", label: "Third-place Play-off", stages: ["THIRD_PLACE"] },
+  { key: "final", label: "Final", stages: ["FINAL"] },
+];
+
+const byKickoff = (a: BracketMatch, b: BracketMatch) =>
+  (a.date + a.time).localeCompare(b.date + b.time);
+
+// Returns the knockout bracket merged with live DB fixtures when available;
+// before the draw it falls back to the static schedule skeleton (TBD slots),
+// so the page is useful — and rankable — throughout the tournament.
+export async function getKnockoutBracket(): Promise<BracketRound[]> {
+  let db: import("./db").SyncedMatch[] = [];
+  try {
+    const { getAllScores } = await import("./db");
+    db = await getAllScores();
+  } catch {
+    db = [];
+  }
+
+  return KNOCKOUT_ROUNDS.map((round) => {
+    const dbRows = db.filter((s) => s.stage && round.stages.includes(s.stage));
+    const list: BracketMatch[] = dbRows.length
+      ? dbRows.map((s) => ({
+          id: s.match_id,
+          homeTeam: s.home_team,
+          awayTeam: s.away_team,
+          homeScore: s.home_score,
+          awayScore: s.away_score,
+          status:
+            s.status === "FINISHED"
+              ? "finished"
+              : s.status === "IN_PLAY" || s.status === "PAUSED"
+                ? "live"
+                : "upcoming",
+          date: s.utc_date.slice(0, 10),
+          time: s.utc_date.slice(11, 16),
+          venue: "",
+        }))
+      : matches
+          .filter((m) => round.stages.includes(m.stage))
+          .map((m) => ({
+            id: m.id,
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            status: m.status,
+            date: m.date,
+            time: m.time,
+            venue: m.venue,
+          }));
+    return { key: round.key, label: round.label, matches: list.sort(byKickoff) };
+  });
+}
+
 // Human-readable stage label, e.g. "ROUND_OF_16" → "Round of 16".
 export function stageLabel(stage: string): string {
   const map: Record<string, string> = {

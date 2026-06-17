@@ -3,7 +3,7 @@ import { teams, matches, groups } from "@/lib/data";
 const baseUrl = "https://wc26live.org";
 
 export default async function sitemap() {
-  const staticPages = ["/", "/schedule", "/standings", "/teams", "/groups"].map(
+  const staticPages = ["/", "/schedule", "/bracket", "/standings", "/teams", "/groups"].map(
     (path) => ({
       url: `${baseUrl}${path}`,
       lastModified: new Date(),
