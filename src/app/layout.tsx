@@ -72,6 +72,38 @@ export default async function RootLayout({
         )}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a0a0a" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "WC26 Live",
+                url: "https://wc26live.org",
+                description:
+                  "Live scores, schedule, standings and knockout bracket for the 2026 FIFA World Cup.",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "SportsEvent",
+                name: "2026 FIFA World Cup",
+                sport: "Football",
+                startDate: "2026-06-11",
+                endDate: "2026-07-19",
+                eventStatus: "https://schema.org/EventScheduled",
+                eventAttendanceMode:
+                  "https://schema.org/OfflineEventAttendanceMode",
+                url: "https://wc26live.org",
+                location: [
+                  { "@type": "Country", name: "United States" },
+                  { "@type": "Country", name: "Canada" },
+                  { "@type": "Country", name: "Mexico" },
+                ],
+              },
+            ]),
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-[#e5e5e5]">
         <NextIntlClientProvider locale={locale} messages={messages}>

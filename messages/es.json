@@ -44,7 +44,7 @@
     }
   },
   "schedule": {
-    "title": "Calendario de Partidos",
+    "title": "Calendario Copa Mundial 2026",
     "shop": {
       "sponsored": "Patrocinado",
       "title": "🎽 Equipo para el Día del Partido",
@@ -56,7 +56,7 @@
     }
   },
   "standings": {
-    "title": "Clasificaciones de Grupo",
+    "title": "Clasificaciones Copa Mundial 2026",
     "loading": "Cargando resultados en vivo...",
     "liveBadge": "En vivo — actualizado automáticamente con datos oficiales de la FIFA",
     "tableHeaders": {
@@ -84,7 +84,7 @@
     }
   },
   "teams": {
-    "title": "Equipos",
+    "title": "Equipos Copa Mundial 2026",
     "description": "Los 48 equipos que compiten en la Copa Mundial de la FIFA 2026.",
     "shop": {
       "sponsored": "Patrocinado",
@@ -129,7 +129,7 @@
     }
   },
   "groups": {
-    "title": "Grupos",
+    "title": "Grupos Copa Mundial 2026",
     "description": "Clasificaciones y calendarios de grupos de la Copa Mundial de la FIFA 2026 — los 12 grupos.",
     "subtitle": "Copa Mundial de la FIFA 2026 — 12 grupos, 48 equipos"
   },

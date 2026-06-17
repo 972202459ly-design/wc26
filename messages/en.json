@@ -44,7 +44,7 @@
     }
   },
   "schedule": {
-    "title": "Match Schedule",
+    "title": "World Cup 2026 Schedule",
     "shop": {
       "sponsored": "Sponsored",
       "title": "🎽 Match Day Gear",
@@ -56,7 +56,7 @@
     }
   },
   "standings": {
-    "title": "Group Standings",
+    "title": "World Cup 2026 Standings",
     "loading": "Loading live scores...",
     "liveBadge": "Live — auto-updating from official FIFA data",
     "tableHeaders": {
@@ -84,7 +84,7 @@
     }
   },
   "teams": {
-    "title": "Teams",
+    "title": "World Cup 2026 Teams",
     "description": "All 48 teams competing in the 2026 FIFA World Cup.",
     "shop": {
       "sponsored": "Sponsored",
@@ -129,7 +129,7 @@
     }
   },
   "groups": {
-    "title": "Groups",
+    "title": "World Cup 2026 Groups",
     "description": "2026 FIFA World Cup group standings and schedules — all 12 groups.",
     "subtitle": "2026 FIFA World Cup — 12 groups, 48 teams"
   },
