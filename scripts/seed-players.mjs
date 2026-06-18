@@ -6,20 +6,22 @@ if (!process.env.DATABASE_URL) {
 }
 const sql = neon(process.env.DATABASE_URL);
 
-// Individual leaderboard bots — scores 1100–2400, beatable by active players
+// Individual leaderboard bots — tight, catchable spread (1080–1620) so a new
+// player starting at 1000 can realistically climb. France & Portugal sit at the
+// top to create a title race rather than one runaway leader.
 const players = [
-  { name:"GoalMachine",   team:"arg", pts:2380, wins:8, bets:11 },
-  { name:"PredictorX",    team:"bra", pts:2210, wins:7, bets:10 },
-  { name:"xGWizard",      team:"fra", pts:2050, wins:6, bets:9  },
-  { name:"TacticalFan",   team:"eng", pts:1920, wins:6, bets:10 },
-  { name:"MatchAnalyst",  team:"esp", pts:1780, wins:5, bets:9  },
-  { name:"BallTracker",   team:"ger", pts:1650, wins:5, bets:8  },
-  { name:"FinalWhistle",  team:"por", pts:1520, wins:4, bets:8  },
-  { name:"OffsideTrap",   team:"ned", pts:1410, wins:4, bets:7  },
-  { name:"DeadballKing",  team:"usa", pts:1290, wins:3, bets:7  },
-  { name:"SweepstakePro", team:"mex", pts:1180, wins:3, bets:6  },
-  { name:"SetPieceGuru",  team:"jpn", pts:1130, wins:2, bets:6  },
-  { name:"CounterPress",  team:"mar", pts:1090, wins:2, bets:5  },
+  { name:"xGWizard",      team:"fra", pts:1620, wins:6, bets:9  },
+  { name:"FinalWhistle",  team:"por", pts:1585, wins:4, bets:8  },
+  { name:"GoalMachine",   team:"arg", pts:1560, wins:8, bets:11 },
+  { name:"PredictorX",    team:"bra", pts:1520, wins:7, bets:10 },
+  { name:"TacticalFan",   team:"eng", pts:1470, wins:6, bets:10 },
+  { name:"MatchAnalyst",  team:"esp", pts:1420, wins:5, bets:9  },
+  { name:"BallTracker",   team:"ger", pts:1370, wins:5, bets:8  },
+  { name:"OffsideTrap",   team:"ned", pts:1320, wins:4, bets:7  },
+  { name:"DeadballKing",  team:"usa", pts:1265, wins:3, bets:7  },
+  { name:"SweepstakePro", team:"mex", pts:1205, wins:3, bets:6  },
+  { name:"SetPieceGuru",  team:"jpn", pts:1140, wins:2, bets:6  },
+  { name:"CounterPress",  team:"mar", pts:1080, wins:2, bets:5  },
 ];
 
 const matchPool = [
