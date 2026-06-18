@@ -12,17 +12,23 @@ const sizeMap: Record<AdSize, { width: string; height: number }> = {
 
 export default function AdPlaceholder({ size = "inline" }: { size?: AdSize }) {
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+  // AdSense isn't serving yet (pending approval) — an unfilled <ins> just leaves
+  // an ugly empty block. Keep ads fully hidden until NEXT_PUBLIC_ADS_ENABLED is
+  // set to "true" (flip it once AdSense is approved).
+  const enabled = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
   const dims = sizeMap[size];
 
   useEffect(() => {
-    if (client) {
+    if (enabled && client) {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch {
         // ad block or not ready
       }
     }
-  }, [client]);
+  }, [enabled, client]);
+
+  if (!enabled) return null;
 
   if (!client) {
     return (

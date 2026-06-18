@@ -1,7 +1,6 @@
 import { getMatchByIdWithScore, stageLabel, matches } from "@/lib/data";
 import { notFound } from "next/navigation";
 import MatchDetail from "./MatchDetail";
-import MatchPrediction from "@/components/MatchPrediction";
 import type { Metadata } from "next";
 
 // Re-render server HTML periodically so crawlers and no-JS users see fresh
@@ -97,7 +96,6 @@ export default async function MatchPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <MatchDetail match={match} />
-      <MatchPrediction matchId={match.id} home={match.homeTeam} away={match.awayTeam} />
     </>
   );
 }

@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Sparkles, Trophy, Zap, Bell, Ban } from "lucide-react";
+
+const PRO_FEATURES = [
+  { icon: Sparkles, text: "AI Analyst on every match — full breakdown & value picks to win your predictions" },
+  { icon: Trophy, text: "+500 daily Pick'em points (free players get 200) — climb the leaderboard faster" },
+  { icon: Zap, text: "Real-time goal alerts with scorer, the second they happen" },
+  { icon: Bell, text: "Kickoff reminders before every match" },
+  { icon: Ban, text: "Completely ad-free" },
+];
 
 export default function SubscribePage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
 
-  // Chinese/strict providers frequently route mail from new foreign domains to
-  // spam — warn at signup so users still find our alerts (and recover delivery).
   const domain = email.split("@")[1]?.toLowerCase() ?? "";
   const strictProvider = /^(qq\.com|163\.com|126\.com|foxmail\.com|sina\.com|sina\.cn|yeah\.net)$/.test(domain);
 
@@ -21,88 +28,77 @@ export default function SubscribePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (res.ok) {
-        window.location.href = "/subscribe/confirmed";
-      } else {
-        setStatus("error");
-      }
+      if (res.ok) window.location.href = "/subscribe/confirmed";
+      else setStatus("error");
     } catch {
       setStatus("error");
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold mb-3 text-center">Choose Your Plan</h1>
-      <p className="text-[#888] mb-10 text-center">
-        Follow the 2026 World Cup your way — free results, or premium real-time alerts.
-      </p>
+    <div className="mx-auto max-w-2xl px-4 py-14">
+      <div className="mb-8 text-center">
+        <h1 className="mb-3 text-3xl font-bold">Get your World Cup 2026 edge</h1>
+        <p className="text-[#999]">
+          Predict smarter, win the Pick&apos;em leaderboard, and never miss a goal.
+        </p>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 items-start">
-        {/* Free plan */}
-        <div className="rounded-xl border border-[#222] bg-[#111] p-6">
-          <h2 className="text-xl font-bold mb-1">Free</h2>
-          <div className="mb-4">
-            <span className="text-3xl font-bold">$0</span>
-          </div>
-          <ul className="space-y-2 mb-6 text-sm">
-            <li className="flex items-center gap-2">✅ Final scores for every match</li>
-            <li className="flex items-center gap-2">✅ Post-match summaries</li>
-            <li className="flex items-center gap-2 text-[#666]">✖ No real-time goal alerts</li>
-            <li className="flex items-center gap-2 text-[#666]">✖ No kickoff reminders</li>
-          </ul>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-lg bg-[#0a0a0a] border border-[#333] text-white placeholder:text-[#666] focus:outline-none focus:border-[#f0a500]"
-            />
-            {strictProvider && (
-              <p className="text-xs text-[#f0a500] leading-relaxed">
-                ⚠️ {domain} 常把境外邮件放进「垃圾邮件」。订阅后请到垃圾箱标为「非垃圾」并加白名单 —— 或改用 Gmail 更稳。
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="w-full px-6 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors disabled:opacity-50"
-            >
-              {status === "loading" ? "Subscribing..." : "Subscribe for Free"}
-            </button>
-            {status === "error" && (
-              <p className="text-sm text-red-400 text-center">Something went wrong. Please try again.</p>
-            )}
-          </form>
+      {/* Premium — the hero */}
+      <div className="relative rounded-2xl border border-[#f0a500] bg-gradient-to-b from-[#1a1a2e] to-[#111] p-7 shadow-[0_0_40px_-12px_rgba(240,165,0,0.4)]">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#f0a500] px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-black">
+          Tournament Pass
+        </span>
+        <div className="mb-1 mt-2 flex items-baseline justify-center gap-2">
+          <span className="text-4xl font-bold">$4.99</span>
+          <span className="text-sm text-[#888]">one-time · through the July 19 final</span>
         </div>
+        <p className="mb-6 text-center text-sm text-[#aaa]">No subscription, no recurring charges.</p>
 
-        {/* Premium plan */}
-        <div className="relative rounded-xl border border-[#f0a500] bg-[#1a1a2e] p-6">
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 text-xs font-semibold uppercase tracking-wider rounded-full bg-[#f0a500] text-black">
-            Most Popular
-          </span>
-          <h2 className="text-xl font-bold mb-1">Tournament Pass</h2>
-          <div className="mb-4">
-            <span className="text-3xl font-bold">$4.99</span>
-            <span className="text-[#888] text-sm"> one-time</span>
-          </div>
-          <ul className="space-y-2 mb-6 text-sm">
-            <li className="flex items-center gap-2">⚡ Instant goal alerts (with scorer)</li>
-            <li className="flex items-center gap-2">⏰ Kickoff reminders with line-ups</li>
-            <li className="flex items-center gap-2">📊 Detailed post-match summaries</li>
-            <li className="flex items-center gap-2">⭐ Follow your team</li>
-            <li className="flex items-center gap-2">🚫 Completely ad-free</li>
-          </ul>
-          <Link
-            href="/premium"
-            className="block w-full text-center px-6 py-3 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+        <ul className="mb-7 space-y-3">
+          {PRO_FEATURES.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex items-start gap-3 text-sm">
+              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#f0a500]" />
+              <span className="text-[#ddd]">{text}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Link
+          href="/premium"
+          className="block w-full rounded-lg bg-[#f0a500] px-6 py-3.5 text-center text-sm font-bold text-black transition-colors hover:bg-[#d49500]"
+        >
+          Get the Tournament Pass — $4.99
+        </Link>
+        <p className="mt-2 text-center text-[11px] text-[#888]">One payment covers the entire tournament.</p>
+      </div>
+
+      {/* Free — de-emphasized */}
+      <div className="mt-8 rounded-xl border border-[#222] bg-[#0d0d0d] p-5">
+        <div className="mb-1 text-sm font-semibold text-[#ccc]">Just want free final-score emails?</div>
+        <p className="mb-3 text-xs text-[#777]">
+          Final scores only — no AI analyst, no real-time alerts, 200 daily Pick&apos;em points.
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
+          <input
+            type="email" required value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="grow rounded-md border border-[#333] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder:text-[#666] focus:border-[#555] focus:outline-none"
+          />
+          <button
+            type="submit" disabled={status === "loading"}
+            className="rounded-md border border-[#444] px-4 py-2 text-sm text-[#bbb] transition-colors hover:border-[#666] hover:text-white disabled:opacity-50"
           >
-            Go Premium — $4.99
-          </Link>
-          <p className="text-[11px] text-[#888] text-center mt-2">Covers every match through the July 19 final</p>
-        </div>
+            {status === "loading" ? "…" : "Subscribe free"}
+          </button>
+        </form>
+        {strictProvider && (
+          <p className="mt-2 text-xs leading-relaxed text-[#f0a500]">
+            ⚠️ {domain} 常把境外邮件放进「垃圾邮件」。订阅后请到垃圾箱标为「非垃圾」并加白名单 —— 或改用 Gmail 更稳。
+          </p>
+        )}
+        {status === "error" && <p className="mt-2 text-sm text-red-400">Something went wrong. Please try again.</p>}
       </div>
     </div>
   );

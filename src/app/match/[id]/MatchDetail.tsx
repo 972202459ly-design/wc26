@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import MatchPrediction from "@/components/MatchPrediction";
 import MatchCountdown from "@/components/MatchCountdown";
 import EventsTimeline from "@/components/EventsTimeline";
 import { useTranslations } from "next-intl";
@@ -133,6 +134,9 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
           {t("shareOnX")}
         </button>
       </div>
+
+      {/* AI prediction + pick'em — prominent, right under the score header */}
+      <MatchPrediction matchId={match.id} home={match.homeTeam} away={match.awayTeam} />
 
       {/* Match Events Timeline */}
       {(match.status === "live" || match.status === "finished") && (

@@ -119,6 +119,27 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Pick'em game CTA */}
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#f0a500]/40 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center sm:flex-row sm:text-left">
+          <div className="text-4xl">🎯</div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-white">Play the World Cup Pick&apos;em</h2>
+            <p className="mt-1 text-sm text-[#aaa]">
+              Predict matches with <b className="text-[#f0a500]">1,000 free points</b>, bet at AI-derived odds, and climb the leaderboard. No money — just bragging rights.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link href="/leaderboard" className="rounded-lg border border-[#444] px-4 py-2.5 text-sm font-semibold text-white hover:border-[#f0a500]">
+              Leaderboard
+            </Link>
+            <Link href="/schedule" className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]">
+              Make a prediction →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Today's Matches */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
         <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>

@@ -8,12 +8,13 @@ const plans = [
     name: "Tournament Pass",
     price: "$4.99",
     period: " one-time",
-    description: "Everything through the July 19 final — no recurring charges",
+    description: "Your edge for the whole tournament — through the July 19 final, no recurring charges",
     features: [
-      "⚡ Instant goal alerts (with scorer & live score)",
+      "🧠 AI Analyst on every match — full breakdown & value picks to win your predictions",
+      "🎯 +500 daily Pick'em points (free = 200) — climb the leaderboard faster",
+      "⚡ Real-time goal alerts with scorer, the moment they happen",
       "⏰ Kickoff reminders before every match",
       "📊 Detailed post-match summaries",
-      "⭐ Follow your team — only the matches you care about",
       "🚫 Completely ad-free",
     ],
     priceId: process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID || "",
@@ -59,8 +60,9 @@ export default function PremiumCheckout() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Go Premium</h1>
         <p className="text-lg text-[#888] max-w-xl mx-auto">
-          Never miss a moment. Get real-time goal alerts, match reminders, and
-          more delivered straight to your inbox.
+          Predict smarter and win the Pick&apos;em leaderboard. Unlock the AI
+          analyst on every match, bigger daily points, real-time alerts and an
+          ad-free experience — all the way to the final.
         </p>
       </div>
 
@@ -110,7 +112,7 @@ export default function PremiumCheckout() {
               disabled={!paddle}
               className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {paddle ? "Subscribe Now" : "Loading..."}
+              {paddle ? "Get the Tournament Pass — $4.99" : "Loading..."}
             </button>
           </div>
         ))}
