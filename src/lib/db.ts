@@ -184,7 +184,8 @@ export async function ensureGameSchema(): Promise<void> {
   if (gameSchemaReady) return;
   const sql = getSql();
   await ensureSubscribersTable();
-  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT ${INITIAL_POINTS}`;
+  // DDL DEFAULT can't be a bind parameter, so the literal must match INITIAL_POINTS (1000).
+  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT 1000`;
   await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS last_topup DATE`;
   await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS username TEXT`;
   await sql`
