@@ -395,16 +395,15 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
   }));
 }
 
-/** Homepage social-proof stats. NPC seed bots are excluded from the player count. */
+/** Homepage social-proof stats. Excludes both seed-bot populations ('bot' and
+ *  'npc') from the real-player count; top score mirrors the public leaderboard. */
 export async function getHomeStats(): Promise<{ players: number; topName: string | null; topPoints: number }> {
-  const sql = getSql();
-  const [p] = (await sql`SELECT COUNT(*)::int AS players FROM subscribers WHERE preferences <> 'npc'`) as any[];
-  const top = (await sql`
-    SELECT username, points FROM subscribers
-    WHERE username IS NOT NULL AND preferences <> 'npc'
-    ORDER BY points DESC LIMIT 1
+  const [p] = (await getSql()`
+    SELECT COUNT(*)::int AS players FROM subscribers WHERE preferences NOT IN ('bot', 'npc')
   `) as any[];
-  return { players: p?.players ?? 0, topName: top[0]?.username ?? null, topPoints: top[0]?.points ?? 0 };
+  const ranked = await getRankedPlayers();
+  const t = ranked[0];
+  return { players: p?.players ?? 0, topName: t?.name ?? null, topPoints: t?.points ?? 0 };
 }
 
 export interface RankedPlayer {

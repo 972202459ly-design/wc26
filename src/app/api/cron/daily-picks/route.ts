@@ -67,7 +67,7 @@ export async function GET(request: Request) {
     const subs = testEmail
       ? [{ email: testEmail, preferences: "premium" }]
       : (await getSubscribers()).filter(
-          (s) => s.preferences === "free" || s.preferences === "premium"
+          (s) => s.preferences !== "bot" && s.preferences !== "npc"
         );
     if (subs.length === 0) {
       return NextResponse.json({ success: true, sent: 0, reason: "No subscribers" });
