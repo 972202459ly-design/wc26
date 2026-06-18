@@ -99,12 +99,12 @@ export default function MatchPrediction({
           <h2 className="text-sm font-bold uppercase tracking-wide text-white">AI Prediction &amp; Pick&apos;em</h2>
         </div>
         {authed && points !== null && (
-          <span className="text-xs text-[#aaa]">Balance: <span className="font-bold text-[#f0a500]">{points.toLocaleString()}</span> pts</span>
+          <span className="text-xs text-[#aaa]">Your points: <span className="font-bold text-[#f0a500]">{points.toLocaleString()}</span></span>
         )}
       </div>
 
       <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5">
-        {/* Outcome rows with model % and odds; selectable when betting is open */}
+        {/* Outcome rows with model % and reward multiplier; selectable when predictions are open */}
         <div className="space-y-2.5">
           {rows.map((r) => {
             const selected = sel === r.key;
@@ -123,7 +123,7 @@ export default function MatchPrediction({
                   <span className="text-[#ddd]">{r.label}</span>
                   <span className="flex items-center gap-2">
                     <span className="font-semibold text-white">{r.pct}%</span>
-                    <span className="rounded bg-[#222] px-1.5 py-0.5 font-mono text-[#f0a500]">×{r.odds}</span>
+                    <span title="Points multiplier if correct" className="rounded bg-[#222] px-1.5 py-0.5 font-mono text-[#f0a500]">×{r.odds}</span>
                   </span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-[#222]">
@@ -139,7 +139,7 @@ export default function MatchPrediction({
           <span>Most likely: <span className="text-white">{pred.topHome}–{pred.topAway}</span></span>
         </div>
 
-        {/* Betting panel */}
+        {/* Prediction panel */}
         <div className="mt-4 border-t border-[#222] pt-4">
           {!authed ? (
             <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -149,7 +149,7 @@ export default function MatchPrediction({
           ) : !upcoming ? (
             myPick ? (
               <p className="text-sm text-[#bbb]">
-                Your pick: <b className="text-white">{pickLabel(myPick.pick)}</b> · {myPick.stake} pts @ ×{myPick.odds}
+                Your pick: <b className="text-white">{pickLabel(myPick.pick)}</b> · {myPick.stake} pts → ×{myPick.odds}
                 {myPick.status === "won" && <span className="ml-2 font-semibold text-green-400">Won +{myPick.payout} ✓</span>}
                 {myPick.status === "lost" && <span className="ml-2 font-semibold text-red-400">Lost −{myPick.stake}</span>}
                 {myPick.status === "open" && <span className="ml-2 text-[#888]">Awaiting result…</span>}
@@ -160,7 +160,7 @@ export default function MatchPrediction({
           ) : (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[#999]">Stake</span>
+                <span className="text-xs text-[#999]">Points</span>
                 <input
                   type="number" min={10} max={points ?? undefined} value={stake}
                   onChange={(e) => setStake(Math.max(0, Math.floor(Number(e.target.value))))}
@@ -168,7 +168,7 @@ export default function MatchPrediction({
                 />
                 <span className="text-xs text-[#999]">pts</span>
                 {sel && stake >= 10 && (
-                  <span className="ml-auto text-xs text-[#aaa]">Potential return: <b className="text-[#f0a500]">{Math.round(stake * selOdds).toLocaleString()}</b></span>
+                  <span className="ml-auto text-xs text-[#aaa]">Potential score: <b className="text-[#f0a500]">{Math.round(stake * selOdds).toLocaleString()}</b></span>
                 )}
               </div>
               <button
@@ -195,7 +195,7 @@ export default function MatchPrediction({
           ) : analysisLocked ? (
             <Link href="/premium" className="flex items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]">
               <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
-              <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">AI analyst&apos;s breakdown</b> &amp; value picks to bet smarter — <span className="text-[#f0a500]">go Pro</span>.</span>
+              <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">AI analyst&apos;s breakdown</b> &amp; value picks to predict smarter — <span className="text-[#f0a500]">go Pro</span>.</span>
             </Link>
           ) : null}
         </div>

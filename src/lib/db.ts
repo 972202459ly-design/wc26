@@ -319,7 +319,7 @@ export async function placePick(
   const balance = (balRows as any[])[0]?.points ?? 0;
   const effective = balance + refund;
   if (stake > effective) return { ok: false, error: "Not enough points" };
-  if (stake < 10) return { ok: false, error: "Minimum stake is 10 points" };
+  if (stake < 10) return { ok: false, error: "Minimum 10 points per prediction" };
 
   const newBalance = effective - stake;
   await sql`UPDATE subscribers SET points = ${newBalance} WHERE email = ${e}`;

@@ -9,7 +9,7 @@ export default function GameDisclaimer({ className = "" }: { className?: string 
       The WC26 Live Pick&apos;em is a <b>free-to-play game for entertainment only</b>. Points are
       virtual, have <b>no monetary value</b>, cannot be purchased, and cannot be exchanged for cash or
       prizes. This is <b>not gambling</b> and involves no real-money wagering. Predictions are
-      informational and not betting advice. Players should be 18+.
+      informational and for entertainment only. Players should be 18+.
     </div>
   );
 }

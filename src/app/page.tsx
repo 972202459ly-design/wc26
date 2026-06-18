@@ -126,7 +126,7 @@ export default function HomePage() {
           <div className="flex-1">
             <h2 className="text-lg font-bold text-white">Play the World Cup Pick&apos;em</h2>
             <p className="mt-1 text-sm text-[#aaa]">
-              Predict matches with <b className="text-[#f0a500]">1,000 free points</b>, bet at AI-derived odds, and climb the leaderboard. No money — just bragging rights.
+              Predict matches with <b className="text-[#f0a500]">1,000 free points</b> using AI win probabilities, and climb the leaderboard. No money — just bragging rights.
             </p>
           </div>
           <div className="flex shrink-0 gap-2">

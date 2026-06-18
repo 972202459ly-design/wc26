@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid pick" }, { status: 400 });
   }
   if (!Number.isFinite(stake) || stake < 10) {
-    return NextResponse.json({ error: "Minimum stake is 10 points" }, { status: 400 });
+    return NextResponse.json({ error: "Minimum 10 points per prediction" }, { status: 400 });
   }
 
   const match = await getMatchByIdWithScore(matchId);

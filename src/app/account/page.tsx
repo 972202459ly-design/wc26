@@ -138,7 +138,7 @@ export default async function AccountPage({
                     <li key={p.id} className="flex items-center justify-between text-sm">
                       <span className="text-[#ccc]">
                         <span className="text-[#777]">{matchLabel.get(p.match_id) || p.match_id}:</span>{" "}
-                        {pickName(p.match_id, p.pick)} <span className="text-[#666]">· {p.stake}@×{p.odds}</span>
+                        {pickName(p.match_id, p.pick)} <span className="text-[#666]">· {p.stake} pts → ×{p.odds}</span>
                       </span>
                       <span>
                         {p.status === "won" && <span className="font-semibold text-green-400">+{p.payout}</span>}

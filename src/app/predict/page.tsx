@@ -44,7 +44,7 @@ export default function PredictPage() {
         <h1 className="text-2xl font-bold text-white">Make a Prediction</h1>
       </div>
       <p className="mb-5 text-sm text-[#999]">
-        Pick an upcoming match, stake your free points at AI-derived odds, and climb the{" "}
+        Pick an upcoming match, use your free points with AI win probabilities, and climb the{" "}
         <Link href="/leaderboard" className="text-[#f0a500] hover:underline">leaderboard</Link>.
       </p>
 

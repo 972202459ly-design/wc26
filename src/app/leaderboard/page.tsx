@@ -42,7 +42,7 @@ export default async function LeaderboardPage() {
         <h1 className="text-2xl font-bold text-white">Pick&apos;em Leaderboard</h1>
       </div>
       <p className="mb-4 text-sm text-[#999]">
-        Predict World Cup 2026 matches with free points at AI-derived odds. Climb the ranks — no money, just bragging rights.{" "}
+        Predict World Cup 2026 matches with free points and AI win probabilities. Climb the ranks — no money, just bragging rights.{" "}
         <Link href="/predict" className="text-[#f0a500] hover:underline">Make a prediction →</Link>
       </p>
 
@@ -65,7 +65,7 @@ export default async function LeaderboardPage() {
               <tr className="border-b border-[#2a2a2a] bg-[#111] text-left text-xs uppercase tracking-wide text-[#888]">
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">Player</th>
-                <th className="px-4 py-3 text-right">W / Bets</th>
+                <th className="px-4 py-3 text-right">W / Predictions</th>
                 <th className="px-4 py-3 text-right">Points</th>
               </tr>
             </thead>
