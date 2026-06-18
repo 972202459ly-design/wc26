@@ -75,24 +75,24 @@ export default function HomePage() {
           <p className="text-lg sm:text-xl text-[#aaa] mb-8 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link
-              href="/premium"
-              className="px-6 py-3 text-sm font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
+              href="/predict"
+              className="px-6 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors shadow-[0_0_30px_-8px_rgba(240,165,0,0.6)]"
             >
-              {t("heroSubscribe")}
-            </Link>
-            <Link
-              href="/subscribe"
-              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
-            >
-              {t("heroFreeLink")}
+              {t("heroPlay")}
             </Link>
             <Link
               href="/schedule"
-              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-600 text-white hover:bg-white/10 transition-colors"
+              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-500 text-white hover:bg-white/10 transition-colors"
             >
-              {t("viewFullSchedule")}
+              {t("heroScores")}
+            </Link>
+            <Link
+              href="/premium"
+              className="px-5 py-3 text-sm font-medium rounded-lg text-[#aaa] hover:text-white transition-colors"
+            >
+              {t("heroGoPro")} →
             </Link>
           </div>
         </div>

@@ -13,11 +13,14 @@
   "home": {
     "heroDate": "June 11 — July 19, 2026",
     "heroTitle": "2026 FIFA World Cup",
-    "heroSubtitle": "Hosted across the United States, Canada, and Mexico. 48 teams. One trophy.",
+    "heroSubtitle": "Free live scores, AI match predictions, and a free-to-play Pick'em game — predict every match and top the leaderboard.",
     "viewFullSchedule": "View Full Schedule",
     "liveStandings": "Live Standings",
     "heroSubscribe": "⚡ Live Goal Alerts — $4.99",
     "heroFreeLink": "Free Match Alerts",
+    "heroPlay": "🎯 Play Pick'em — Free",
+    "heroScores": "Live Scores",
+    "heroGoPro": "Go Pro — $4.99",
     "quickNav": {
       "schedule": "Schedule",
       "scheduleDesc": "Full match schedule",
