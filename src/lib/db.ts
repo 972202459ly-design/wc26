@@ -407,6 +407,34 @@ export async function getHomeStats(): Promise<{ players: number; topName: string
   return { players: p?.players ?? 0, topName: top[0]?.username ?? null, topPoints: top[0]?.points ?? 0 };
 }
 
+export interface RankedPlayer {
+  email: string;
+  name: string;
+  points: number;
+  rank: number;
+}
+
+/** Full leaderboard ordering including emails — for personalized digest emails.
+ *  Mirrors getLeaderboard's population (NPC bots included) so the rank a player
+ *  sees in their email matches the public leaderboard. */
+export async function getRankedPlayers(): Promise<RankedPlayer[]> {
+  const rows = (await getSql()`
+    SELECT s.email, s.username, s.points
+    FROM subscribers s
+    LEFT JOIN picks p ON p.email = s.email
+    WHERE s.preferences != 'bot'
+    GROUP BY s.email, s.username, s.points
+    HAVING COUNT(p.id) > 0
+    ORDER BY s.points DESC
+  `) as any[];
+  return rows.map((r, i) => ({
+    email: r.email,
+    name: r.username || maskEmail(r.email),
+    points: r.points,
+    rank: i + 1,
+  }));
+}
+
 export async function setUsername(email: string, username: string): Promise<void> {
   await getSql()`UPDATE subscribers SET username = ${username} WHERE email = ${email.toLowerCase().trim()}`;
 }

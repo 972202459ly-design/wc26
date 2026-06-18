@@ -320,6 +320,92 @@ export async function sendMagicLink(email: string, url: string): Promise<void> {
   }
 }
 
+// ── Daily Picks digest (the daily pull-back engine) ──
+
+export interface DailyPick {
+  home_team: string;
+  away_team: string;
+  match_id: string;
+  utc_date: string;
+  stage: string | null;
+  favorite: string; // team name, or "Draw"
+  favoritePct: number;
+}
+
+export interface DigestRank {
+  rank: number;
+  points: number;
+}
+
+function dailyPicksHtml(
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  email: string
+): string {
+  const matchCards = picks
+    .map((p) => {
+      const url = `https://wc26live.org/match/${p.match_id}`;
+      const meta = [stageLabel(p.stage), formatDate(p.utc_date)].filter(Boolean).join(" · ");
+      return `
+    <a href="${url}" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-bottom:12px">
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">${esc(p.home_team)} <span style="color:#666;font-weight:400">vs</span> ${esc(p.away_team)}</div>
+      <div style="color:#f0a500;font-size:14px;font-weight:600">🧠 AI Prediction: ${esc(p.favorite)} ${p.favoritePct}%</div>
+      <div style="color:#666;font-size:12px;margin-top:6px">${meta}</div>
+    </a>`;
+    })
+    .join("");
+
+  const cta = `
+    <div style="text-align:center;margin:18px 0 8px">
+      <a href="https://wc26live.org/predict" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your Predictions →</a>
+    </div>`;
+
+  const medals = ["🥇", "🥈", "🥉"];
+  const topRows = top
+    .map(
+      (t, i) =>
+        `<div style="display:flex;justify-content:space-between;font-size:14px;color:#ddd;padding:4px 0"><span>${medals[i] || `#${i + 1}`} ${esc(t.name)}</span><span style="color:#f0a500;font-weight:700">${t.points.toLocaleString()} pts</span></div>`
+    )
+    .join("");
+
+  const mine = myRank
+    ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#fff">You are <b style="color:#f0a500">#${myRank.rank}</b> — ${myRank.points.toLocaleString()} pts. <span style="color:#aaa">Can you reach the Top 10?</span></div>`
+    : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#aaa">You haven't predicted yet — <a href="https://wc26live.org/predict" style="color:#f0a500">make your first pick</a> to get on the board!</div>`;
+
+  const leaderboard = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Leaderboard</div>
+      ${topRows}
+      ${mine}
+    </div>`;
+
+  return wrapHtml("", `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`, matchCards + cta + leaderboard, email);
+}
+
+function dailyPicksText(picks: DailyPick[]): string {
+  return (
+    picks.map((p) => `${p.home_team} vs ${p.away_team} — AI: ${p.favorite} ${p.favoritePct}%`).join("\n") +
+    `\n\nMake your predictions: https://wc26live.org/predict`
+  );
+}
+
+export async function sendDailyPicksEmail(
+  subscribers: { email: string }[],
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>
+): Promise<{ sent: number; failed: number }> {
+  if (picks.length === 0) return { sent: 0, failed: 0 };
+  const subject = `⚽ Today's World Cup Picks — ${picks.length} match${picks.length > 1 ? "es" : ""}`;
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => dailyPicksHtml(picks, top, rankByEmail.get(email) ?? null, email),
+    dailyPicksText(picks)
+  );
+}
+
 // ── Pre-match reminder emails ──
 
 function countdownText(utcDate: string): string {
