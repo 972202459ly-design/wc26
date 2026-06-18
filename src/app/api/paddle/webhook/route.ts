@@ -32,22 +32,31 @@ export async function POST(request: NextRequest) {
     // (not subscriptions). Mark the buyer's email as premium.
     if (eventType === "transaction.completed" || eventType === "transaction.paid") {
       const d = event.data || {};
-      // Email isn't always inline; try the common fields, then the Paddle API.
+      // transaction.completed rarely carries the email inline — Paddle only
+      // sends customer_id by default — so the API fallback is the real path.
       let email: string | undefined =
         d.customer?.email || d.customerEmail || d.customer_email || d.customData?.email;
       const customerId: string | undefined = d.customerId || d.customer_id;
-      if (!email && customerId && process.env.PADDLE_API_KEY) {
-        try {
-          const base =
-            process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
-              ? "https://api.paddle.com"
-              : "https://sandbox-api.paddle.com";
-          const r = await fetch(`${base}/customers/${customerId}`, {
-            headers: { Authorization: `Bearer ${process.env.PADDLE_API_KEY}` },
-          });
-          if (r.ok) email = (await r.json())?.data?.email;
-        } catch {
-          /* fall through */
+      if (!email && customerId) {
+        if (!process.env.PADDLE_API_KEY) {
+          console.error(
+            `PADDLE_API_KEY missing — cannot resolve email for customer ${customerId} (transaction ${d.id}); buyer paid but won't get premium until granted manually`
+          );
+        } else {
+          try {
+            // Default to production; only use sandbox when explicitly set.
+            const base =
+              process.env.NEXT_PUBLIC_PADDLE_ENV === "sandbox"
+                ? "https://sandbox-api.paddle.com"
+                : "https://api.paddle.com";
+            const r = await fetch(`${base}/customers/${customerId}`, {
+              headers: { Authorization: `Bearer ${process.env.PADDLE_API_KEY}` },
+            });
+            if (r.ok) email = (await r.json())?.data?.email;
+            else console.error(`Paddle customers API ${r.status} for ${customerId}`);
+          } catch (e) {
+            console.error(`Paddle customers API fetch failed for ${customerId}:`, e);
+          }
         }
       }
       if (email) {
@@ -55,7 +64,9 @@ export async function POST(request: NextRequest) {
         await subscribeEmail(email, "premium");
         console.log(`Granted premium to ${email} (transaction ${d.id})`);
       } else {
-        console.warn("transaction.completed but no email resolved:", JSON.stringify(d).slice(0, 500));
+        console.error(
+          `transaction.completed but NO email resolved — customer ${customerId}, transaction ${d.id}. Grant premium manually.`
+        );
       }
       return NextResponse.json({ received: true });
     }
