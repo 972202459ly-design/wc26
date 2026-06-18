@@ -8,13 +8,11 @@ const plans = [
     name: "Tournament Pass",
     price: "$4.99",
     period: " one-time",
-    description: "Your edge for the whole tournament — through the July 19 final, no recurring charges",
+    description: "Your competitive edge for the whole tournament — one payment, no recurring charges, all the way to the July 19 final.",
     features: [
-      "🧠 AI Analyst on every match — full breakdown & value picks to win your predictions",
-      "🎯 +500 daily Pick'em points (free = 200) — climb the leaderboard faster",
-      "⚡ Real-time goal alerts with scorer, the moment they happen",
-      "⏰ Kickoff reminders before every match",
-      "📊 Detailed post-match summaries",
+      "🧠 AI Match Intelligence — full analyst breakdown & value picks on every match",
+      "🏆 Beat the leaderboard — +500 bonus Pick'em points every day (free gets 200)",
+      "⚡ Real-time goal & kickoff alerts — never miss a moment to predict",
       "🚫 Completely ad-free",
     ],
     priceId: process.env.NEXT_PUBLIC_PADDLE_TOURNAMENT_PRICE_ID || "",
@@ -58,11 +56,14 @@ export default function PremiumCheckout() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Go Premium</h1>
+        <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a500] mb-3">
+          WC26 Insider Pass
+        </span>
+        <h1 className="text-4xl font-bold mb-4">Win the Leaderboard</h1>
         <p className="text-lg text-[#888] max-w-xl mx-auto">
-          Predict smarter and win the Pick&apos;em leaderboard. Unlock the AI
-          analyst on every match, bigger daily points, real-time alerts and an
-          ad-free experience — all the way to the final.
+          You&apos;re not buying emails — you&apos;re buying the edge. AI match
+          intelligence, a daily points boost, and insider insight to outpredict
+          everyone and top the global Pick&apos;em rankings.
         </p>
       </div>
 
