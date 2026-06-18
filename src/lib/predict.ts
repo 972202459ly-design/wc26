@@ -22,6 +22,12 @@ export interface Prediction {
   pick: "home" | "draw" | "away";
 }
 
+/** Fair decimal odds from a win-probability percentage (no house margin). */
+export function oddsFromPct(pct: number): number {
+  const p = Math.max(1, pct);
+  return Math.max(1.05, Math.round((100 / p) * 100) / 100);
+}
+
 function poisson(k: number, lambda: number): number {
   let fact = 1;
   for (let i = 2; i <= k; i++) fact *= i;

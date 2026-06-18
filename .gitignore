@@ -6,3 +6,4 @@ scripts/tweeted_matches.json
 scripts/tmp_*.json
 tmp/
 tsconfig.tsbuildinfo
+.env*

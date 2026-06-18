@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   ensureTable,
   ensureSubscribersTable,
+  ensureGameSchema,
+  settleOpenPicks,
   upsertMatch,
   getAllScores,
   getSubscribers,
@@ -92,6 +94,15 @@ export async function GET(request: Request) {
       updated++;
     }
 
+    // Settle any prediction-game picks whose match just finished (idempotent).
+    let settledPicks = 0;
+    try {
+      await ensureGameSchema();
+      settledPicks = await settleOpenPicks();
+    } catch (e) {
+      console.error("Pick settlement error:", e);
+    }
+
     // Send emails by preference.
     const allSubs = await getSubscribers();
     // Tiering: Premium = kickoff + goal + final (real-time);
@@ -116,6 +127,7 @@ export async function GET(request: Request) {
       kickoffs: kickoffChanges.length,
       goals: goalChanges.length,
       finals: finalChanges.length,
+      settledPicks,
       emailsSent: totalSent,
       emailsFailed: totalFailed,
     });

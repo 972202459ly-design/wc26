@@ -149,6 +149,219 @@ export async function upsertAnalysis(matchId: string, analysis: string): Promise
   `;
 }
 
+// ─── Prediction game (free-to-play virtual points) ────────────────────
+// Players stake free virtual points on match outcomes at AI-derived odds.
+// No real-money purchase of points and no cash-out — a skill contest, not
+// gambling (keeps Paddle + AdSense compliant). Identity = email (same as auth).
+
+export const INITIAL_POINTS = 1000;
+export const DAILY_TOPUP_FREE = 200;
+export const DAILY_TOPUP_PREMIUM = 500;
+
+export interface Player {
+  email: string;
+  points: number;
+  username: string | null;
+  tier: "free" | "premium";
+}
+
+export interface Pick {
+  id: number;
+  email: string;
+  match_id: string;
+  pick: string;
+  stake: number;
+  odds: number;
+  status: string; // open | won | lost | void
+  payout: number;
+  created_at: string;
+  settled_at: string | null;
+}
+
+let gameSchemaReady = false;
+
+export async function ensureGameSchema(): Promise<void> {
+  if (gameSchemaReady) return;
+  const sql = getSql();
+  await ensureSubscribersTable();
+  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT ${INITIAL_POINTS}`;
+  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS last_topup DATE`;
+  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS username TEXT`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS picks (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL,
+      match_id TEXT NOT NULL,
+      pick TEXT NOT NULL,
+      stake INTEGER NOT NULL,
+      odds REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      payout INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      settled_at TIMESTAMP,
+      UNIQUE(email, match_id)
+    )
+  `;
+  gameSchemaReady = true;
+}
+
+/** Ensure a player row exists (free-tier, initial points) and return it. */
+export async function getOrCreatePlayer(email: string): Promise<Player> {
+  const e = email.toLowerCase().trim();
+  const sql = getSql();
+  await sql`
+    INSERT INTO subscribers (email, preferences, points)
+    VALUES (${e}, 'free', ${INITIAL_POINTS})
+    ON CONFLICT (email) DO NOTHING
+  `;
+  const rows = await sql`
+    SELECT email, points, username, preferences FROM subscribers WHERE email = ${e}
+  `;
+  const r = (rows as any[])[0];
+  return {
+    email: e,
+    points: r?.points ?? INITIAL_POINTS,
+    username: r?.username ?? null,
+    tier: r?.preferences === "premium" ? "premium" : "free",
+  };
+}
+
+/** Grant a free daily top-up once per calendar day. Returns the new balance. */
+export async function dailyTopup(email: string): Promise<number> {
+  const e = email.toLowerCase().trim();
+  const player = await getOrCreatePlayer(e);
+  const amount = player.tier === "premium" ? DAILY_TOPUP_PREMIUM : DAILY_TOPUP_FREE;
+  const rows = await getSql()`
+    UPDATE subscribers
+    SET points = points + ${amount}, last_topup = CURRENT_DATE
+    WHERE email = ${e} AND (last_topup IS NULL OR last_topup < CURRENT_DATE)
+    RETURNING points
+  `;
+  if ((rows as any[]).length) return (rows as any[])[0].points;
+  return player.points; // already topped up today
+}
+
+export async function getUserPick(email: string, matchId: string): Promise<Pick | null> {
+  const rows = await getSql()`
+    SELECT * FROM picks WHERE email = ${email.toLowerCase().trim()} AND match_id = ${matchId}
+  `;
+  return (rows as unknown as Pick[])[0] ?? null;
+}
+
+export async function getUserPicks(email: string): Promise<Pick[]> {
+  const rows = await getSql()`
+    SELECT * FROM picks WHERE email = ${email.toLowerCase().trim()} ORDER BY created_at DESC LIMIT 100
+  `;
+  return rows as unknown as Pick[];
+}
+
+/**
+ * Place (or replace, before kickoff) a stake on a match outcome. Refunds any
+ * prior open stake on the same match, then deducts the new stake. Returns the
+ * new balance, or an error string if the stake exceeds the balance.
+ */
+export async function placePick(
+  email: string,
+  matchId: string,
+  pick: "home" | "draw" | "away",
+  stake: number,
+  odds: number
+): Promise<{ ok: true; points: number } | { ok: false; error: string }> {
+  const e = email.toLowerCase().trim();
+  const sql = getSql();
+  await getOrCreatePlayer(e);
+
+  const existing = await getUserPick(e, matchId);
+  if (existing && existing.status !== "open") {
+    return { ok: false, error: "This match is already settled" };
+  }
+  const refund = existing?.stake ?? 0;
+
+  const balRows = await sql`SELECT points FROM subscribers WHERE email = ${e}`;
+  const balance = (balRows as any[])[0]?.points ?? 0;
+  const effective = balance + refund;
+  if (stake > effective) return { ok: false, error: "Not enough points" };
+  if (stake < 10) return { ok: false, error: "Minimum stake is 10 points" };
+
+  const newBalance = effective - stake;
+  await sql`UPDATE subscribers SET points = ${newBalance} WHERE email = ${e}`;
+  await sql`
+    INSERT INTO picks (email, match_id, pick, stake, odds, status)
+    VALUES (${e}, ${matchId}, ${pick}, ${stake}, ${odds}, 'open')
+    ON CONFLICT (email, match_id) DO UPDATE SET
+      pick = ${pick}, stake = ${stake}, odds = ${odds}, status = 'open',
+      payout = 0, created_at = NOW(), settled_at = NULL
+  `;
+  return { ok: true, points: newBalance };
+}
+
+/**
+ * Settle every open pick whose match has finished. Idempotent: only touches
+ * status='open' rows, so it is safe to run on every score sync.
+ */
+export async function settleOpenPicks(): Promise<number> {
+  const sql = getSql();
+  // Open picks joined to their finished match's result.
+  const rows = await sql`
+    SELECT p.id, p.email, p.pick, p.stake, p.odds, m.home_score, m.away_score
+    FROM picks p
+    JOIN match_scores m ON m.match_id = p.match_id
+    WHERE p.status = 'open' AND m.status = 'FINISHED'
+      AND m.home_score IS NOT NULL AND m.away_score IS NOT NULL
+  `;
+  let settled = 0;
+  for (const r of rows as any[]) {
+    const result = r.home_score > r.away_score ? "home" : r.home_score < r.away_score ? "away" : "draw";
+    const won = r.pick === result;
+    const payout = won ? Math.round(r.stake * r.odds) : 0;
+    await sql`UPDATE picks SET status = ${won ? "won" : "lost"}, payout = ${payout}, settled_at = NOW() WHERE id = ${r.id}`;
+    if (won) await sql`UPDATE subscribers SET points = points + ${payout} WHERE email = ${r.email}`;
+    settled++;
+  }
+  return settled;
+}
+
+export interface LeaderRow {
+  rank: number;
+  name: string;
+  points: number;
+  wins: number;
+  bets: number;
+  tier: "free" | "premium";
+}
+
+export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
+  const rows = await getSql()`
+    SELECT s.email, s.username, s.points, s.preferences,
+      COUNT(p.id) FILTER (WHERE p.status IN ('won','lost')) AS bets,
+      COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
+    FROM subscribers s
+    LEFT JOIN picks p ON p.email = s.email
+    GROUP BY s.email, s.username, s.points, s.preferences
+    HAVING COUNT(p.id) > 0
+    ORDER BY s.points DESC
+    LIMIT ${limit}
+  `;
+  return (rows as any[]).map((r, i) => ({
+    rank: i + 1,
+    name: r.username || maskEmail(r.email),
+    points: r.points,
+    wins: Number(r.wins),
+    bets: Number(r.bets),
+    tier: r.preferences === "premium" ? "premium" : "free",
+  }));
+}
+
+export async function setUsername(email: string, username: string): Promise<void> {
+  await getSql()`UPDATE subscribers SET username = ${username} WHERE email = ${email.toLowerCase().trim()}`;
+}
+
+function maskEmail(email: string): string {
+  const [name, domain] = email.split("@");
+  if (!domain) return "player";
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
 // ─── Subscriptions (Paddle) ───────────────────────────────────────────
 
 export async function ensureSubscriptionsTable(): Promise<void> {

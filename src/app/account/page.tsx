@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { dailyTopup, getUserPicks } from "@/lib/db";
+import { matches } from "@/lib/data";
 import SignInForm from "@/components/SignInForm";
+
+const matchLabel = new Map(matches.map((m) => [m.id, `${m.homeTeam} v ${m.awayTeam}`]));
+const pickName = (id: string, pick: string) => {
+  const m = matches.find((x) => x.id === id);
+  if (!m) return pick;
+  return pick === "home" ? m.homeTeam : pick === "away" ? m.awayTeam : "Draw";
+};
 
 export const metadata: Metadata = {
   title: "Account",
@@ -16,6 +25,16 @@ export default async function AccountPage({
 }) {
   const sp = await searchParams;
   const session = await getSession();
+
+  // Daily top-up + pick history for the prediction game (signed-in only).
+  let points: number | null = null;
+  let picks: Awaited<ReturnType<typeof getUserPicks>> = [];
+  if (session) {
+    try {
+      points = await dailyTopup(session.email);
+      picks = await getUserPicks(session.email);
+    } catch { /* game tables may not exist yet */ }
+  }
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
@@ -69,6 +88,45 @@ export default async function AccountPage({
                   Get the Tournament Pass — $4.99 →
                 </Link>
               </div>
+            )}
+          </div>
+
+          {/* Pick'em game: balance + history */}
+          <div className="rounded-lg border border-[#2a2a2a] bg-[#111] p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-[#888]">Pick&apos;em balance</div>
+                <div className="mt-0.5 text-2xl font-bold text-[#f0a500]">{(points ?? 0).toLocaleString()} <span className="text-sm font-normal text-[#888]">pts</span></div>
+              </div>
+              <Link href="/leaderboard" className="rounded-md border border-[#333] px-3 py-2 text-sm text-[#ccc] hover:border-[#555] hover:text-white">
+                Leaderboard →
+              </Link>
+            </div>
+
+            {picks.length > 0 ? (
+              <div className="mt-4 border-t border-[#222] pt-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#888]">Your predictions</div>
+                <ul className="space-y-1.5">
+                  {picks.slice(0, 8).map((p) => (
+                    <li key={p.id} className="flex items-center justify-between text-sm">
+                      <span className="text-[#ccc]">
+                        <span className="text-[#777]">{matchLabel.get(p.match_id) || p.match_id}:</span>{" "}
+                        {pickName(p.match_id, p.pick)} <span className="text-[#666]">· {p.stake}@×{p.odds}</span>
+                      </span>
+                      <span>
+                        {p.status === "won" && <span className="font-semibold text-green-400">+{p.payout}</span>}
+                        {p.status === "lost" && <span className="font-semibold text-red-400">−{p.stake}</span>}
+                        {p.status === "open" && <span className="text-[#888]">open</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-[#999]">
+                No predictions yet.{" "}
+                <Link href="/schedule" className="text-[#f0a500] hover:underline">Pick a match →</Link>
+              </p>
             )}
           </div>
 
