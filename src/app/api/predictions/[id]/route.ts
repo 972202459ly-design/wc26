@@ -5,6 +5,10 @@ import { predictMatch } from "@/lib/predict";
 import { generateAnalysis } from "@/lib/ai";
 import { ensurePredictionsTable, getCachedAnalysis, upsertAnalysis } from "@/lib/db";
 
+// First (uncached) generation calls a reasoning LLM (~8s) — give the function
+// headroom over the 10s default so cold starts don't 504. Cached views are instant.
+export const maxDuration = 30;
+
 // Premium-gated prediction endpoint. Free visitors get 403 and never receive
 // the numbers (the paywall is enforced here, not just in the UI). The win %
 // is computed live/deterministically; the AI narrative is cached per match.
