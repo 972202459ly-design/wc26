@@ -88,18 +88,37 @@ export default async function RootLayout({
                 "@context": "https://schema.org",
                 "@type": "SportsEvent",
                 name: "2026 FIFA World Cup",
+                description:
+                  "The 2026 FIFA World Cup — 48 teams across the United States, Canada and Mexico. Live scores, schedule, standings and knockout bracket.",
                 sport: "Football",
-                startDate: "2026-06-11",
-                endDate: "2026-07-19",
+                startDate: "2026-06-11T00:00:00",
+                endDate: "2026-07-19T23:59:59",
                 eventStatus: "https://schema.org/EventScheduled",
                 eventAttendanceMode:
                   "https://schema.org/OfflineEventAttendanceMode",
                 url: "https://wc26live.org",
-                location: [
-                  { "@type": "Country", name: "United States" },
-                  { "@type": "Country", name: "Canada" },
-                  { "@type": "Country", name: "Mexico" },
-                ],
+                image: ["https://wc26live.org/opengraph-image"],
+                organizer: {
+                  "@type": "Organization",
+                  name: "FIFA",
+                  url: "https://www.fifa.com",
+                },
+                location: {
+                  "@type": "Place",
+                  name: "United States, Canada & Mexico",
+                  address: {
+                    "@type": "PostalAddress",
+                    addressCountry: "US",
+                  },
+                },
+                offers: {
+                  "@type": "Offer",
+                  url: "https://wc26live.org",
+                  price: "0",
+                  priceCurrency: "USD",
+                  availability: "https://schema.org/InStock",
+                  validFrom: "2026-06-11T00:00:00",
+                },
               },
             ]),
           }}

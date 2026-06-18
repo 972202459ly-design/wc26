@@ -64,25 +64,60 @@ export default async function MatchPage({
   const match = await getMatchByIdWithScore(id);
   if (!match) notFound();
 
-  const startDate = `${match.date}T${match.time}`;
+  // Floating local datetime (valid ISO 8601); end ~2h after kickoff. Guard
+  // against missing/odd date or time so we never emit an invalid startDate.
+  const rawStart = `${match.date}T${match.time || "12:00"}:00`;
+  const startMs = Date.parse(`${rawStart}Z`);
+  const valid = Number.isFinite(startMs);
+  const startDate = valid ? rawStart : `${match.date || "2026-06-11"}T12:00:00`;
+  const endDate = valid
+    ? new Date(startMs + 2 * 60 * 60 * 1000).toISOString().slice(0, 19)
+    : `${match.date || "2026-06-11"}T14:00:00`;
 
-  // SportsEvent structured data — makes the match eligible for rich results
-  // and helps Google rank the page for the fixture.
+  const teams = [
+    { "@type": "SportsTeam", name: match.homeTeam },
+    { "@type": "SportsTeam", name: match.awayTeam },
+  ];
+
+  // SportsEvent structured data — required by Google's Event rich results.
+  // location & startDate are required; image/offers/performer/organizer/
+  // description are recommended (venue data is currently empty, so we fall back
+  // to the host-nation location).
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsEvent",
     name: `${match.homeTeam} vs ${match.awayTeam}`,
-    description: `${stageLabel(match.stage)} — FIFA World Cup 2026`,
+    description: `${match.homeTeam} vs ${match.awayTeam} — ${stageLabel(match.stage)}, FIFA World Cup 2026. Live score, predictions and updates.`,
     startDate,
+    endDate,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     sport: "Football",
     url: `https://wc26live.org/match/${match.id}`,
-    ...(match.venue ? { location: { "@type": "Place", name: match.venue } } : {}),
-    competitor: [
-      { "@type": "SportsTeam", name: match.homeTeam },
-      { "@type": "SportsTeam", name: match.awayTeam },
-    ],
+    image: ["https://wc26live.org/opengraph-image"],
+    location: {
+      "@type": "Place",
+      name: match.venue || "FIFA World Cup 2026 Venue",
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: "US",
+      },
+    },
+    organizer: {
+      "@type": "Organization",
+      name: "FIFA",
+      url: "https://www.fifa.com",
+    },
+    performer: teams,
+    competitor: teams,
+    offers: {
+      "@type": "Offer",
+      url: `https://wc26live.org/match/${match.id}`,
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      validFrom: `${match.date}T00:00:00`,
+    },
     superEvent: {
       "@type": "SportsEvent",
       name: "FIFA World Cup 2026",
