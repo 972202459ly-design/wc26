@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Lock } from "lucide-react";
 import GameDisclaimer from "./GameDisclaimer";
+import PredictionSaveGate from "./PredictionSaveGate";
+
+const PENDING_KEY = "wc26_pending_pick";
 
 interface Pred {
   homePct: number; drawPct: number; awayPct: number;
@@ -31,6 +34,29 @@ export default function MatchPrediction({
   const [stake, setStake] = useState(100);
   const [msg, setMsg] = useState("");
   const [placing, setPlacing] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+
+  // Persist the in-progress prediction to a POST and reflect the result in the UI.
+  // Relies on the session cookie (set on signup/login), not the `authed` state.
+  async function savePick(pick: Outcome, stk: number) {
+    setPlacing(true); setMsg("");
+    try {
+      const r = await fetch(`/api/bets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matchId, pick, stake: stk }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setAuthed(true); setPoints(d.points);
+        setSel(pick); setStake(stk);
+        setMyPick({ match_id: matchId, pick, stake: stk, odds: d.odds, status: "open", payout: 0 });
+        setMsg("✓ Prediction saved!");
+        try { localStorage.removeItem(PENDING_KEY); } catch {}
+      } else setMsg(d.error || "Failed");
+    } catch { setMsg("Network error"); }
+    setPlacing(false);
+  }
 
   useEffect(() => {
     fetch(`/api/predictions/${matchId}`)
@@ -43,32 +69,38 @@ export default function MatchPrediction({
     fetch(`/api/bets`)
       .then((r) => (r.status === 401 ? null : r.json()))
       .then((d) => {
-        if (d) {
-          setAuthed(true); setPoints(d.points);
-          const mine = (d.picks || []).find((p: PickRow) => p.match_id === matchId);
-          if (mine) { setMyPick(mine); setSel(mine.pick as Outcome); setStake(mine.stake); }
-        }
+        if (!d) return;
+        setAuthed(true); setPoints(d.points);
+        const mine = (d.picks || []).find((p: PickRow) => p.match_id === matchId);
+        if (mine) { setMyPick(mine); setSel(mine.pick as Outcome); setStake(mine.stake); return; }
+        // Replay a prediction made just before signup (survives a page reload).
+        try {
+          const raw = localStorage.getItem(PENDING_KEY);
+          if (raw) {
+            const p = JSON.parse(raw);
+            if (p.matchId === matchId && ["home", "draw", "away"].includes(p.pick)) {
+              savePick(p.pick, Math.max(10, Math.min(1000, Number(p.stake) || 100)));
+            }
+          }
+        } catch {}
       })
       .catch(() => {});
   }, [matchId]);
 
-  async function place() {
+  // Button handler: gate anonymous users, otherwise save immediately.
+  function place() {
     if (!sel) return;
-    setPlacing(true); setMsg("");
-    try {
-      const r = await fetch(`/api/bets`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matchId, pick: sel, stake }),
-      });
-      const d = await r.json();
-      if (r.ok) {
-        setPoints(d.points);
-        setMyPick({ match_id: matchId, pick: sel, stake, odds: d.odds, status: "open", payout: 0 });
-        setMsg("✓ Prediction placed!");
-      } else setMsg(d.error || "Failed");
-    } catch { setMsg("Network error"); }
-    setPlacing(false);
+    if (!authed) {
+      try { localStorage.setItem(PENDING_KEY, JSON.stringify({ matchId, pick: sel, stake })); } catch {}
+      setGateOpen(true);
+      return;
+    }
+    savePick(sel, stake);
+  }
+
+  function handleAuthed() {
+    setGateOpen(false);
+    if (sel) savePick(sel, stake);
   }
 
   if (loading || !pred) {
@@ -108,7 +140,7 @@ export default function MatchPrediction({
         <div className="space-y-2.5">
           {rows.map((r) => {
             const selected = sel === r.key;
-            const clickable = upcoming && authed && (!myPick || myPick.status === "open");
+            const clickable = upcoming && (!myPick || myPick.status === "open");
             return (
               <button
                 key={r.key}
@@ -141,12 +173,7 @@ export default function MatchPrediction({
 
         {/* Prediction panel */}
         <div className="mt-4 border-t border-[#222] pt-4">
-          {!authed ? (
-            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-[#bbb]">🎯 Predict this match and climb the leaderboard — start with <b className="text-white">1,000 free points</b>.</p>
-              <Link href="/account" className="shrink-0 rounded-md bg-[#f0a500] px-4 py-2 text-sm font-semibold text-black hover:opacity-90">Sign in to play</Link>
-            </div>
-          ) : !upcoming ? (
+          {!upcoming ? (
             myPick ? (
               <p className="text-sm text-[#bbb]">
                 Your pick: <b className="text-white">{pickLabel(myPick.pick)}</b> · {myPick.stake} pts → ×{myPick.odds}
@@ -162,7 +189,7 @@ export default function MatchPrediction({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[#999]">Points</span>
                 <input
-                  type="number" min={10} max={points ?? undefined} value={stake}
+                  type="number" min={10} max={points ?? 1000} value={stake}
                   onChange={(e) => setStake(Math.max(0, Math.floor(Number(e.target.value))))}
                   className="w-24 rounded-md border border-[#333] bg-[#0f0f0f] px-2 py-1.5 text-sm text-white outline-none focus:border-[#f0a500]"
                 />
@@ -176,8 +203,11 @@ export default function MatchPrediction({
                 onClick={place}
                 className="w-full rounded-md bg-[#f0a500] px-4 py-2.5 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {placing ? "Placing…" : myPick ? `Update pick — ${sel ? pickLabel(sel) : "select an outcome"}` : sel ? `Predict ${pickLabel(sel)} for ${stake} pts` : "Select an outcome above"}
+                {placing ? "Saving…" : myPick ? `Update pick — ${sel ? pickLabel(sel) : "select an outcome"}` : sel ? `Predict ${pickLabel(sel)} for ${stake} pts` : "Select an outcome above"}
               </button>
+              {!authed && (
+                <p className="text-xs text-[#888]">🎯 Free to play — start with <b className="text-[#f0a500]">1,000 points</b>. We&apos;ll save your prediction when you sign up.</p>
+              )}
               {msg && <p className="text-xs text-[#aaa]">{msg}</p>}
             </div>
           )}
@@ -202,6 +232,15 @@ export default function MatchPrediction({
       </div>
 
       <GameDisclaimer className="mt-3" />
+
+      {gateOpen && sel && (
+        <PredictionSaveGate
+          pickLabel={pickLabel(sel)}
+          stake={stake}
+          onAuthed={handleAuthed}
+          onClose={() => setGateOpen(false)}
+        />
+      )}
     </section>
   );
 }
