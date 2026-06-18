@@ -111,6 +111,33 @@ export async function deleteSubscriber(email: string): Promise<void> {
   `;
 }
 
+// ─── Password auth ────────────────────────────────────────────────────
+
+let authColumnsReady = false;
+
+export async function ensureAuthColumns(): Promise<void> {
+  if (authColumnsReady) return;
+  await ensureSubscribersTable();
+  await getSql()`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS password_hash TEXT`;
+  authColumnsReady = true;
+}
+
+export async function getPasswordHash(email: string): Promise<string | null> {
+  const rows = await getSql()`
+    SELECT password_hash FROM subscribers WHERE email = ${email.toLowerCase().trim()}
+  `;
+  return (rows as unknown as { password_hash: string | null }[])[0]?.password_hash ?? null;
+}
+
+export async function setPassword(email: string, passwordHash: string): Promise<void> {
+  const e = email.toLowerCase().trim();
+  await getSql()`
+    INSERT INTO subscribers (email, preferences, points, password_hash)
+    VALUES (${e}, 'free', ${INITIAL_POINTS}, ${passwordHash})
+    ON CONFLICT (email) DO UPDATE SET password_hash = ${passwordHash}
+  `;
+}
+
 /** Tier for a given email: "premium" iff preferences = 'premium', else "free". */
 export async function getTierByEmail(email: string): Promise<"free" | "premium"> {
   const rows = await getSql()`

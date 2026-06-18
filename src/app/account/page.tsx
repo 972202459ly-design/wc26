@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { dailyTopup, getUserPicks } from "@/lib/db";
+import { dailyTopup, getUserPicks, getPasswordHash } from "@/lib/db";
 import { matches } from "@/lib/data";
 import SignInForm from "@/components/SignInForm";
+import SetPasswordForm from "@/components/SetPasswordForm";
 
 const matchLabel = new Map(matches.map((m) => [m.id, `${m.homeTeam} v ${m.awayTeam}`]));
 const pickName = (id: string, pick: string) => {
@@ -29,10 +30,12 @@ export default async function AccountPage({
   // Daily top-up + pick history for the prediction game (signed-in only).
   let points: number | null = null;
   let picks: Awaited<ReturnType<typeof getUserPicks>> = [];
+  let hasPassword = false;
   if (session) {
     try {
       points = await dailyTopup(session.email);
       picks = await getUserPicks(session.email);
+      hasPassword = !!(await getPasswordHash(session.email));
     } catch { /* game tables may not exist yet */ }
   }
 
@@ -128,6 +131,16 @@ export default async function AccountPage({
                 <Link href="/schedule" className="text-[#f0a500] hover:underline">Pick a match →</Link>
               </p>
             )}
+          </div>
+
+          <div className="rounded-lg border border-[#2a2a2a] bg-[#111] p-5">
+            <div className="mb-2 text-sm font-semibold text-white">Password</div>
+            <p className="mb-3 text-xs text-[#999]">
+              {hasPassword
+                ? "You can sign in with email + password."
+                : "Set a password so you don't need the email link every time."}
+            </p>
+            <SetPasswordForm hasPassword={hasPassword} />
           </div>
 
           <form action="/api/auth/logout" method="post">

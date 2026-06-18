@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual, scryptSync, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { getTierByEmail } from "./db";
 
@@ -98,4 +98,22 @@ export async function getSession(): Promise<Session | null> {
 export async function getTier(): Promise<Tier> {
   const session = await getSession();
   return session?.tier ?? "free";
+}
+
+// ── Password hashing (scrypt, no deps) ──
+// Stored as "scrypt$<saltHex>$<hashHex>".
+
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16);
+  const hash = scryptSync(password, salt, 64);
+  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+}
+
+export function verifyPassword(password: string, stored: string | null | undefined): boolean {
+  if (!stored) return false;
+  const [scheme, saltHex, hashHex] = stored.split("$");
+  if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
+  const expected = Buffer.from(hashHex, "hex");
+  const actual = scryptSync(password, Buffer.from(saltHex, "hex"), 64);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
