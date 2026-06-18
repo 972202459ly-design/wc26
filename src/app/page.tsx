@@ -133,7 +133,7 @@ export default function HomePage() {
             <Link href="/leaderboard" className="rounded-lg border border-[#444] px-4 py-2.5 text-sm font-semibold text-white hover:border-[#f0a500]">
               Leaderboard
             </Link>
-            <Link href="/schedule" className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]">
+            <Link href="/predict" className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]">
               Make a prediction →
             </Link>
           </div>

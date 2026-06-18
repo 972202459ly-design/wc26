@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Trophy } from "lucide-react";
 import { ensureGameSchema, getLeaderboard } from "@/lib/db";
+import GameDisclaimer from "@/components/GameDisclaimer";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +28,18 @@ export default async function LeaderboardPage() {
         <Trophy className="h-6 w-6 text-[#f0a500]" />
         <h1 className="text-2xl font-bold text-white">Pick&apos;em Leaderboard</h1>
       </div>
-      <p className="mb-6 text-sm text-[#999]">
-        Predict World Cup 2026 matches with free points at AI-derived odds. Climb the ranks — no money, just bragging rights.
+      <p className="mb-4 text-sm text-[#999]">
+        Predict World Cup 2026 matches with free points at AI-derived odds. Climb the ranks — no money, just bragging rights.{" "}
+        <Link href="/predict" className="text-[#f0a500] hover:underline">Make a prediction →</Link>
+      </p>
+      <p className="mb-6 text-xs text-[#777]">
+        Want your name on the board? <Link href="/account" className="text-[#f0a500] hover:underline">Set a username</Link> in your account.
       </p>
 
       {rows.length === 0 ? (
         <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-8 text-center text-[#999]">
           <p>No predictions yet — be the first on the board!</p>
-          <a href="/schedule" className="mt-3 inline-block rounded-md bg-[#f0a500] px-4 py-2 text-sm font-semibold text-black hover:opacity-90">
+          <a href="/predict" className="mt-3 inline-block rounded-md bg-[#f0a500] px-4 py-2 text-sm font-semibold text-black hover:opacity-90">
             Find a match to predict →
           </a>
         </div>
@@ -68,6 +74,8 @@ export default async function LeaderboardPage() {
           </table>
         </div>
       )}
+
+      <GameDisclaimer className="mt-8" />
     </div>
   );
 }

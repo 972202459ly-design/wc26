@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { dailyTopup, getUserPicks, getPasswordHash } from "@/lib/db";
+import { dailyTopup, getUserPicks, getPasswordHash, getOrCreatePlayer } from "@/lib/db";
 import { matches } from "@/lib/data";
 import SignInForm from "@/components/SignInForm";
 import SetPasswordForm from "@/components/SetPasswordForm";
+import UsernameForm from "@/components/UsernameForm";
 
 const matchLabel = new Map(matches.map((m) => [m.id, `${m.homeTeam} v ${m.awayTeam}`]));
 const pickName = (id: string, pick: string) => {
@@ -31,11 +32,13 @@ export default async function AccountPage({
   let points: number | null = null;
   let picks: Awaited<ReturnType<typeof getUserPicks>> = [];
   let hasPassword = false;
+  let username: string | null = null;
   if (session) {
     try {
       points = await dailyTopup(session.email);
       picks = await getUserPicks(session.email);
       hasPassword = !!(await getPasswordHash(session.email));
+      username = (await getOrCreatePlayer(session.email)).username;
     } catch { /* game tables may not exist yet */ }
   }
 
@@ -104,6 +107,13 @@ export default async function AccountPage({
               <Link href="/leaderboard" className="rounded-md border border-[#333] px-3 py-2 text-sm text-[#ccc] hover:border-[#555] hover:text-white">
                 Leaderboard →
               </Link>
+            </div>
+
+            <div className="mt-4 border-t border-[#222] pt-4">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#888]">
+                Leaderboard name
+              </div>
+              <UsernameForm current={username} />
             </div>
 
             {picks.length > 0 ? (

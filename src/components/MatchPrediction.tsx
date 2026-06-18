@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Lock } from "lucide-react";
+import GameDisclaimer from "./GameDisclaimer";
 
 interface Pred {
   homePct: number; drawPct: number; awayPct: number;
@@ -199,6 +200,8 @@ export default function MatchPrediction({
           ) : null}
         </div>
       </div>
+
+      <GameDisclaimer className="mt-3" />
     </section>
   );
 }
