@@ -4,6 +4,8 @@ import Link from "next/link";
 import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import HeroMatchStrip from "@/components/HeroMatchStrip";
+import HomeSocialProof from "@/components/HomeSocialProof";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
 import { useTranslations } from "next-intl";
@@ -72,9 +74,20 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
             {t("heroTitle")}
           </h1>
-          <p className="text-lg sm:text-xl text-[#aaa] mb-8 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
+
+          <HeroMatchStrip />
+
+          <ul className="mb-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-[#ddd]">
+            {[t("heroBullet1"), t("heroBullet2"), t("heroBullet3"), t("heroBullet4")].map((b) => (
+              <li key={b} className="flex items-center gap-1.5">
+                <span className="text-[#f0a500]">✓</span> {b}
+              </li>
+            ))}
+          </ul>
+
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link
               href="/predict"
@@ -95,6 +108,10 @@ export default function HomePage() {
               {t("heroGoPro")} →
             </Link>
           </div>
+
+          <p className="mt-5 text-xs text-[#666]">{t("heroTrust")}</p>
+
+          <HomeSocialProof />
         </div>
       </section>
 
@@ -145,8 +162,8 @@ export default function HomePage() {
         <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>
         {mergedToday.length > 0 ? (
           <div className="grid gap-3">
-            {mergedToday.map((match) => (
-              <MatchCard key={match.id} match={match} />
+            {mergedToday.map((match, i) => (
+              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
             ))}
           </div>
         ) : (
@@ -167,8 +184,8 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-16">
         <h2 className="text-xl font-bold mb-4">{t("upcomingMatches")}</h2>
         <div className="grid gap-3">
-          {mergedUpcoming.map((match) => (
-            <MatchCard key={match.id} match={match} />
+          {mergedUpcoming.map((match, i) => (
+            <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
           ))}
         </div>
       </section>

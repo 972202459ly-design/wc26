@@ -7,8 +7,15 @@ import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 
 import MatchCountdown from "./MatchCountdown";
 
-export default function MatchCard({ match }: { match: Match }) {
+export default function MatchCard({ match, showShop = true }: { match: Match; showShop?: boolean }) {
   const [showShare, setShowShare] = useState(false);
+
+  const kickoff = new Date(`${match.date}T${match.time}`).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
 
@@ -62,7 +69,7 @@ export default function MatchCard({ match }: { match: Match }) {
           )}
           {!isLive && !isFinished && (
             <span className="text-xs text-[#888] block">
-              {match.date} {match.time}
+              {kickoff}
             </span>
           )}
           {!isLive && !isFinished && (
@@ -78,18 +85,20 @@ export default function MatchCard({ match }: { match: Match }) {
       </div>
       <div className="text-xs text-[#666] mt-2">{match.venue}</div>
 
-      {/* Affiliate shop link */}
-      <div className="mt-2 flex items-center gap-2">
-        <a
-          href={amazonSearchLink(`${match.homeTeam} ${match.awayTeam} World Cup jersey`)}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="text-xs text-[#f0a500]/60 hover:text-[#f0a500] transition-colors"
-        >
-          Shop jerseys &rarr;
-        </a>
-      </div>
+      {/* Affiliate shop link — shown sparingly (see showShop) to avoid a storefront feel */}
+      {showShop && (
+        <div className="mt-2 flex items-center gap-2">
+          <a
+            href={amazonSearchLink(`${match.homeTeam} ${match.awayTeam} World Cup jersey`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-[#f0a500]/60 hover:text-[#f0a500] transition-colors"
+          >
+            Shop jerseys &rarr;
+          </a>
+        </div>
+      )}
 
       {/* Share button */}
       {showShare && (
