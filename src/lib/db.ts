@@ -377,6 +377,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
       COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
+    WHERE s.preferences NOT LIKE 'bot%'
     GROUP BY s.email, s.username, s.points, s.preferences
     HAVING COUNT(p.id) > 0
     ORDER BY s.points DESC
@@ -409,7 +410,6 @@ export async function getTeamLeaderboard(limit = 48): Promise<TeamLeaderRow[]> {
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
     WHERE s.favorite_team IS NOT NULL
-      AND s.preferences NOT LIKE 'bot%'
     GROUP BY s.favorite_team
     ORDER BY total_points DESC, supporters DESC
     LIMIT ${limit}
