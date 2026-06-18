@@ -368,17 +368,18 @@ export interface LeaderRow {
   wins: number;
   bets: number;
   tier: "free" | "premium";
+  favoriteTeam: string | null;
 }
 
 export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
   const rows = await getSql()`
-    SELECT s.email, s.username, s.points, s.preferences,
+    SELECT s.email, s.username, s.points, s.preferences, s.favorite_team,
       COUNT(p.id) FILTER (WHERE p.status IN ('won','lost')) AS bets,
       COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
     WHERE s.preferences NOT LIKE 'bot%'
-    GROUP BY s.email, s.username, s.points, s.preferences
+    GROUP BY s.email, s.username, s.points, s.preferences, s.favorite_team
     HAVING COUNT(p.id) > 0
     ORDER BY s.points DESC
     LIMIT ${limit}
@@ -390,6 +391,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
     wins: Number(r.wins),
     bets: Number(r.bets),
     tier: r.preferences === "premium" ? "premium" : "free",
+    favoriteTeam: r.favorite_team ?? null,
   }));
 }
 

@@ -70,21 +70,29 @@ export default async function LeaderboardPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.rank} className="border-b border-[#1a1a1a] bg-[#0d0d0d] last:border-0">
-                  <td className="px-4 py-3 font-mono text-[#888]">
-                    {r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-white">{r.name}</span>
-                    {r.tier === "premium" && (
-                      <span className="ml-2 rounded bg-[#f0a500] px-1.5 py-0.5 text-[10px] font-bold text-black">PRO</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right text-[#aaa]">{r.wins} / {r.bets}</td>
-                  <td className="px-4 py-3 text-right font-bold text-[#f0a500]">{r.points.toLocaleString()}</td>
-                </tr>
-              ))}
+              {rows.map((r) => {
+                const teamFlag = r.favoriteTeam ? flagCodes[r.favoriteTeam] : null;
+                return (
+                  <tr key={r.rank} className="border-b border-[#1a1a1a] bg-[#0d0d0d] last:border-0">
+                    <td className="px-4 py-3 font-mono text-[#888]">
+                      {r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        {teamFlag && (
+                          <img src={`https://flagcdn.com/16x12/${teamFlag}.png`} alt="" width={16} height={12} className="rounded-sm opacity-80" />
+                        )}
+                        <span className="text-white">{r.name}</span>
+                        {r.tier === "premium" && (
+                          <span className="rounded bg-[#f0a500] px-1.5 py-0.5 text-[10px] font-bold text-black">PRO</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right text-[#aaa]">{r.wins} / {r.bets}</td>
+                    <td className="px-4 py-3 text-right font-bold text-[#f0a500]">{r.points.toLocaleString()}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
