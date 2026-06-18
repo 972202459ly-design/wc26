@@ -1,6 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon("postgresql://neondb_owner:npg_r7KmpksnIAq4@ep-damp-hall-ap8onwvg-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require");
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL env var is required. Run: DATABASE_URL=... node scripts/seed-players.mjs");
+  process.exit(1);
+}
+const sql = neon(process.env.DATABASE_URL);
 
 // Individual leaderboard bots — scores 1100–2400, beatable by active players
 const players = [
