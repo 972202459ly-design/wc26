@@ -189,7 +189,15 @@ export interface Player {
   email: string;
   points: number;
   username: string | null;
+  favoriteTeam: string | null;
   tier: "free" | "premium";
+}
+
+export interface TeamLeaderRow {
+  rank: number;
+  teamId: string;
+  totalPoints: number;
+  supporters: number;
 }
 
 export interface Pick {
@@ -215,6 +223,7 @@ export async function ensureGameSchema(): Promise<void> {
   await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT 1000`;
   await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS last_topup DATE`;
   await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS username TEXT`;
+  await sql`ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS favorite_team TEXT`;
   await sql`
     CREATE TABLE IF NOT EXISTS picks (
       id SERIAL PRIMARY KEY,
@@ -243,13 +252,14 @@ export async function getOrCreatePlayer(email: string): Promise<Player> {
     ON CONFLICT (email) DO NOTHING
   `;
   const rows = await sql`
-    SELECT email, points, username, preferences FROM subscribers WHERE email = ${e}
+    SELECT email, points, username, favorite_team, preferences FROM subscribers WHERE email = ${e}
   `;
   const r = (rows as any[])[0];
   return {
     email: e,
     points: r?.points ?? INITIAL_POINTS,
     username: r?.username ?? null,
+    favoriteTeam: r?.favorite_team ?? null,
     tier: r?.preferences === "premium" ? "premium" : "free",
   };
 }
@@ -343,7 +353,9 @@ export async function settleOpenPicks(): Promise<number> {
     const won = r.pick === result;
     const payout = won ? Math.round(r.stake * r.odds) : 0;
     await sql`UPDATE picks SET status = ${won ? "won" : "lost"}, payout = ${payout}, settled_at = NOW() WHERE id = ${r.id}`;
-    if (won) await sql`UPDATE subscribers SET points = points + ${payout} WHERE email = ${r.email}`;
+    if (won) {
+      await sql`UPDATE subscribers SET points = points + ${payout} WHERE email = ${r.email}`;
+    }
     settled++;
   }
   return settled;
@@ -382,6 +394,32 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
 
 export async function setUsername(email: string, username: string): Promise<void> {
   await getSql()`UPDATE subscribers SET username = ${username} WHERE email = ${email.toLowerCase().trim()}`;
+}
+
+export async function setFavoriteTeam(email: string, teamId: string): Promise<void> {
+  await getSql()`UPDATE subscribers SET favorite_team = ${teamId} WHERE email = ${email.toLowerCase().trim()}`;
+}
+
+export async function getTeamLeaderboard(limit = 48): Promise<TeamLeaderRow[]> {
+  const rows = await getSql()`
+    SELECT
+      s.favorite_team AS team_id,
+      COALESCE(SUM(p.payout) FILTER (WHERE p.status = 'won'), 0) AS total_points,
+      COUNT(DISTINCT s.email) AS supporters
+    FROM subscribers s
+    LEFT JOIN picks p ON p.email = s.email
+    WHERE s.favorite_team IS NOT NULL
+      AND s.preferences NOT LIKE 'bot%'
+    GROUP BY s.favorite_team
+    ORDER BY total_points DESC, supporters DESC
+    LIMIT ${limit}
+  `;
+  return (rows as any[]).map((r, i) => ({
+    rank: i + 1,
+    teamId: r.team_id,
+    totalPoints: Number(r.total_points),
+    supporters: Number(r.supporters),
+  }));
 }
 
 function maskEmail(email: string): string {

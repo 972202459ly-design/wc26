@@ -6,6 +6,7 @@ import { matches } from "@/lib/data";
 import SignInForm from "@/components/SignInForm";
 import SetPasswordForm from "@/components/SetPasswordForm";
 import UsernameForm from "@/components/UsernameForm";
+import FavoriteTeamForm from "@/components/FavoriteTeamForm";
 
 const matchLabel = new Map(matches.map((m) => [m.id, `${m.homeTeam} v ${m.awayTeam}`]));
 const pickName = (id: string, pick: string) => {
@@ -33,12 +34,15 @@ export default async function AccountPage({
   let picks: Awaited<ReturnType<typeof getUserPicks>> = [];
   let hasPassword = false;
   let username: string | null = null;
+  let favoriteTeam: string | null = null;
   if (session) {
     try {
       points = await dailyTopup(session.email);
       picks = await getUserPicks(session.email);
       hasPassword = !!(await getPasswordHash(session.email));
-      username = (await getOrCreatePlayer(session.email)).username;
+      const player = await getOrCreatePlayer(session.email);
+      username = player.username;
+      favoriteTeam = player.favoriteTeam;
     } catch { /* game tables may not exist yet */ }
   }
 
@@ -114,6 +118,16 @@ export default async function AccountPage({
                 Leaderboard name
               </div>
               <UsernameForm current={username} />
+            </div>
+
+            <div className="mt-4 border-t border-[#222] pt-4">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#888]">
+                My team
+              </div>
+              <p className="mb-2 text-xs text-[#777]">
+                Your winning points also go to your team&apos;s total on the Team Leaderboard.
+              </p>
+              <FavoriteTeamForm current={favoriteTeam} />
             </div>
 
             {picks.length > 0 ? (

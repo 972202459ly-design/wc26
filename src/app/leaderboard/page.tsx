@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
-import { ensureGameSchema, getLeaderboard } from "@/lib/db";
+import { ensureGameSchema, getLeaderboard, getTeamLeaderboard } from "@/lib/db";
+import { teams } from "@/lib/data";
 import GameDisclaimer from "@/components/GameDisclaimer";
 
 export const dynamic = "force-dynamic";
@@ -13,13 +14,25 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://wc26live.org/leaderboard" },
 };
 
+const flagCodes: Record<string, string> = {
+  alg:"dz",arg:"ar",aus:"au",aut:"at",bel:"be",bih:"ba",bra:"br",can:"ca",
+  civ:"ci",cod:"cd",col:"co",cpv:"cv",cro:"hr",cuw:"cw",cze:"cz",ecu:"ec",
+  egy:"eg",eng:"gb",esp:"es",fra:"fr",ger:"de",gha:"gh",hai:"ht",irn:"ir",
+  irq:"iq",jor:"jo",jpn:"jp",kor:"kr",ksa:"sa",mar:"ma",mex:"mx",ned:"nl",
+  nor:"no",nzl:"nz",pan:"pa",par:"py",por:"pt",qat:"qa",rsa:"za",sco:"gb",
+  sen:"sn",sui:"ch",swe:"se",tun:"tn",tur:"tr",ury:"uy",usa:"us",uzb:"uz",
+};
+const teamNameMap = new Map(teams.map((t) => [t.id, t.name]));
+
 export default async function LeaderboardPage() {
   let rows: Awaited<ReturnType<typeof getLeaderboard>> = [];
+  let teamRows: Awaited<ReturnType<typeof getTeamLeaderboard>> = [];
   try {
     await ensureGameSchema();
-    rows = await getLeaderboard(50);
+    [rows, teamRows] = await Promise.all([getLeaderboard(50), getTeamLeaderboard()]);
   } catch {
     rows = [];
+    teamRows = [];
   }
 
   return (
@@ -32,7 +45,9 @@ export default async function LeaderboardPage() {
         Predict World Cup 2026 matches with free points at AI-derived odds. Climb the ranks — no money, just bragging rights.{" "}
         <Link href="/predict" className="text-[#f0a500] hover:underline">Make a prediction →</Link>
       </p>
-      <p className="mb-6 text-xs text-[#777]">
+
+      {/* Individual leaderboard */}
+      <p className="mb-2 text-xs text-[#777]">
         Want your name on the board? <Link href="/account" className="text-[#f0a500] hover:underline">Set a username</Link> in your account.
       </p>
 
@@ -74,6 +89,66 @@ export default async function LeaderboardPage() {
           </table>
         </div>
       )}
+
+      {/* Team leaderboard */}
+      <div className="mt-10">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-lg">🏳️</span>
+          <h2 className="text-xl font-bold text-white">Team Leaderboard</h2>
+        </div>
+        <p className="mb-4 text-sm text-[#999]">
+          Every win you score goes to your team&apos;s total. Pick your team in{" "}
+          <Link href="/account" className="text-[#f0a500] hover:underline">Account</Link>.
+        </p>
+
+        {teamRows.length === 0 ? (
+          <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-6 text-center text-sm text-[#999]">
+            No team scores yet — pick your team and start predicting!
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-[#2a2a2a]">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#2a2a2a] bg-[#111] text-left text-xs uppercase tracking-wide text-[#888]">
+                  <th className="px-4 py-3">#</th>
+                  <th className="px-4 py-3">Team</th>
+                  <th className="px-4 py-3 text-right">Fans</th>
+                  <th className="px-4 py-3 text-right">Team Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teamRows.map((r) => {
+                  const flag = flagCodes[r.teamId];
+                  const name = teamNameMap.get(r.teamId) ?? r.teamId.toUpperCase();
+                  return (
+                    <tr key={r.teamId} className="border-b border-[#1a1a1a] bg-[#0d0d0d] last:border-0">
+                      <td className="px-4 py-3 font-mono text-[#888]">
+                        {r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {flag && (
+                            <img
+                              src={`https://flagcdn.com/20x15/${flag}.png`}
+                              alt={name}
+                              width={20}
+                              height={15}
+                              className="rounded-sm"
+                            />
+                          )}
+                          <span className="text-white">{name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right text-[#aaa]">{r.supporters}</td>
+                      <td className="px-4 py-3 text-right font-bold text-[#f0a500]">{r.totalPoints.toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <GameDisclaimer className="mt-8" />
     </div>
