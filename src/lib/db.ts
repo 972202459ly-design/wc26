@@ -120,6 +120,35 @@ export async function getTierByEmail(email: string): Promise<"free" | "premium">
   return prefs === "premium" ? "premium" : "free";
 }
 
+// ─── Prediction analysis cache ────────────────────────────────────────
+// Only the LLM-generated narrative is cached (win % / xG are computed live and
+// deterministically). Cached per match so DeepSeek is called once, not per view.
+
+export async function ensurePredictionsTable(): Promise<void> {
+  await getSql()`
+    CREATE TABLE IF NOT EXISTS predictions (
+      match_id TEXT PRIMARY KEY,
+      analysis TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+}
+
+export async function getCachedAnalysis(matchId: string): Promise<string | null> {
+  const rows = await getSql()`
+    SELECT analysis FROM predictions WHERE match_id = ${matchId}
+  `;
+  return (rows as unknown as { analysis: string }[])[0]?.analysis ?? null;
+}
+
+export async function upsertAnalysis(matchId: string, analysis: string): Promise<void> {
+  await getSql()`
+    INSERT INTO predictions (match_id, analysis, updated_at)
+    VALUES (${matchId}, ${analysis}, NOW())
+    ON CONFLICT (match_id) DO UPDATE SET analysis = ${analysis}, updated_at = NOW()
+  `;
+}
+
 // ─── Subscriptions (Paddle) ───────────────────────────────────────────
 
 export async function ensureSubscriptionsTable(): Promise<void> {
