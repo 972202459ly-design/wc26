@@ -378,7 +378,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
       COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
-    WHERE s.preferences NOT LIKE 'bot%'
+    WHERE s.preferences != 'bot'
     GROUP BY s.email, s.username, s.points, s.preferences, s.favorite_team
     HAVING COUNT(p.id) > 0
     ORDER BY s.points DESC
