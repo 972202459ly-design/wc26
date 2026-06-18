@@ -287,6 +287,39 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
   }
 }
 
+// ── Magic-link sign-in email ──
+
+export async function sendMagicLink(email: string, url: string): Promise<void> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY not configured, cannot send magic link");
+    return;
+  }
+  const body = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:24px;text-align:center">
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">Sign in to WC26 Live</div>
+      <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 20px">
+        Click the button below to access your account and any active Tournament Pass.
+        This link expires in 15 minutes.
+      </p>
+      <a href="${url}" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Sign in →</a>
+      <p style="color:#666;font-size:12px;line-height:1.5;margin:20px 0 0">
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </div>`;
+  const text = `Sign in to WC26 Live: ${url} (expires in 15 minutes). If you didn't request this, ignore this email.`;
+  try {
+    await resend.emails.send({
+      from: "WC26 Live <noreply@wc26live.org>",
+      to: email,
+      subject: "Your WC26 Live sign-in link",
+      html: wrapHtml("", "Sign in to your account", body),
+      text,
+    });
+  } catch (e) {
+    console.error("Magic link email failed:", e);
+  }
+}
+
 // ── Pre-match reminder emails ──
 
 function countdownText(utcDate: string): string {

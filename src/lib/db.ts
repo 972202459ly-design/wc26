@@ -111,6 +111,15 @@ export async function deleteSubscriber(email: string): Promise<void> {
   `;
 }
 
+/** Tier for a given email: "premium" iff preferences = 'premium', else "free". */
+export async function getTierByEmail(email: string): Promise<"free" | "premium"> {
+  const rows = await getSql()`
+    SELECT preferences FROM subscribers WHERE email = ${email.toLowerCase().trim()}
+  `;
+  const prefs = (rows as unknown as { preferences: string }[])[0]?.preferences;
+  return prefs === "premium" ? "premium" : "free";
+}
+
 // ─── Subscriptions (Paddle) ───────────────────────────────────────────
 
 export async function ensureSubscriptionsTable(): Promise<void> {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { Trophy, UserCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -50,6 +50,17 @@ export default function Header() {
                 </Link>
               );
             })}
+            <Link
+              href="/account"
+              aria-label={t("account")}
+              className={`px-2 py-2 rounded-md transition-colors ${
+                pathname.startsWith("/account") || pathname.startsWith("/es/account")
+                  ? "text-white bg-white/10"
+                  : "text-[#888] hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <UserCircle className="w-5 h-5" />
+            </Link>
             <div className="ml-2 pl-2 border-l border-[#333]">
               <LanguageSwitcher />
             </div>
