@@ -394,15 +394,14 @@ export interface LeaderRow {
 
 export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
   const rows = await getSql()`
-    SELECT s.email, s.username, s.points, s.preferences, s.favorite_team,
+    SELECT s.email, s.username, s.points, s.preferences, s.favorite_team, s.created_at,
       COUNT(p.id) FILTER (WHERE p.status IN ('won','lost')) AS bets,
       COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
     WHERE s.preferences != 'bot'
-    GROUP BY s.email, s.username, s.points, s.preferences, s.favorite_team
-    HAVING COUNT(p.id) > 0
-    ORDER BY s.points DESC
+    GROUP BY s.email, s.username, s.points, s.preferences, s.favorite_team, s.created_at
+    ORDER BY s.points DESC, s.created_at ASC
     LIMIT ${limit}
   `;
   return (rows as any[]).map((r, i) => ({
@@ -436,16 +435,15 @@ export interface RankedPlayer {
 
 /** Full leaderboard ordering including emails — for personalized digest emails.
  *  Mirrors getLeaderboard's population (NPC bots included) so the rank a player
- *  sees in their email matches the public leaderboard. */
+ *  sees in their email matches the public leaderboard. Every registered player
+ *  is listed — including those who haven't predicted yet (they sit at their
+ *  1000-point starting score), so the board shows the whole community. */
 export async function getRankedPlayers(): Promise<RankedPlayer[]> {
   const rows = (await getSql()`
-    SELECT s.email, s.username, s.points
-    FROM subscribers s
-    LEFT JOIN picks p ON p.email = s.email
-    WHERE s.preferences != 'bot'
-    GROUP BY s.email, s.username, s.points
-    HAVING COUNT(p.id) > 0
-    ORDER BY s.points DESC
+    SELECT email, username, points
+    FROM subscribers
+    WHERE preferences != 'bot'
+    ORDER BY points DESC, created_at ASC
   `) as any[];
   return rows.map((r, i) => ({
     email: r.email,

@@ -511,6 +511,72 @@ export async function sendDailyRecapEmail(
   );
 }
 
+// ── "Join the prediction game" re-engagement email ──
+
+function inviteHtml(
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  email: string
+): string {
+  const rankLine = myRank
+    ? `You're <b style="color:#f0a500">#${myRank.rank}</b> on the leaderboard with <b style="color:#fff">${myRank.points.toLocaleString()}</b> points.`
+    : `You've got <b style="color:#fff">1,000</b> starting points on the leaderboard.`;
+
+  const hero = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:22px;margin-bottom:16px;text-align:center">
+      <div style="font-size:34px;margin-bottom:8px">🏆</div>
+      <div style="font-size:17px;color:#ddd;line-height:1.5">${rankLine}</div>
+      <div style="font-size:14px;color:#999;margin-top:10px">But you haven't made a single prediction yet — so you're stuck at your starting score. Predict any World Cup match to win points and start climbing.</div>
+    </div>`;
+
+  const medals = ["🥇", "🥈", "🥉"];
+  const topRows = top
+    .map(
+      (t, i) =>
+        `<div style="display:flex;justify-content:space-between;font-size:14px;color:#ddd;padding:4px 0"><span>${medals[i] || `#${i + 1}`} ${esc(t.name)}</span><span style="color:#f0a500;font-weight:700">${t.points.toLocaleString()} pts</span></div>`
+    )
+    .join("");
+
+  const mine = myRank
+    ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#fff">You: <b style="color:#f0a500">#${myRank.rank}</b> — ${myRank.points.toLocaleString()} pts. <span style="color:#aaa">Time to move up.</span></div>`
+    : "";
+
+  const leaderboard = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Leaderboard</div>
+      ${topRows}
+      ${mine}
+    </div>`;
+
+  const cta = `
+    <div style="text-align:center;margin:18px 0 8px">
+      <a href="https://wc26live.org/predict" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your First Prediction →</a>
+    </div>
+    <p style="text-align:center;color:#666;font-size:12px;margin:6px 0 0">100% free · virtual points · just for fun</p>`;
+
+  return wrapHtml("", "Claim your spot on the leaderboard", hero + leaderboard + cta, email);
+}
+
+function inviteText(myRank: DigestRank | null): string {
+  const r = myRank ? `You're #${myRank.rank} with ${myRank.points} points. ` : "";
+  return `${r}But you haven't predicted yet. Make your first World Cup prediction and start climbing the leaderboard: https://wc26live.org/predict`;
+}
+
+export async function sendInvitePredictEmail(
+  subscribers: { email: string }[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>
+): Promise<{ sent: number; failed: number }> {
+  if (subscribers.length === 0) return { sent: 0, failed: 0 };
+  const subject = "🏆 You're on the WC26 leaderboard — claim your spot";
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => inviteHtml(top, rankByEmail.get(email) ?? null, email),
+    inviteText(null)
+  );
+}
+
 // ── Pre-match reminder emails ──
 
 function countdownText(utcDate: string): string {
