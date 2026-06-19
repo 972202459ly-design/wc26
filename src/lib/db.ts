@@ -434,6 +434,14 @@ export async function getRankedPlayers(): Promise<RankedPlayer[]> {
   }));
 }
 
+/** How many distinct players have predicted a given match — social proof. */
+export async function getMatchPredictorCount(matchId: string): Promise<number> {
+  const [r] = (await getSql()`
+    SELECT COUNT(DISTINCT email)::int AS c FROM picks WHERE match_id = ${matchId}
+  `) as any[];
+  return r?.c ?? 0;
+}
+
 /** Most-backed team (by number of fans) — for homepage social proof. */
 export async function getTopTeam(): Promise<{ teamId: string; fans: number } | null> {
   const rows = (await getSql()`

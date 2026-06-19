@@ -4,7 +4,7 @@ import Link from "next/link";
 import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "@/lib/data";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
-import HeroMatchStrip from "@/components/HeroMatchStrip";
+import FeaturedNextMatch from "@/components/FeaturedNextMatch";
 import HomeSocialProof from "@/components/HomeSocialProof";
 import HeroEmailCapture from "@/components/HeroEmailCapture";
 import { useEffect, useState } from "react";
@@ -79,8 +79,6 @@ export default function HomePage() {
             {t("heroSubtitle")}
           </p>
 
-          <HeroMatchStrip />
-
           <ul className="mb-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-[#ddd]">
             {[t("heroBullet1"), t("heroBullet2"), t("heroBullet3"), t("heroBullet4")].map((b) => (
               <li key={b} className="flex items-center gap-1.5">
@@ -118,6 +116,9 @@ export default function HomePage() {
           <HomeSocialProof />
         </div>
       </section>
+
+      {/* Featured next match — AI preview + social proof */}
+      <FeaturedNextMatch />
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
