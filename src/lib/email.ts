@@ -479,8 +479,9 @@ export async function sendPrematchEmails(
 // ── Kickoff alerts ──
 
 function kickoffHtml(changes: ScoreChange[], email?: string): string {
+  // Kickoff alerts are premium-only — no upsell to paying users.
   const cards = changes.map((c) => matchCardHtml(c, "#f0a500", "KICKOFF")).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards + promoBlock(), email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} just started`, cards, email);
 }
 
 function kickoffText(changes: ScoreChange[]): string {
@@ -510,8 +511,9 @@ function goalLine(c: ScoreChange): string {
 }
 
 function goalHtml(changes: ScoreChange[], email?: string): string {
+  // Goal alerts are premium-only — no upsell to paying users.
   const cards = changes.map((c) => matchCardHtml(c, "#e74c3c", "GOAL", goalLine(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards + promoBlock(), email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} with new goals`, cards, email);
 }
 
 function goalText(changes: ScoreChange[]): string {
@@ -534,9 +536,9 @@ export async function sendGoalEmails(
 
 // ── Final-score (post-match) emails ──
 
-function finalHtml(changes: ScoreChange[], email?: string): string {
+function finalHtml(changes: ScoreChange[], email?: string, showPromo = false): string {
   const cards = changes.map((c) => matchCardHtml(c, "#2ecc71", "FINAL", matchSummary(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards + promoBlock(), email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards + (showPromo ? promoBlock() : ""), email);
 }
 
 function finalText(changes: ScoreChange[]): string {
@@ -549,12 +551,14 @@ function finalText(changes: ScoreChange[]): string {
 }
 
 export async function sendFinalEmails(
-  subscribers: { email: string }[],
+  subscribers: { email: string; preferences?: string }[],
   changes: ScoreChange[]
 ): Promise<{ sent: number; failed: number }> {
   if (changes.length === 0) return { sent: 0, failed: 0 };
+  // Promo only goes to free subscribers — premium users already bought the pass.
+  const premium = new Set(subscribers.filter((s) => s.preferences === "premium").map((s) => s.email));
   const subject = `FINAL — ${changes[0].home_team} ${changes[0].home_score} - ${changes[0].away_score} ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, (email) => finalHtml(changes, email), finalText(changes));
+  return sendBatch(subscribers, subject, (email) => finalHtml(changes, email, !premium.has(email)), finalText(changes));
 }
 
 // ── Big Event / Upset alert (sent to everyone — drives re-engagement) ──
