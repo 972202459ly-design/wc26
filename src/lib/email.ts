@@ -418,6 +418,99 @@ export async function sendDailyPicksEmail(
   );
 }
 
+// ── Daily Recap digest (end-of-day results, drives re-engagement) ──
+
+export interface RecapResult {
+  home_team: string;
+  away_team: string;
+  home_score: number;
+  away_score: number;
+  match_id: string;
+  stage: string | null;
+}
+
+function recapLine(r: RecapResult): string {
+  const diff = Math.abs(r.home_score - r.away_score);
+  if (r.home_score === r.away_score) {
+    return r.home_score + r.away_score >= 5 ? "Goal-fest draw" : "Shared the spoils";
+  }
+  const winner = r.home_score > r.away_score ? r.home_team : r.away_team;
+  if (diff >= 4) return `${esc(winner)} ran riot`;
+  if (diff === 1) return `${esc(winner)} edged it`;
+  return `${esc(winner)} won comfortably`;
+}
+
+function recapHtml(
+  results: RecapResult[],
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  email: string
+): string {
+  const cards = results
+    .map((r) => {
+      const url = `https://wc26live.org/match/${r.match_id}`;
+      const meta = stageLabel(r.stage);
+      return `
+    <a href="${url}" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:17px;font-weight:700;color:#fff">${esc(r.home_team)} <span style="color:#666;font-weight:400">vs</span> ${esc(r.away_team)}</div>
+        <div style="font-size:20px;font-weight:800;color:#2ecc71">${r.home_score} - ${r.away_score}</div>
+      </div>
+      <div style="color:#aaa;font-size:13px;margin-top:6px">${recapLine(r)}${meta ? ` · ${meta}` : ""}</div>
+    </a>`;
+    })
+    .join("");
+
+  const cta = `
+    <div style="text-align:center;margin:18px 0 8px">
+      <a href="https://wc26live.org/predict" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Predict Tomorrow's Matches →</a>
+    </div>`;
+
+  const medals = ["🥇", "🥈", "🥉"];
+  const topRows = top
+    .map(
+      (t, i) =>
+        `<div style="display:flex;justify-content:space-between;font-size:14px;color:#ddd;padding:4px 0"><span>${medals[i] || `#${i + 1}`} ${esc(t.name)}</span><span style="color:#f0a500;font-weight:700">${t.points.toLocaleString()} pts</span></div>`
+    )
+    .join("");
+
+  const mine = myRank
+    ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#fff">You are <b style="color:#f0a500">#${myRank.rank}</b> — ${myRank.points.toLocaleString()} pts.</div>`
+    : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#aaa">Not on the board yet — <a href="https://wc26live.org/predict" style="color:#f0a500">make a prediction</a> to climb the ranks!</div>`;
+
+  const leaderboard = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Leaderboard</div>
+      ${topRows}
+      ${mine}
+    </div>`;
+
+  return wrapHtml("", `${results.length} match${results.length > 1 ? "es" : ""} wrapped up today`, cards + cta + leaderboard, email);
+}
+
+function recapText(results: RecapResult[]): string {
+  return (
+    results.map((r) => `${r.home_team} ${r.home_score}-${r.away_score} ${r.away_team}`).join("\n") +
+    `\n\nPredict tomorrow's matches: https://wc26live.org/predict`
+  );
+}
+
+export async function sendDailyRecapEmail(
+  subscribers: { email: string }[],
+  results: RecapResult[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>
+): Promise<{ sent: number; failed: number }> {
+  if (results.length === 0) return { sent: 0, failed: 0 };
+  const subject = `📊 Today's Results — ${results.length} match${results.length > 1 ? "es" : ""}`;
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => recapHtml(results, top, rankByEmail.get(email) ?? null, email),
+    recapText(results)
+  );
+}
+
 // ── Pre-match reminder emails ──
 
 function countdownText(utcDate: string): string {

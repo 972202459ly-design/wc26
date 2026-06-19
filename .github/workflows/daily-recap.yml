@@ -1,0 +1,15 @@
+name: Daily Recap Digest
+
+on:
+  schedule:
+    # Once a day at 06:00 UTC (~after the day's slate finishes; BJ 14:00).
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  daily-recap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call daily-recap endpoint
+        run: |
+          curl -s -f "${{ secrets.DAILY_RECAP_URL }}" || echo "Daily Recap skipped (no DAILY_RECAP_URL configured)"
