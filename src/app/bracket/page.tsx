@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getKnockoutBracket, type BracketMatch } from "@/lib/data";
+import { getKnockoutBracket, eventPerformers, type BracketMatch } from "@/lib/data";
 
 export const revalidate = 120;
 
@@ -92,10 +92,21 @@ export default async function BracketPage() {
     url: "https://wc26live.org/bracket",
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    image: ["https://wc26live.org/opengraph-image"],
     location: {
       "@type": "Place",
       name: "United States, Canada & Mexico",
       address: { "@type": "PostalAddress", addressCountry: "US" },
+    },
+    organizer: { "@type": "Organization", name: "FIFA", url: "https://www.fifa.com" },
+    performer: eventPerformers,
+    offers: {
+      "@type": "Offer",
+      url: "https://wc26live.org/bracket",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      validFrom: "2026-06-11T00:00:00",
     },
   };
 

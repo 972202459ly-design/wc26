@@ -88,6 +88,13 @@ export function getTeamIdByName(name: string): string | undefined {
   return Object.entries(teamNames).find(([, v]) => v === name)?.[0];
 }
 
+// Representative competitors for tournament-level SportsEvent JSON-LD — supplies
+// the recommended `performer` field for Google Event rich results.
+export const eventPerformers = [
+  "Argentina", "Brazil", "France", "England", "Spain", "Germany",
+  "Portugal", "Netherlands", "United States", "Mexico", "Canada", "Morocco",
+].map((name) => ({ "@type": "SportsTeam", name }));
+
 // Map an external (API-Football) team name to our static TLA so DB match_ids
 // stay consistent with the site's static match pages. Normalizes punctuation/
 // accents and covers known FIFA naming differences.

@@ -6,6 +6,7 @@ import AmazonStickyBar from "@/components/AmazonStickyBar";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getServerLocale } from "@/i18n/request";
+import { eventPerformers } from "@/lib/data";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://wc26live.org"),
@@ -119,6 +120,7 @@ export default async function RootLayout({
                   availability: "https://schema.org/InStock",
                   validFrom: "2026-06-11T00:00:00",
                 },
+                performer: eventPerformers,
               },
             ]),
           }}
