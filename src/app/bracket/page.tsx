@@ -87,11 +87,16 @@ export default async function BracketPage() {
     description:
       "Round of 16, quarter-finals, semi-finals, third-place play-off and final of the 2026 FIFA World Cup.",
     sport: "Football",
-    startDate: "2026-06-28",
-    endDate: "2026-07-19",
+    startDate: "2026-06-28T00:00:00",
+    endDate: "2026-07-19T23:59:59",
     url: "https://wc26live.org/bracket",
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: "United States, Canada & Mexico",
+      address: { "@type": "PostalAddress", addressCountry: "US" },
+    },
   };
 
   return (

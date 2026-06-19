@@ -78,21 +78,33 @@ export default function HomePage() {
             {t("heroSubtitle")}
           </p>
 
-          <ul className="mb-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-[#ddd]">
-            {[t("heroBullet1"), t("heroBullet2"), t("heroBullet3"), t("heroBullet4")].map((b) => (
-              <li key={b} className="flex items-center gap-1.5">
-                <span className="text-[#f0a500]">✓</span> {b}
-              </li>
-            ))}
-          </ul>
-
-          <HeroEmailCapture />
-
-          <p className="mt-4 text-xs text-[#666]">{t("heroTrust")}</p>
         </div>
       </section>
 
-      {/* Featured next match — high on the page, right under the brand */}
+      {/* Today's matches + live scores — the SEO content visitors come for */}
+      <section className="max-w-7xl mx-auto px-4 pb-10">
+        <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>
+        {mergedToday.length > 0 ? (
+          <div className="grid gap-3">
+            {mergedToday.map((match, i) => (
+              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-[#111] rounded-xl border border-[#222]">
+            <p className="text-[#888]">{t("noMatchesToday")}</p>
+          </div>
+        )}
+      </section>
+
+      {/* Email capture — catch intent right after the scores */}
+      <section className="max-w-2xl mx-auto px-4 pb-10 text-center">
+        <h2 className="text-lg font-bold text-white mb-1">Never miss a match</h2>
+        <p className="text-sm text-[#999] mb-4">Free World Cup score &amp; goal alerts — straight to your inbox.</p>
+        <HeroEmailCapture />
+      </section>
+
+      {/* One-click prediction */}
       <FeaturedNextMatch />
 
       {/* Quick Nav Cards */}
@@ -135,29 +147,6 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Today's Matches */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>
-        {mergedToday.length > 0 ? (
-          <div className="grid gap-3">
-            {mergedToday.map((match, i) => (
-              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-[#111] rounded-xl border border-[#222]">
-            <p className="text-[#888]">
-              {t("noMatchesToday")}
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Ad banner */}
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <AdPlaceholder size="banner" />
       </section>
 
       {/* Upcoming Matches */}

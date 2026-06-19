@@ -121,6 +121,13 @@ export default async function MatchPage({
     superEvent: {
       "@type": "SportsEvent",
       name: "FIFA World Cup 2026",
+      startDate: "2026-06-11T00:00:00",
+      endDate: "2026-07-19T23:59:59",
+      location: {
+        "@type": "Place",
+        name: "United States, Canada & Mexico",
+        address: { "@type": "PostalAddress", addressCountry: "US" },
+      },
     },
   };
 
