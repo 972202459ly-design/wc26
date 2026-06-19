@@ -76,12 +76,23 @@ export async function GET() {
     const loggedIn = !!session;
     const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
     const predictorCount = await getMatchPredictorCount(m.match_id);
+    // Aggregate, bot-inclusive player count — the field you compete against on
+    // the board. A bigger, honest number than a single match's predictor count.
+    const [tp] = (await sql`SELECT COUNT(*)::int AS c FROM subscribers WHERE preferences <> 'deleted'`) as any[];
+    const totalPlayers = tp?.c ?? 0;
 
     return NextResponse.json({
       ...base,
-      prediction: { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct },
+      prediction: {
+        homePct: p.homePct,
+        drawPct: p.drawPct,
+        awayPct: p.awayPct,
+        scoreHome: p.topHome,
+        scoreAway: p.topAway,
+      },
       preview: { teaser, full: loggedIn ? full : null, locked: !loggedIn && !!full },
       predictorCount,
+      totalPlayers,
     });
   } catch (err: any) {
     console.error("next-match error:", err);

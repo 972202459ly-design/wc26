@@ -56,8 +56,13 @@ export default function HomePage() {
 
   return (
     <div>
+      {/* Featured next match — first thing visitors see */}
+      <div className="pt-8">
+        <FeaturedNextMatch />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative py-24 sm:py-32 text-center overflow-hidden">
+      <section className="relative py-16 sm:py-20 text-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -116,9 +121,6 @@ export default function HomePage() {
           <HomeSocialProof />
         </div>
       </section>
-
-      {/* Featured next match — AI preview + social proof */}
-      <FeaturedNextMatch />
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
