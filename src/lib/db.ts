@@ -434,6 +434,17 @@ export async function getRankedPlayers(): Promise<RankedPlayer[]> {
   }));
 }
 
+/** Settled-pick stats for a finished match — for upset / big-event detection. */
+export async function getMatchPickStats(matchId: string): Promise<{ total: number; correct: number }> {
+  const [r] = (await getSql()`
+    SELECT
+      COUNT(*) FILTER (WHERE status IN ('won', 'lost'))::int AS total,
+      COUNT(*) FILTER (WHERE status = 'won')::int AS correct
+    FROM picks WHERE match_id = ${matchId}
+  `) as any[];
+  return { total: r?.total ?? 0, correct: r?.correct ?? 0 };
+}
+
 export async function setUsername(email: string, username: string): Promise<void> {
   await getSql()`UPDATE subscribers SET username = ${username} WHERE email = ${email.toLowerCase().trim()}`;
 }

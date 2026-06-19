@@ -11,6 +11,10 @@ export interface UpcomingMatch {
   group_name: string | null;
   match_id: string;
   api_id: number;
+  // AI win probabilities (%), attached by the cron for the Match Reminder.
+  homePct?: number;
+  drawPct?: number;
+  awayPct?: number;
 }
 
 export interface ScoreChange {
@@ -418,6 +422,19 @@ function countdownText(utcDate: string): string {
   return `Kicks off in about ${h}h ${m}min`;
 }
 
+function aiProbBlock(m: UpcomingMatch): string {
+  if (m.homePct == null || m.drawPct == null || m.awayPct == null) return "";
+  const row = (label: string, pct: number) =>
+    `<div style="display:flex;justify-content:space-between;font-size:13px;color:#ddd;padding:2px 0"><span>${esc(label)}</span><span style="color:#f0a500;font-weight:700">${pct}%</span></div>`;
+  return `
+    <div style="background:#0f0f0f;border:1px solid #222;border-radius:6px;padding:10px 12px;margin-top:12px">
+      <div style="color:#f0a500;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">🧠 AI Win Probability</div>
+      ${row(m.home_team, m.homePct)}
+      ${row("Draw", m.drawPct)}
+      ${row(m.away_team, m.awayPct)}
+    </div>`;
+}
+
 function prematchHtml(matches: UpcomingMatch[], email?: string): string {
   const cards = matches.map((m) => {
     const stageLine = stageLabel(m.stage);
@@ -427,22 +444,26 @@ function prematchHtml(matches: UpcomingMatch[], email?: string): string {
 
     return `
     <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-bottom:16px">
-      <div style="display:inline-block;background:#3498db;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:12px;color:#fff">UPCOMING</div>
+      <div style="display:inline-block;background:#3498db;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:12px;color:#fff">STARTING SOON</div>
       <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">
         ${esc(m.home_team)} vs ${esc(m.away_team)}
       </div>
       <div style="color:#3498db;font-size:15px;font-weight:600;margin-top:6px">${countdown}</div>
+      ${aiProbBlock(m)}
       <div style="color:#666;font-size:12px;margin-top:8px">${[stageLine, dateLine].filter(Boolean).join(" · ")}</div>
-      <a href="${matchUrl}" style="display:inline-block;margin-top:14px;padding:8px 20px;background:#3498db;color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600">View Match →</a>
+      <a href="${matchUrl}" style="display:inline-block;margin-top:14px;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Make Your Prediction →</a>
     </div>`;
   }).join("");
 
-  return wrapHtml("", `${matches.length} match${matches.length > 1 ? "es" : ""} starting soon`, cards, email);
+  return wrapHtml("", `${matches.length} match${matches.length > 1 ? "es" : ""} starting soon — predict now`, cards, email);
 }
 
 function prematchText(matches: UpcomingMatch[]): string {
   return matches
-    .map((m) => `UPCOMING | ${m.home_team} vs ${m.away_team} | ${countdownText(m.utc_date)} | ${stageLabel(m.stage)} | ${formatDate(m.utc_date)}`)
+    .map((m) => {
+      const ai = m.homePct != null ? ` | AI: ${m.home_team} ${m.homePct}% / Draw ${m.drawPct}% / ${m.away_team} ${m.awayPct}%` : "";
+      return `STARTING SOON | ${m.home_team} vs ${m.away_team} | ${countdownText(m.utc_date)}${ai} | Predict: https://wc26live.org/match/${m.match_id}`;
+    })
     .join("\n");
 }
 
@@ -534,4 +555,61 @@ export async function sendFinalEmails(
   if (changes.length === 0) return { sent: 0, failed: 0 };
   const subject = `FINAL — ${changes[0].home_team} ${changes[0].home_score} - ${changes[0].away_score} ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
   return sendBatch(subscribers, subject, (email) => finalHtml(changes, email), finalText(changes));
+}
+
+// ── Big Event / Upset alert (sent to everyone — drives re-engagement) ──
+
+export interface BigEvent {
+  change: ScoreChange;
+  aiPct: number; // AI-assigned probability (%) of the result that actually happened
+  playerPct: number | null; // % of players who predicted it (null if too few picks)
+}
+
+function upsetHeadline(c: ScoreChange): { tag: string; line: string } {
+  if (c.home_score === c.away_score) {
+    return { tag: "SHOCK DRAW", line: `${esc(c.home_team)} and ${esc(c.away_team)} play out a stunning ${c.home_score}-${c.away_score} draw` };
+  }
+  const homeWon = c.home_score > c.away_score;
+  const w = homeWon ? c.home_team : c.away_team;
+  const l = homeWon ? c.away_team : c.home_team;
+  return { tag: "HUGE UPSET", line: `${esc(w)} stun ${esc(l)} ${Math.max(c.home_score, c.away_score)}-${Math.min(c.home_score, c.away_score)}` };
+}
+
+function bigEventHtml(e: BigEvent, email?: string): string {
+  const { change: c, aiPct, playerPct } = e;
+  const { line } = upsetHeadline(c);
+  const matchUrl = c.match_id ? `https://wc26live.org/match/${c.match_id}` : "https://wc26live.org";
+  const rarity =
+    playerPct != null
+      ? `Only <b style="color:#e74c3c">${playerPct}%</b> of players called it — the AI gave it just a ${aiPct}% chance.`
+      : `The AI gave this result only a <b style="color:#e74c3c">${aiPct}%</b> chance.`;
+  const body = `
+    <div style="background:#1a1a1a;border:1px solid #e74c3c;border-radius:8px;padding:22px;margin-bottom:16px">
+      <div style="display:inline-block;background:#e74c3c;padding:3px 12px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:14px;color:#fff">🚨 ${upsetHeadline(c).tag}</div>
+      <div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:6px">${line}</div>
+      <div style="font-size:20px;color:#f0a500;font-weight:700;margin-bottom:10px">${esc(c.home_team)} ${c.home_score} - ${c.away_score} ${esc(c.away_team)}</div>
+      <div style="color:#ccc;font-size:14px;line-height:1.5">${rarity}</div>
+      <div style="color:#666;font-size:12px;margin-top:8px">${stageLabel(c.stage)}</div>
+      <a href="${matchUrl}" style="display:inline-block;margin-top:14px;padding:8px 20px;background:#e74c3c;color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600">View Match →</a>
+    </div>
+    <div style="text-align:center;margin:8px 0 4px">
+      <a href="https://wc26live.org/leaderboard" style="display:inline-block;padding:11px 26px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:14px;font-weight:700">See the Leaderboard →</a>
+    </div>`;
+  return wrapHtml("", "An upset just shook up the World Cup", body, email);
+}
+
+function bigEventText(e: BigEvent): string {
+  const { change: c, aiPct, playerPct } = e;
+  const odds = playerPct != null ? `Only ${playerPct}% of players called it (AI: ${aiPct}%).` : `AI gave it a ${aiPct}% chance.`;
+  return `${upsetHeadline(c).tag}: ${c.home_team} ${c.home_score}-${c.away_score} ${c.away_team}. ${odds}\nSee the leaderboard: https://wc26live.org/leaderboard`;
+}
+
+export async function sendBigEventEmails(
+  subscribers: { email: string }[],
+  event: BigEvent
+): Promise<{ sent: number; failed: number }> {
+  const { change: c } = event;
+  const { tag } = upsetHeadline(c);
+  const subject = `🚨 ${tag}: ${c.home_team} ${c.home_score}-${c.away_score} ${c.away_team}`;
+  return sendBatch(subscribers, subject, (email) => bigEventHtml(event, email), bigEventText(event));
 }

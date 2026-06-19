@@ -9,6 +9,10 @@ import {
 } from "@/lib/db";
 import type { SyncedMatch } from "@/lib/db";
 import { sendPrematchEmails, type UpcomingMatch } from "@/lib/email";
+import { matches as staticMatches } from "@/lib/data";
+import { predictMatch } from "@/lib/predict";
+
+const staticById = new Map(staticMatches.map((m) => [m.id, m]));
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -25,12 +29,32 @@ export async function GET(request: Request) {
     await ensureSubscribersTable();
     await ensurePrematchRemindersTable();
 
+    // test=<email>: preview the Match Reminder (with AI win prob) for the next
+    // upcoming matches, sent only to that address.
+    const testEmail = searchParams.get("test");
+    if (testEmail) {
+      const nowMs = Date.now();
+      const sample: UpcomingMatch[] = staticMatches
+        .filter((m) => new Date(`${m.date}T${m.time}`).getTime() > nowMs)
+        .slice(0, 2)
+        .map((m) => {
+          const pred = predictMatch(m.homeTeam, m.awayTeam);
+          return {
+            home_team: m.homeTeam, away_team: m.awayTeam, utc_date: `${m.date}T${m.time}:00Z`,
+            stage: m.stage, group_name: null, match_id: m.id, api_id: 0,
+            homePct: pred.homePct, drawPct: pred.drawPct, awayPct: pred.awayPct,
+          };
+        });
+      const r = await sendPrematchEmails([{ email: testEmail }], sample);
+      return NextResponse.json({ success: true, test: true, matches: sample.length, sent: r.sent, failed: r.failed });
+    }
+
     const { neon } = await import("@neondatabase/serverless");
     const sql = neon(process.env.DATABASE_URL!);
 
-    // Fetch matches kicking off within the next 20 minutes that haven't had reminders sent
+    // Fetch matches kicking off within the next 15 minutes that haven't had reminders sent
     const now = new Date();
-    const windowEnd = new Date(now.getTime() + 20 * 60 * 1000);
+    const windowEnd = new Date(now.getTime() + 15 * 60 * 1000);
 
     const upcomingRows = await sql`
       SELECT * FROM match_scores
@@ -47,6 +71,9 @@ export async function GET(request: Request) {
     for (const m of upcoming) {
       const alreadySent = await isReminderSent(m.api_id);
       if (!alreadySent) {
+        // Attach AI win probabilities using canonical static team names.
+        const sm = staticById.get(m.match_id);
+        const pred = sm ? predictMatch(sm.homeTeam, sm.awayTeam) : null;
         toRemind.push({
           home_team: m.home_team,
           away_team: m.away_team,
@@ -55,6 +82,9 @@ export async function GET(request: Request) {
           group_name: m.group_name,
           match_id: m.match_id,
           api_id: m.api_id,
+          homePct: pred?.homePct,
+          drawPct: pred?.drawPct,
+          awayPct: pred?.awayPct,
         });
       }
     }
