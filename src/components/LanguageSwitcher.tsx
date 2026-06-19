@@ -9,7 +9,12 @@ export default function LanguageSwitcher() {
   const pathname = usePathname();
   const otherLocale = locale === "en" ? "es" : "en";
 
-  const otherPath = locale === "en" ? `/es${pathname}` : pathname;
+  // pathname may carry a locale prefix (e.g. "/es/schedule"); strip it, then
+  // prefix the target locale. The proxy sets the NEXT_LOCALE cookie for both
+  // /en and /es, so switching works in either direction.
+  let path = pathname.replace(/^\/(en|es)(?=\/|$)/, "");
+  if (path === "/") path = "";
+  const otherPath = `/${otherLocale}${path}`;
 
   return (
     <Link

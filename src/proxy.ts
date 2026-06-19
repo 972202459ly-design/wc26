@@ -68,11 +68,18 @@ export function proxy(request: NextRequest) {
 
   const { locale: pathLocale, pathnameWithoutLocale } = getLocaleParts(pathname);
 
-  // /en/... → redirect to /... (strip default locale prefix)
+  // /en/... → redirect to /... (strip default locale prefix) AND pin the cookie
+  // to English, otherwise a stale NEXT_LOCALE=es keeps forcing Spanish below.
   if (pathLocale === DEFAULT_LOCALE && pathname !== pathnameWithoutLocale) {
     const url = new URL(pathnameWithoutLocale || "/", request.url);
     url.search = request.nextUrl.search;
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    response.cookies.set("NEXT_LOCALE", DEFAULT_LOCALE, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+    return response;
   }
 
   // /es/... → rewrite without prefix, set locale header + cookie
