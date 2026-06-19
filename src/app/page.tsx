@@ -6,6 +6,7 @@ import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import HeroMatchStrip from "@/components/HeroMatchStrip";
 import HomeSocialProof from "@/components/HomeSocialProof";
+import HeroEmailCapture from "@/components/HeroEmailCapture";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
 import { useTranslations } from "next-intl";
@@ -88,10 +89,13 @@ export default function HomePage() {
             ))}
           </ul>
 
+          <HeroEmailCapture />
+
+          <div className="mb-2 text-xs text-[#666]">or play the free prediction game</div>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link
               href="/predict"
-              className="px-6 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors shadow-[0_0_30px_-8px_rgba(240,165,0,0.6)]"
+              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-500 text-white hover:bg-white/10 transition-colors"
             >
               {t("heroPlay")}
             </Link>
