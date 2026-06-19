@@ -637,9 +637,75 @@ export async function sendGoalEmails(
 
 // ── Final-score (post-match) emails ──
 
-function finalHtml(changes: ScoreChange[], email?: string, showPromo = false): string {
+// A recipient's settled pick on a just-finished match, for the personalized
+// Final email. `pick` is "home" | "away" | "draw".
+export interface PersonalPick {
+  match_id: string;
+  pick: string;
+  status: string; // "won" | "lost"
+  payout: number;
+}
+
+function pickLabel(c: ScoreChange, pick: string): string {
+  if (pick === "home") return `${esc(c.home_team)} to win`;
+  if (pick === "away") return `${esc(c.away_team)} to win`;
+  return "a draw";
+}
+
+// Personal "how your predictions did" block, shown above the generic score
+// cards for recipients who predicted one of the finished matches.
+function personalResultBlock(
+  changes: ScoreChange[],
+  picks: PersonalPick[],
+  rank: DigestRank | null
+): string {
+  const byId = new Map(changes.map((c) => [c.match_id, c] as const));
+  const relevant = picks.filter((p) => byId.has(p.match_id));
+  if (relevant.length === 0) return "";
+
+  const rows = relevant
+    .map((p) => {
+      const c = byId.get(p.match_id)!;
+      const score = `${esc(c.home_team)} ${c.home_score}-${c.away_score} ${esc(c.away_team)}`;
+      const won = p.status === "won";
+      const head = won
+        ? `✅ <b style="color:#fff">${pickLabel(c, p.pick)}</b> — nailed it! <b style="color:#2ecc71">+${p.payout.toLocaleString()} pts</b>`
+        : `❌ You picked <b style="color:#fff">${pickLabel(c, p.pick)}</b> — didn't land`;
+      return `<div style="padding:8px 0;border-bottom:1px solid #1e3a2d">
+        <div style="font-size:14px;color:#ddd">${head}</div>
+        <div style="color:#666;font-size:12px;margin-top:2px">${score}</div>
+      </div>`;
+    })
+    .join("");
+
+  const wins = relevant.filter((p) => p.status === "won").length;
+  const gained = relevant.reduce((s, p) => s + (p.payout || 0), 0);
+  const rankLine = rank
+    ? ` You're now <b style="color:#f0a500">#${rank.rank}</b> — ${rank.points.toLocaleString()} pts.`
+    : "";
+  const summary = `Your call${relevant.length > 1 ? "s" : ""}: <b style="color:#fff">${wins}/${relevant.length}</b> right${gained > 0 ? `, <b style="color:#2ecc71">+${gained.toLocaleString()} pts</b>` : ""}.${rankLine}`;
+
+  return `
+    <div style="background:#10221a;border:1px solid #2ecc71;border-radius:8px;padding:18px;margin-bottom:16px">
+      <div style="color:#2ecc71;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">📋 Your Predictions</div>
+      ${rows}
+      <div style="margin-top:12px;font-size:14px;color:#ddd">${summary}</div>
+      <div style="text-align:center;margin-top:14px">
+        <a href="https://wc26live.org/leaderboard" style="display:inline-block;padding:9px 22px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">See the Leaderboard →</a>
+      </div>
+    </div>`;
+}
+
+function finalHtml(
+  changes: ScoreChange[],
+  email?: string,
+  showPromo = false,
+  picks?: PersonalPick[],
+  rank?: DigestRank | null
+): string {
+  const personal = picks && picks.length ? personalResultBlock(changes, picks, rank ?? null) : "";
   const cards = changes.map((c) => matchCardHtml(c, "#2ecc71", "FINAL", matchSummary(c))).join("");
-  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, cards + (showPromo ? promoBlock() : ""), email);
+  return wrapHtml("", `${changes.length} match${changes.length > 1 ? "es" : ""} finished`, personal + cards + (showPromo ? promoBlock() : ""), email);
 }
 
 function finalText(changes: ScoreChange[]): string {
@@ -653,13 +719,20 @@ function finalText(changes: ScoreChange[]): string {
 
 export async function sendFinalEmails(
   subscribers: { email: string; preferences?: string }[],
-  changes: ScoreChange[]
+  changes: ScoreChange[],
+  picksByEmail?: Map<string, PersonalPick[]>,
+  rankByEmail?: Map<string, DigestRank>
 ): Promise<{ sent: number; failed: number }> {
   if (changes.length === 0) return { sent: 0, failed: 0 };
   // Promo only goes to free subscribers — premium users already bought the pass.
   const premium = new Set(subscribers.filter((s) => s.preferences === "premium").map((s) => s.email));
   const subject = `FINAL — ${changes[0].home_team} ${changes[0].home_score} - ${changes[0].away_score} ${changes[0].away_team}${changes.length > 1 ? ` (+${changes.length - 1} more)` : ""}`;
-  return sendBatch(subscribers, subject, (email) => finalHtml(changes, email, !premium.has(email)), finalText(changes));
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => finalHtml(changes, email, !premium.has(email), picksByEmail?.get(email), rankByEmail?.get(email)),
+    finalText(changes)
+  );
 }
 
 // ── Big Event / Upset alert (sent to everyone — drives re-engagement) ──

@@ -8,6 +8,8 @@ import {
   getAllScores,
   getSubscribers,
   getMatchPickStats,
+  getSettledPicksForMatches,
+  getRankedPlayers,
 } from "@/lib/db";
 import type { SyncedMatch } from "@/lib/db";
 import {
@@ -17,6 +19,8 @@ import {
   sendBigEventEmails,
   type ScoreChange,
   type BigEvent,
+  type PersonalPick,
+  type DigestRank,
 } from "@/lib/email";
 import { getWorldCupFixtures, getGoalEvents } from "@/lib/apifootball";
 import { matches as staticMatches } from "@/lib/data";
@@ -127,7 +131,35 @@ export async function GET(request: Request) {
 
     const kickoffResult = await sendKickoffEmails(premiumSubs, kickoffChanges);
     const goalResult = await sendGoalEmails(premiumSubs, goalChanges.map((g) => g.change));
-    const finalResult = await sendFinalEmails([...premiumSubs, ...freeSubs], finalChanges);
+
+    // Personalize Final emails: recipients who predicted a just-finished match
+    // see their own result (won/lost, points, new rank) above the score cards.
+    const picksByEmail = new Map<string, PersonalPick[]>();
+    const rankByEmail = new Map<string, DigestRank>();
+    try {
+      const finalMatchIds = finalChanges.map((c) => c.match_id).filter((id): id is string => !!id);
+      if (finalMatchIds.length > 0) {
+        const settled = await getSettledPicksForMatches(finalMatchIds);
+        for (const sp of settled) {
+          const arr = picksByEmail.get(sp.email) ?? [];
+          arr.push({ match_id: sp.match_id, pick: sp.pick, status: sp.status, payout: sp.payout });
+          picksByEmail.set(sp.email, arr);
+        }
+        if (picksByEmail.size > 0) {
+          const ranked = await getRankedPlayers();
+          for (const r of ranked) rankByEmail.set(r.email, { rank: r.rank, points: r.points });
+        }
+      }
+    } catch (e) {
+      console.error("Personal Final result lookup error (non-fatal):", e);
+    }
+
+    const finalResult = await sendFinalEmails(
+      [...premiumSubs, ...freeSubs],
+      finalChanges,
+      picksByEmail,
+      rankByEmail
+    );
 
     // Big Event / Upset alerts — when a just-finished result was rated unlikely by
     // the AI, alert EVERYONE (free + premium) to drive re-engagement. finalChanges

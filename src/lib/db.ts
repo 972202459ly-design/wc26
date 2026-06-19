@@ -361,6 +361,27 @@ export async function settleOpenPicks(): Promise<number> {
   return settled;
 }
 
+export interface SettledPick {
+  email: string;
+  match_id: string;
+  pick: string; // "home" | "away" | "draw"
+  status: string; // "won" | "lost"
+  payout: number;
+  stake: number;
+}
+
+/** Settled picks (won/lost) for a set of just-finished matches — used to build
+ *  the personalized Final email. Keyed by email by the caller. */
+export async function getSettledPicksForMatches(matchIds: string[]): Promise<SettledPick[]> {
+  if (matchIds.length === 0) return [];
+  const rows = await getSql()`
+    SELECT email, match_id, pick, status, payout, stake
+    FROM picks
+    WHERE match_id = ANY(${matchIds}) AND status IN ('won', 'lost')
+  `;
+  return rows as unknown as SettledPick[];
+}
+
 export interface LeaderRow {
   rank: number;
   name: string;
