@@ -434,6 +434,19 @@ export async function getRankedPlayers(): Promise<RankedPlayer[]> {
   }));
 }
 
+/** Most-backed team (by number of fans) — for homepage social proof. */
+export async function getTopTeam(): Promise<{ teamId: string; fans: number } | null> {
+  const rows = (await getSql()`
+    SELECT favorite_team AS team_id, COUNT(DISTINCT email)::int AS fans
+    FROM subscribers
+    WHERE favorite_team IS NOT NULL
+    GROUP BY favorite_team
+    ORDER BY fans DESC
+    LIMIT 1
+  `) as any[];
+  return rows[0] ? { teamId: rows[0].team_id, fans: rows[0].fans } : null;
+}
+
 /** Settled-pick stats for a finished match — for upset / big-event detection. */
 export async function getMatchPickStats(matchId: string): Promise<{ total: number; correct: number }> {
   const [r] = (await getSql()`
