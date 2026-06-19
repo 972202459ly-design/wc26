@@ -5,7 +5,6 @@ import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import FeaturedNextMatch from "@/components/FeaturedNextMatch";
-import HomeSocialProof from "@/components/HomeSocialProof";
 import HeroEmailCapture from "@/components/HeroEmailCapture";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
@@ -56,13 +55,8 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Featured next match — first thing visitors see */}
-      <div className="pt-8">
-        <FeaturedNextMatch />
-      </div>
-
-      {/* Hero Section */}
-      <section className="relative py-16 sm:py-20 text-center overflow-hidden">
+      {/* Hero Section — compact brand + email capture */}
+      <section className="relative py-14 sm:py-16 text-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -94,33 +88,12 @@ export default function HomePage() {
 
           <HeroEmailCapture />
 
-          <div className="mb-2 text-xs text-[#666]">or play the free prediction game</div>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Link
-              href="/predict"
-              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-500 text-white hover:bg-white/10 transition-colors"
-            >
-              {t("heroPlay")}
-            </Link>
-            <Link
-              href="/schedule"
-              className="px-6 py-3 text-sm font-semibold rounded-lg border border-gray-500 text-white hover:bg-white/10 transition-colors"
-            >
-              {t("heroScores")}
-            </Link>
-            <Link
-              href="/premium"
-              className="px-5 py-3 text-sm font-medium rounded-lg text-[#aaa] hover:text-white transition-colors"
-            >
-              {t("heroGoPro")} →
-            </Link>
-          </div>
-
-          <p className="mt-5 text-xs text-[#666]">{t("heroTrust")}</p>
-
-          <HomeSocialProof />
+          <p className="mt-4 text-xs text-[#666]">{t("heroTrust")}</p>
         </div>
       </section>
+
+      {/* Featured next match — high on the page, right under the brand */}
+      <FeaturedNextMatch />
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
