@@ -15,7 +15,22 @@ const SYSTEM =
   "analysis in English that explains the probabilities, names the single most relevant " +
   "factor, and ends with a clear pick. Be confident and readable. Only reason from the " +
   "numbers given and widely-known team strength — do NOT invent specific stats, injuries, " +
-  "lineups, venues, or home advantage (the tournament is at neutral venues).";
+  "lineups, venues, or home advantage (the tournament is at neutral venues). " +
+  "Write in plain ASCII only: use straight quotes ('), regular hyphens (-), and no " +
+  "smart/curly punctuation, emoji, or non-English characters.";
+
+// LLM output occasionally contains smart punctuation or stray non-ASCII bytes
+// that render as mojibake. Normalise to ASCII; the analysis is English-only.
+function sanitize(text: string): string {
+  return text
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/…/g, "...")
+    .replace(/[^\x00-\x7F]/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
 
 export async function generateAnalysis(
   home: string,
@@ -61,7 +76,7 @@ export async function generateAnalysis(
     }
     const data = await res.json();
     const text: string | undefined = data?.choices?.[0]?.message?.content?.trim();
-    return text || null;
+    return text ? sanitize(text) : null;
   } catch (e) {
     console.error("DeepSeek analysis failed:", e);
     return null;
