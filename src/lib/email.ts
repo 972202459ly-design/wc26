@@ -216,37 +216,45 @@ async function sendBatch(
   let sent = 0;
   let failed = 0;
 
-  const results = await Promise.allSettled(
-    subscribers.map((sub) => {
-      const unsubscribeUrl = `https://wc26live.org/api/unsubscribe?email=${encodeURIComponent(sub.email)}`;
-      return resend!.emails.send({
-        from: "WC26 Live <noreply@wc26live.org>",
-        to: sub.email,
-        subject,
-        html: htmlBuilder(sub.email),
-        text,
-        // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
-        // rules and a strong inbox-placement (anti-spam) signal.
-        headers: {
-          "List-Unsubscribe": `<${unsubscribeUrl}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
-      });
-    })
-  );
+  // Build one payload per recipient. We send via Resend's *batch* endpoint
+  // (one HTTP request per chunk) instead of firing N concurrent single-sends:
+  // the per-request rate limit (~2 req/s) silently 429'd most recipients once
+  // the list grew past a handful, so all but the first few were dropped.
+  const payloads = subscribers.map((sub) => {
+    const unsubscribeUrl = `https://wc26live.org/api/unsubscribe?email=${encodeURIComponent(sub.email)}`;
+    return {
+      from: "WC26 Live <noreply@wc26live.org>",
+      to: sub.email,
+      subject,
+      html: htmlBuilder(sub.email),
+      text,
+      // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
+      // rules and a strong inbox-placement (anti-spam) signal.
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
+    };
+  });
 
-  for (const r of results) {
-    if (r.status === "fulfilled") {
-      if (r.value.error) {
-        failed++;
-        console.error("Resend send failed:", r.value.error);
+  // Resend batch endpoint accepts up to 100 messages per call.
+  const CHUNK = 100;
+  for (let i = 0; i < payloads.length; i += CHUNK) {
+    const chunk = payloads.slice(i, i + CHUNK);
+    try {
+      const { data, error } = await resend!.batch.send(chunk);
+      if (error) {
+        failed += chunk.length;
+        console.error("Resend batch send failed:", error);
       } else {
-        sent++;
+        sent += data?.data?.length ?? chunk.length;
       }
-    } else {
-      failed++;
-      console.error("Email send failed:", r.reason?.message);
+    } catch (err: any) {
+      failed += chunk.length;
+      console.error("Resend batch send threw:", err?.message);
     }
+    // Stay under the request rate limit when there are multiple chunks.
+    if (i + CHUNK < payloads.length) await new Promise((r) => setTimeout(r, 600));
   }
 
   return { sent, failed };
