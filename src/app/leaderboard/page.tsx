@@ -42,9 +42,22 @@ export default async function LeaderboardPage() {
         <h1 className="text-2xl font-bold text-white">Pick&apos;em Leaderboard</h1>
       </div>
       <p className="mb-4 text-sm text-[#999]">
-        Predict World Cup 2026 matches with free points and AI win probabilities. Climb the ranks — no money, just bragging rights.{" "}
-        <Link href="/predict" className="text-[#f0a500] hover:underline">Make a prediction →</Link>
+        Predict World Cup 2026 matches with free points and AI win probabilities. Climb the ranks — no money, just bragging rights.
       </p>
+
+      {/* Join CTA — always visible, low friction */}
+      <div className="mb-6 flex flex-col items-start gap-3 rounded-xl border border-[#f0a500]/20 bg-[#111] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-white">Not on the board yet?</p>
+          <p className="text-xs text-[#888]">Start with 1,000 free points — predict a match and your rank appears instantly.</p>
+        </div>
+        <Link
+          href="/predict"
+          className="shrink-0 rounded-lg bg-[#f0a500] px-5 py-2 text-sm font-bold text-black transition-opacity hover:opacity-90"
+        >
+          Join free →
+        </Link>
+      </div>
 
       {/* Individual leaderboard */}
       <p className="mb-2 text-xs text-[#777]">

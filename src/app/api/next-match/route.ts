@@ -16,57 +16,59 @@ import {
 } from "@/lib/db";
 import { neon } from "@neondatabase/serverless";
 
-// First (uncached) preview calls the LLM (~8s); generous headroom, cached after.
 export const maxDuration = 30;
 export const dynamic = "force-dynamic";
 
 const LIVE = new Set(["IN_PLAY", "PAUSED", "LIVE"]);
 
-// Featured match for the homepage: a live match if one is on, otherwise the
-// next upcoming fixture with an AI preview (full text gated behind sign-in).
 export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
+    const now = Date.now();
+
+    // Live detection: only match_scores knows real-time status
     const rows = (await sql`
-      SELECT match_id, home_team, away_team, home_score, away_score, status, stage, utc_date
+      SELECT match_id, home_team, away_team, home_score, away_score, status
       FROM match_scores
     `) as any[];
+    const liveRow = rows.find((r) => LIVE.has(r.status));
 
-    const now = Date.now();
-    const live = rows.find((r) => LIVE.has(r.status));
-    const upcoming = rows
-      .filter((r) => new Date(r.utc_date).getTime() > now)
-      .sort((a, b) => new Date(a.utc_date).getTime() - new Date(b.utc_date).getTime())[0];
-    const m = live || upcoming;
-    if (!m) return NextResponse.json({ match: null });
-
-    const sm = staticMatches.find((s) => s.id === m.match_id);
-    const home = sm?.homeTeam ?? m.home_team;
-    const away = sm?.awayTeam ?? m.away_team;
-    const base = {
-      id: m.match_id,
-      home,
-      away,
-      homeFlag: getTeamFlagUrl(getTeamIdByName(home) ?? ""),
-      awayFlag: getTeamFlagUrl(getTeamIdByName(away) ?? ""),
-      utc_date: m.utc_date,
-      stage: stageLabel(m.stage),
-      isLive: !!live,
-    };
-
-    if (live) {
-      return NextResponse.json({ ...base, homeScore: m.home_score, awayScore: m.away_score });
+    if (liveRow) {
+      const sm = staticMatches.find((s) => s.id === liveRow.match_id);
+      const home = sm?.homeTeam ?? liveRow.home_team;
+      const away = sm?.awayTeam ?? liveRow.away_team;
+      return NextResponse.json({
+        id: liveRow.match_id,
+        home,
+        away,
+        homeFlag: getTeamFlagUrl(getTeamIdByName(home) ?? ""),
+        awayFlag: getTeamFlagUrl(getTeamIdByName(away) ?? ""),
+        utc_date: sm ? `${sm.date}T${sm.time}` : new Date().toISOString(),
+        stage: stageLabel(sm?.stage ?? "GROUP_STAGE"),
+        isLive: true,
+        homeScore: liveRow.home_score,
+        awayScore: liveRow.away_score,
+      });
     }
 
-    // Upcoming: AI prediction + preview + social proof.
+    // Next upcoming: use static schedule (compare timestamps directly — status field is cached at module load)
+    const next = staticMatches
+      .filter((m) => new Date(`${m.date}T${m.time}`).getTime() > now)
+      .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())[0];
+
+    if (!next) return NextResponse.json({ match: null });
+
+    const { id, homeTeam: home, awayTeam: away, date, time, stage } = next;
+    const utc_date = `${date}T${time}`;
+
     const p = predictMatch(home, away);
     let full: string | null = null;
     try {
       await ensurePredictionsTable();
-      full = await getCachedAnalysis(m.match_id);
+      full = await getCachedAnalysis(id);
       if (!full) {
-        full = await generateAnalysis(home, away, stageLabel(m.stage), p);
-        if (full) await upsertAnalysis(m.match_id, full);
+        full = await generateAnalysis(home, away, stageLabel(stage), p);
+        if (full) await upsertAnalysis(id, full);
       }
     } catch (e) {
       console.error("Next-match preview error:", e);
@@ -75,14 +77,18 @@ export async function GET() {
     const session = await getSession();
     const loggedIn = !!session;
     const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
-    const predictorCount = await getMatchPredictorCount(m.match_id);
-    // Aggregate, bot-inclusive player count — the field you compete against on
-    // the board. A bigger, honest number than a single match's predictor count.
+    const predictorCount = await getMatchPredictorCount(id);
     const [tp] = (await sql`SELECT COUNT(*)::int AS c FROM subscribers WHERE preferences <> 'deleted'`) as any[];
-    const totalPlayers = tp?.c ?? 0;
 
     return NextResponse.json({
-      ...base,
+      id,
+      home,
+      away,
+      homeFlag: getTeamFlagUrl(getTeamIdByName(home) ?? ""),
+      awayFlag: getTeamFlagUrl(getTeamIdByName(away) ?? ""),
+      utc_date,
+      stage: stageLabel(stage),
+      isLive: false,
       prediction: {
         homePct: p.homePct,
         drawPct: p.drawPct,
@@ -92,7 +98,7 @@ export async function GET() {
       },
       preview: { teaser, full: loggedIn ? full : null, locked: !loggedIn && !!full },
       predictorCount,
-      totalPlayers,
+      totalPlayers: tp?.c ?? 0,
     });
   } catch (err: any) {
     console.error("next-match error:", err);

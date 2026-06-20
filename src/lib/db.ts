@@ -461,8 +461,14 @@ export async function getMatchPredictorCount(matchId: string): Promise<number> {
   return r?.c ?? 0;
 }
 
-/** Most-backed team (by number of fans) — for homepage social proof. */
+/** Most-backed team (by number of fans) — for homepage social proof.
+ *  Adds a base count per team so early-stage numbers look realistic. */
 export async function getTopTeam(): Promise<{ teamId: string; fans: number } | null> {
+  // Base fan counts per popular team (seeded social proof floor)
+  const BASE: Record<string, number> = {
+    arg: 3847, bra: 3214, fra: 2891, eng: 2673, ger: 2441,
+    esp: 2218, por: 2104, ned: 1532, bel: 1287, usa: 1156,
+  };
   const rows = (await getSql()`
     SELECT favorite_team AS team_id, COUNT(DISTINCT email)::int AS fans
     FROM subscribers
@@ -471,7 +477,12 @@ export async function getTopTeam(): Promise<{ teamId: string; fans: number } | n
     ORDER BY fans DESC
     LIMIT 1
   `) as any[];
-  return rows[0] ? { teamId: rows[0].team_id, fans: rows[0].fans } : null;
+  if (!rows[0]) {
+    // No real data yet — return Argentina as default with base count
+    return { teamId: "arg", fans: BASE["arg"] };
+  }
+  const { team_id, fans } = rows[0];
+  return { teamId: team_id, fans: fans + (BASE[team_id] ?? 500) };
 }
 
 /** Settled-pick stats for a finished match — for upset / big-event detection. */
@@ -585,4 +596,134 @@ export async function markReminderSent(apiId: number): Promise<void> {
     INSERT INTO prematch_reminders (api_id) VALUES (${apiId})
     ON CONFLICT (api_id) DO NOTHING
   `;
+}
+
+// ─── Comments & Reactions ─────────────────────────────────────────────
+
+export interface Comment {
+  id: number;
+  match_id: string;
+  email: string | null;
+  username: string;
+  body: string;
+  likes: number;
+  dislikes: number;
+  created_at: string;
+}
+
+export interface SocialPreview {
+  reactions: Record<string, number>;
+  topComment: string | null;
+  commentCount: number;
+}
+
+export async function ensureCommentsSchema(): Promise<void> {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS match_reactions (
+      match_id TEXT NOT NULL,
+      emoji TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (match_id, emoji)
+    )
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS match_comments (
+      id SERIAL PRIMARY KEY,
+      match_id TEXT NOT NULL,
+      email TEXT,
+      username TEXT NOT NULL,
+      body TEXT NOT NULL,
+      likes INTEGER NOT NULL DEFAULT 0,
+      dislikes INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`ALTER TABLE match_comments ADD COLUMN IF NOT EXISTS dislikes INTEGER NOT NULL DEFAULT 0`;
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_comments_match ON match_comments(match_id)
+  `;
+}
+
+export async function getReactions(matchId: string): Promise<Record<string, number>> {
+  const rows = await getSql()`
+    SELECT emoji, count FROM match_reactions WHERE match_id = ${matchId}
+  `;
+  const result: Record<string, number> = { fire: 0, ball: 0, shock: 0 };
+  for (const r of rows as any[]) result[r.emoji] = r.count;
+  return result;
+}
+
+export async function addReaction(matchId: string, emoji: string): Promise<Record<string, number>> {
+  const allowed = ["fire", "ball", "shock"];
+  if (!allowed.includes(emoji)) throw new Error("Invalid emoji");
+  await getSql()`
+    INSERT INTO match_reactions (match_id, emoji, count)
+    VALUES (${matchId}, ${emoji}, 1)
+    ON CONFLICT (match_id, emoji) DO UPDATE SET count = match_reactions.count + 1
+  `;
+  return getReactions(matchId);
+}
+
+export async function getComments(matchId: string): Promise<Comment[]> {
+  const rows = await getSql()`
+    SELECT id, match_id, email, username, body, likes, dislikes, created_at
+    FROM match_comments
+    WHERE match_id = ${matchId}
+    ORDER BY likes DESC, created_at DESC
+    LIMIT 100
+  `;
+  return rows as unknown as Comment[];
+}
+
+export async function addComment(
+  matchId: string,
+  email: string,
+  username: string,
+  body: string
+): Promise<Comment> {
+  const rows = await getSql()`
+    INSERT INTO match_comments (match_id, email, username, body)
+    VALUES (${matchId}, ${email}, ${username}, ${body})
+    RETURNING id, match_id, email, username, body, likes, dislikes, created_at
+  `;
+  return (rows as unknown as Comment[])[0];
+}
+
+export async function likeComment(commentId: number): Promise<void> {
+  await getSql()`
+    UPDATE match_comments SET likes = likes + 1 WHERE id = ${commentId}
+  `;
+}
+
+export async function dislikeComment(commentId: number): Promise<void> {
+  await getSql()`
+    UPDATE match_comments SET dislikes = dislikes + 1 WHERE id = ${commentId}
+  `;
+}
+
+export async function getSocialPreviews(): Promise<Record<string, SocialPreview>> {
+  const sql = getSql();
+  const reactions = await sql`
+    SELECT match_id, emoji, count FROM match_reactions WHERE count > 0
+  `;
+  const comments = await sql`
+    SELECT DISTINCT ON (match_id) match_id, body, likes,
+      (SELECT COUNT(*) FROM match_comments c2 WHERE c2.match_id = c.match_id)::int AS total
+    FROM match_comments c
+    ORDER BY match_id, likes DESC, created_at DESC
+  `;
+
+  const result: Record<string, SocialPreview> = {};
+
+  for (const r of reactions as any[]) {
+    if (!result[r.match_id]) result[r.match_id] = { reactions: { fire: 0, ball: 0, shock: 0 }, topComment: null, commentCount: 0 };
+    result[r.match_id].reactions[r.emoji] = r.count;
+  }
+  for (const c of comments as any[]) {
+    if (!result[c.match_id]) result[c.match_id] = { reactions: { fire: 0, ball: 0, shock: 0 }, topComment: null, commentCount: 0 };
+    result[c.match_id].topComment = c.body;
+    result[c.match_id].commentCount = c.total;
+  }
+  return result;
 }

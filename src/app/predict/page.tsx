@@ -43,9 +43,12 @@ export default function PredictPage() {
         <Target className="h-6 w-6 text-[#f0a500]" />
         <h1 className="text-2xl font-bold text-white">Make a Prediction</h1>
       </div>
-      <p className="mb-5 text-sm text-[#999]">
+      <p className="mb-2 text-sm text-[#999]">
         Pick an upcoming match, use your free points with AI win probabilities, and climb the{" "}
         <Link href="/leaderboard" className="text-[#f0a500] hover:underline">leaderboard</Link>.
+      </p>
+      <p className="mb-5 text-xs text-[#555]">
+        No account needed to browse — you&apos;ll be asked to sign up (free, 1,000 points) only when you submit a prediction.
       </p>
 
       {live === null ? (

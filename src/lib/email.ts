@@ -280,6 +280,14 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
         </p>
       </div>
       <a href="https://wc26live.org" style="display:inline-block;padding:10px 22px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600">Open WC26 Live →</a>
+      <div style="margin-top:20px;border-top:1px solid #2a2a2a;padding-top:16px">
+        <div style="color:#f0a500;font-size:13px;font-weight:700;margin-bottom:6px">🎯 Also: play the free World Cup Pick'em</div>
+        <p style="color:#aaa;font-size:13px;line-height:1.5;margin:0 0 12px">
+          Predict match outcomes with <b style="color:#fff">1,000 free virtual points</b> and AI win probabilities.
+          Climb the leaderboard — no purchase needed, just your email.
+        </p>
+        <a href="https://wc26live.org/predict" style="display:inline-block;padding:9px 18px;border:1px solid #f0a500;color:#f0a500;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600">Start predicting →</a>
+      </div>
     </div>`;
   const text = `You're subscribed to WC26 Live match alerts! To make sure you never miss a goal, add noreply@wc26live.org to your contacts (Gmail: drag this to your Primary tab). wc26live.org`;
   try {

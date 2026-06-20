@@ -7,7 +7,20 @@ import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 
 import MatchCountdown from "./MatchCountdown";
 
-export default function MatchCard({ match, showShop = true }: { match: Match; showShop?: boolean }) {
+interface Prediction { homePct: number; drawPct: number; awayPct: number }
+interface SocialPreview { reactions: Record<string, number>; topComment: string | null; commentCount: number }
+
+export default function MatchCard({
+  match,
+  showShop = true,
+  prediction,
+  social,
+}: {
+  match: Match;
+  showShop?: boolean;
+  prediction?: Prediction;
+  social?: SocialPreview;
+}) {
   const [showShare, setShowShare] = useState(false);
 
   const kickoff = new Date(`${match.date}T${match.time}`).toLocaleString("en-US", {
@@ -84,6 +97,56 @@ export default function MatchCard({ match, showShop = true }: { match: Match; sh
         </div>
       </div>
       <div className="text-xs text-[#666] mt-2">{match.venue}</div>
+
+      {/* AI win-probability bar — upcoming matches only */}
+      {prediction && !isLive && !isFinished && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="w-7 shrink-0 text-right text-[10px] font-bold tabular-nums text-[#f0a500]">
+            {prediction.homePct}%
+          </span>
+          <div className="relative flex-1 h-1.5 rounded-full overflow-hidden bg-[#1e1e1e]">
+            <div
+              className="absolute left-0 top-0 h-full rounded-l-full bg-[#f0a500]"
+              style={{ width: `${prediction.homePct}%` }}
+            />
+            <div
+              className="absolute top-0 h-full bg-[#3a3a3a]"
+              style={{ left: `${prediction.homePct}%`, width: `${prediction.drawPct}%` }}
+            />
+            <div
+              className="absolute right-0 top-0 h-full rounded-r-full bg-[#3498db]"
+              style={{ width: `${prediction.awayPct}%` }}
+            />
+          </div>
+          <span className="w-7 shrink-0 text-[10px] font-bold tabular-nums text-[#3498db]">
+            {prediction.awayPct}%
+          </span>
+          <span className="shrink-0 text-[10px] text-[#444]">🧠</span>
+        </div>
+      )}
+
+      {/* Social preview — reactions + top comment */}
+      {social && (Object.values(social.reactions).some((v) => v > 0) || social.topComment) && (
+        <div className="mt-3 space-y-1.5">
+          {Object.values(social.reactions).some((v) => v > 0) && (
+            <div className="flex items-center gap-2 text-xs text-[#666]">
+              {[["fire","🔥"],["ball","⚽"],["shock","😮"]].map(([key, icon]) =>
+                (social.reactions[key] ?? 0) > 0 ? (
+                  <span key={key}>{icon} {social.reactions[key]}</span>
+                ) : null
+              )}
+              {social.commentCount > 0 && (
+                <span className="ml-auto text-[#555]">💬 {social.commentCount}</span>
+              )}
+            </div>
+          )}
+          {social.topComment && (
+            <p className="truncate text-xs italic text-[#555]">
+              &ldquo;{social.topComment}&rdquo;
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Affiliate shop link — shown sparingly (see showShop) to avoid a storefront feel */}
       {showShop && (

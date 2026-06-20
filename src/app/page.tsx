@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "@/lib/data";
+import { predictMatch } from "@/lib/predict";
+import type { SocialPreview } from "@/lib/db";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import FeaturedNextMatch from "@/components/FeaturedNextMatch";
 import HeroEmailCapture from "@/components/HeroEmailCapture";
+import HomeSocialProof from "@/components/HomeSocialProof";
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/types";
 import { useTranslations } from "next-intl";
@@ -35,6 +38,7 @@ function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
 
 export default function HomePage() {
   const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
+  const [socialPreviews, setSocialPreviews] = useState<Record<string, SocialPreview>>({});
   const t = useTranslations("home");
   const navT = useTranslations("home.quickNav");
   const shopT = useTranslations("home.shop");
@@ -43,15 +47,23 @@ export default function HomePage() {
   useEffect(() => {
     fetch("/api/scores")
       .then((r) => r.json())
-      .then((data) => {
-        if (data.matches) setLiveScores(data.matches);
-      })
+      .then((data) => { if (data.matches) setLiveScores(data.matches); })
+      .catch(() => {});
+    fetch("/api/social-preview")
+      .then((r) => r.json())
+      .then((data) => setSocialPreviews(data ?? {}))
       .catch(() => {});
   }, []);
 
   const merged = liveScores ? mergeScores(matches, liveScores) : matches;
   const mergedToday = liveScores ? mergeScores(getTodayMatches(), liveScores) : getTodayMatches();
   const mergedUpcoming = liveScores ? mergeScores(getUpcomingMatches(6), liveScores) : getUpcomingMatches(6);
+
+  function getPrediction(m: Match) {
+    if (m.status !== "upcoming") return undefined;
+    const p = predictMatch(m.homeTeam, m.awayTeam);
+    return { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct };
+  }
 
   return (
     <div>
@@ -77,7 +89,8 @@ export default function HomePage() {
           <p className="text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
-
+          <FeaturedNextMatch />
+          <HomeSocialProof />
         </div>
       </section>
 
@@ -87,7 +100,7 @@ export default function HomePage() {
         {mergedToday.length > 0 ? (
           <div className="grid gap-3">
             {mergedToday.map((match, i) => (
-              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
+              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} prediction={getPrediction(match)} social={socialPreviews[match.id]} />
             ))}
           </div>
         ) : (
@@ -103,9 +116,6 @@ export default function HomePage() {
         <p className="text-sm text-[#999] mb-4">Free World Cup score &amp; goal alerts — straight to your inbox.</p>
         <HeroEmailCapture />
       </section>
-
-      {/* One-click prediction */}
-      <FeaturedNextMatch />
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">

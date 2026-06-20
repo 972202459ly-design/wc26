@@ -29,9 +29,26 @@ export default function ConfirmedPage() {
         Thanks for subscribing. You&apos;ll receive match alerts and updates
         straight to your inbox.
       </p>
+
+      {/* Pick'em cross-sell — highest-intent moment */}
+      <div className="mb-6 rounded-2xl border border-[#f0a500]/30 bg-gradient-to-br from-[#1a1a2e] to-[#111] p-6 text-left">
+        <div className="mb-1 text-xs font-bold uppercase tracking-widest text-[#f0a500]">🎯 Also free</div>
+        <h2 className="mb-2 text-lg font-bold text-white">Play the World Cup Pick&apos;em</h2>
+        <p className="mb-4 text-sm text-[#aaa]">
+          Predict match outcomes with <b className="text-white">1,000 free virtual points</b>,
+          bet at AI-derived odds, and climb the leaderboard. No money — just bragging rights.
+        </p>
+        <Link
+          href="/predict"
+          className="inline-block rounded-lg bg-[#f0a500] px-6 py-2.5 text-sm font-bold text-black transition-opacity hover:opacity-90"
+        >
+          Start predicting →
+        </Link>
+      </div>
+
       <Link
         href="/"
-        className="inline-block px-6 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
+        className="text-sm text-[#666] hover:text-white transition-colors"
       >
         Back to Home
       </Link>

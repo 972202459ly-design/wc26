@@ -1,6 +1,8 @@
 "use client";
 
 import { matches, amazonSearchLink } from "@/lib/data";
+import { predictMatch } from "@/lib/predict";
+import type { SocialPreview } from "@/lib/db";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { useEffect, useState } from "react";
@@ -33,15 +35,18 @@ const matchDays = [...new Set(matches.map((m) => m.date))].sort();
 
 export default function SchedulePage() {
   const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
+  const [socialPreviews, setSocialPreviews] = useState<Record<string, SocialPreview>>({});
   const t = useTranslations("schedule");
   const shopT = useTranslations("schedule.shop");
 
   useEffect(() => {
     fetch("/api/scores")
       .then((r) => r.json())
-      .then((data) => {
-        if (data.matches) setLiveScores(data.matches);
-      })
+      .then((data) => { if (data.matches) setLiveScores(data.matches); })
+      .catch(() => {});
+    fetch("/api/social-preview")
+      .then((r) => r.json())
+      .then((data) => setSocialPreviews(data ?? {}))
       .catch(() => {});
   }, []);
 
@@ -63,9 +68,19 @@ export default function SchedulePage() {
               })}
             </h2>
             <div className="grid gap-3">
-              {dayMatches.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
+              {dayMatches.map((match) => {
+                const pred = match.status === "upcoming"
+                  ? predictMatch(match.homeTeam, match.awayTeam)
+                  : undefined;
+                return (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={pred ? { homePct: pred.homePct, drawPct: pred.drawPct, awayPct: pred.awayPct } : undefined}
+                    social={socialPreviews[match.id]}
+                  />
+                );
+              })}
             </div>
             {idx > 0 && idx % 3 === 0 && (
               <div className="mt-6">

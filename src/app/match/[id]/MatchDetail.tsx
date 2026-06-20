@@ -8,6 +8,7 @@ import AdPlaceholder from "@/components/AdPlaceholder";
 import MatchPrediction from "@/components/MatchPrediction";
 import MatchCountdown from "@/components/MatchCountdown";
 import EventsTimeline from "@/components/EventsTimeline";
+import MatchComments from "@/components/MatchComments";
 import { useTranslations } from "next-intl";
 
 export default function MatchDetail({ match: initial }: { match: Match }) {
@@ -148,6 +149,9 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
           isLive={match.status === "live"}
         />
       )}
+
+      {/* Fan comments & reactions */}
+      <MatchComments matchId={match.id} />
 
       {/* Ad banner */}
       <div className="mt-8">
