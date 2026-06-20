@@ -12,5 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call daily-digest endpoint
+        # Reuses the existing DAILY_PICKS_URL secret — its value must point at
+        # the digest endpoint: https://wc26live.org/api/cron/daily-digest?key=<CRON_SECRET>
         run: |
-          curl -s -f "${{ secrets.DAILY_DIGEST_URL }}" || echo "Daily Digest skipped (no DAILY_DIGEST_URL configured)"
+          curl -s -f "${{ secrets.DAILY_PICKS_URL }}" || echo "Daily Digest skipped (no DAILY_PICKS_URL configured)"
