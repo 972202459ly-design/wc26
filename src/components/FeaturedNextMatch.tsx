@@ -422,12 +422,12 @@ export default function FeaturedNextMatch() {
                 </p>
                 {preview.locked && (
                   <Link
-                    href={`/match/${selected.id}`}
-                    className="mt-3 flex items-center gap-2.5 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]"
+                    href="/premium"
+                    className="mt-3 flex items-center gap-2.5 rounded-lg border border-[#f0a500]/40 bg-[#1a1a2e] px-4 py-3 transition-colors hover:bg-[#20203a]"
                   >
                     <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
-                    <span className="text-sm text-[#bbb]">
-                      <b className="text-white">Sign in free</b> to read the full preview →
+                    <span className="text-sm text-[#ddd]">
+                      <b className="text-[#f0a500]">Unlock the full AI breakdown + value pick</b> with Pro — $4.99 →
                     </span>
                   </Link>
                 )}

@@ -13,6 +13,7 @@ import {
   getCachedAnalysis,
   upsertAnalysis,
   getMatchPredictorCount,
+  getTierByEmail,
 } from "@/lib/db";
 import { neon } from "@neondatabase/serverless";
 
@@ -74,8 +75,9 @@ export async function GET() {
       console.error("Next-match preview error:", e);
     }
 
+    // Full AI breakdown is a Pro perk; everyone sees the teaser + win %.
     const session = await getSession();
-    const loggedIn = !!session;
+    const isPremium = session ? (await getTierByEmail(session.email)) === "premium" : false;
     const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
     const predictorCount = await getMatchPredictorCount(id);
     const [tp] = (await sql`SELECT COUNT(*)::int AS c FROM subscribers WHERE preferences <> 'deleted'`) as any[];
@@ -96,7 +98,7 @@ export async function GET() {
         scoreHome: p.topHome,
         scoreAway: p.topAway,
       },
-      preview: { teaser, full: loggedIn ? full : null, locked: !loggedIn && !!full },
+      preview: { teaser, full: isPremium ? full : null, locked: !isPremium && !!full },
       predictorCount,
       totalPlayers: tp?.c ?? 0,
     });

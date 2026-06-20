@@ -599,13 +599,24 @@ function digestLeaderboard(top: { name: string; points: number }[], myRank: Dige
     </div>`;
 }
 
+// Soft Pro upsell for the digest — shown to free recipients only.
+function digestProBlock(): string {
+  return `
+    <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:14px 16px;margin-top:14px;text-align:center">
+      <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:6px">🏆 Want the edge?</div>
+      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Pro unlocks the full AI breakdown + value pick on every match and earns you <b style="color:#f0a500">+500 points a day</b> (free gets 200) — climb the leaderboard faster, all the way to the July 19 final.</div>
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Go Pro — $4.99 one-time →</a>
+    </div>`;
+}
+
 function digestHtml(
   results: RecapResult[],
   picks: DailyPick[],
   top: { name: string; points: number }[],
   myRank: DigestRank | null,
   myPicks: PersonalPick[] | null,
-  email: string
+  email: string,
+  showPro: boolean
 ): string {
   const parts: string[] = [];
   if (results.length > 0) {
@@ -622,6 +633,7 @@ function digestHtml(
       </div>`);
   }
   parts.push(digestLeaderboard(top, myRank));
+  if (showPro) parts.push(digestProBlock());
   const subtitle = picks.length
     ? `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`
     : "Today's World Cup results";
@@ -639,7 +651,7 @@ function digestText(results: RecapResult[], picks: DailyPick[]): string {
 }
 
 export async function sendDailyDigestEmail(
-  subscribers: { email: string }[],
+  subscribers: { email: string; preferences?: string }[],
   results: RecapResult[],
   picks: DailyPick[],
   top: { name: string; points: number }[],
@@ -648,14 +660,91 @@ export async function sendDailyDigestEmail(
 ): Promise<{ sent: number; failed: number }> {
   if (subscribers.length === 0) return { sent: 0, failed: 0 };
   if (results.length === 0 && picks.length === 0) return { sent: 0, failed: 0 };
+  // Pro upsell only goes to free subscribers — premium already have it.
+  const premium = new Set(subscribers.filter((s) => s.preferences === "premium").map((s) => s.email));
   const subject = picks.length
     ? `⚽ WC26 Daily — ${picks.length} match${picks.length > 1 ? "es" : ""} to predict`
     : `📊 WC26 Daily — ${results.length} result${results.length > 1 ? "s" : ""}`;
   return sendBatch(
     subscribers,
     subject,
-    (email) => digestHtml(results, picks, top, rankByEmail.get(email) ?? null, settledByEmail.get(email) ?? null, email),
+    (email) => digestHtml(results, picks, top, rankByEmail.get(email) ?? null, settledByEmail.get(email) ?? null, email, !premium.has(email)),
     digestText(results, picks)
+  );
+}
+
+// ── Pro pitch (re-engagement → upgrade) ───────────────────────────────
+// Targeted at engaged free players (those who have predicted). They already
+// value the game, so we sell the Pro edge: full AI + value picks, +500/day,
+// one payment to the final.
+
+function proPitchHtml(
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  nextMatch: NextMatchInfo | null,
+  email: string
+): string {
+  const hero = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:22px;margin-bottom:16px;text-align:center">
+      <div style="font-size:34px;margin-bottom:8px">🏆</div>
+      <div style="font-size:18px;color:#fff;font-weight:700;margin-bottom:6px">${myRank ? `You're #${myRank.rank} with ${myRank.points.toLocaleString()} points` : "You're in the game"}</div>
+      <div style="font-size:14px;color:#999;line-height:1.5">You actually play — most people never make a single prediction. Want to win the leaderboard before the July 19 final? Get the Pro edge.</div>
+    </div>`;
+
+  const valueList = `
+    <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:18px;margin-bottom:16px">
+      <div style="color:#f0a500;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Tournament Pass — $4.99 one-time</div>
+      <div style="font-size:14px;color:#ddd;line-height:1.9">
+        🧠 <b style="color:#fff">Full AI breakdown + value pick</b> on every match (free only sees the summary)<br>
+        🏆 <b style="color:#fff">+500 points every day</b> to climb faster (free gets 200)<br>
+        ⚡ <b style="color:#fff">Real-time goal & kickoff alerts</b> — never miss a chance to predict<br>
+        🎫 <b style="color:#fff">One payment, all the way to the final</b> — not a subscription
+      </div>
+    </div>`;
+
+  const nm = nextMatch
+    ? `<p style="text-align:center;color:#aaa;font-size:13px;margin:0 0 14px">Next up: <b style="color:#fff">${esc(nextMatch.home)} vs ${esc(nextMatch.away)}</b> — ${countdownText(nextMatch.utc_date)}. Pro sees the full AI call.</p>`
+    : "";
+
+  const cta = `
+    <div style="text-align:center;margin:6px 0 8px">
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Get the Tournament Pass — $4.99 →</a>
+    </div>`;
+
+  const medals = ["🥇", "🥈", "🥉"];
+  const topRows = top
+    .map((t, i) => `<div style="display:flex;justify-content:space-between;font-size:14px;color:#ddd;padding:4px 0"><span>${medals[i] || `#${i + 1}`} ${esc(t.name)}</span><span style="color:#f0a500;font-weight:700">${t.points.toLocaleString()} pts</span></div>`)
+    .join("");
+  const mine = myRank
+    ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#fff">You: <b style="color:#f0a500">#${myRank.rank}</b> — ${myRank.points.toLocaleString()} pts.</div>`
+    : "";
+  const leaderboard = `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Prediction Leaderboard</div>
+      ${topRows}${mine}
+    </div>`;
+
+  return wrapHtml("", "Get the edge — win the leaderboard", hero + valueList + nm + cta + leaderboard, email);
+}
+
+function proPitchText(myRank: DigestRank | null): string {
+  const r = myRank ? `You're #${myRank.rank} with ${myRank.points} points. ` : "";
+  return `${r}Get the Tournament Pass ($4.99 one-time): full AI breakdown + value picks on every match, +500 points/day, real-time alerts, all the way to the July 19 final. https://wc26live.org/premium`;
+}
+
+export async function sendProPitchEmail(
+  subscribers: { email: string }[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>,
+  nextMatch?: NextMatchInfo | null
+): Promise<{ sent: number; failed: number }> {
+  if (subscribers.length === 0) return { sent: 0, failed: 0 };
+  const subject = "🏆 You're climbing — get the Pro edge for the knockouts";
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => proPitchHtml(top, rankByEmail.get(email) ?? null, nextMatch ?? null, email),
+    proPitchText(null)
   );
 }
 

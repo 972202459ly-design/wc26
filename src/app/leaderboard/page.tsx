@@ -59,6 +59,17 @@ export default async function LeaderboardPage() {
         </Link>
       </div>
 
+      {/* Pro boost banner — the +500/day edge for climbing */}
+      <Link
+        href="/premium"
+        className="mb-4 flex items-center gap-3 rounded-xl border border-[#f0a500]/30 bg-gradient-to-r from-[#1a1a2e] to-[#111] px-5 py-3 transition-colors hover:border-[#f0a500]/60"
+      >
+        <span className="text-xl">🏆</span>
+        <span className="text-sm text-[#ddd]">
+          <b className="text-[#f0a500]">Pro players earn +500 points a day</b> (free gets 200) — plus the full AI breakdown on every match. Climb faster for $4.99 →
+        </span>
+      </Link>
+
       {/* Individual leaderboard */}
       <p className="mb-2 text-xs text-[#777]">
         Want your name on the board? <Link href="/account" className="text-[#f0a500] hover:underline">Set a username</Link> in your account.

@@ -7,6 +7,7 @@ import {
   ensurePredictionsTable,
   getCachedAnalysis,
   upsertAnalysis,
+  getTierByEmail,
 } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -37,13 +38,14 @@ export async function GET(
     console.error("match-preview error:", e);
   }
 
+  // Full AI breakdown is a Pro perk; everyone sees the teaser.
   const session = await getSession();
-  const loggedIn = !!session;
+  const isPremium = session ? (await getTierByEmail(session.email)) === "premium" : false;
   const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
 
   return NextResponse.json({
     teaser,
-    full: loggedIn ? full : null,
-    locked: !loggedIn && !!full,
+    full: isPremium ? full : null,
+    locked: !isPremium && !!full,
   });
 }
