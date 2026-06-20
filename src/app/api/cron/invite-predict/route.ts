@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { getRankedPlayers } from "@/lib/db";
-import { sendInvitePredictEmail, type DigestRank } from "@/lib/email";
+import { sendInvitePredictEmail, type DigestRank, type NextMatchInfo } from "@/lib/email";
+import { matches as staticMatches } from "@/lib/data";
+import { predictMatch } from "@/lib/predict";
 
 const CRON_SECRET = process.env.CRON_SECRET;
+const LIVE_OR_DONE = new Set(["IN_PLAY", "PAUSED", "LIVE", "FINISHED"]);
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +28,33 @@ export async function GET(request: Request) {
     const top = ranked.slice(0, 3).map((r) => ({ name: r.name, points: r.points }));
     const rankByEmail = new Map<string, DigestRank>();
     for (const r of ranked) rankByEmail.set(r.email, { rank: r.rank, points: r.points });
+
+    // Soonest upcoming match (not started/finished) + its AI prediction.
+    const scoreRows = (await sql`
+      SELECT match_id, status, utc_date FROM match_scores
+    `) as unknown as { match_id: string; status: string; utc_date: string }[];
+    const nowMs = Date.now();
+    const upcoming = scoreRows
+      .filter((r) => !LIVE_OR_DONE.has(r.status) && new Date(r.utc_date).getTime() > nowMs)
+      .sort((a, b) => new Date(a.utc_date).getTime() - new Date(b.utc_date).getTime())[0];
+    let nextMatch: NextMatchInfo | null = null;
+    if (upcoming) {
+      const sm = staticMatches.find((s) => s.id === upcoming.match_id);
+      if (sm) {
+        const pr = predictMatch(sm.homeTeam, sm.awayTeam);
+        const favorite = pr.pick === "home" ? sm.homeTeam : pr.pick === "away" ? sm.awayTeam : "Draw";
+        const favoritePct = pr.pick === "home" ? pr.homePct : pr.pick === "away" ? pr.awayPct : pr.drawPct;
+        nextMatch = {
+          home: sm.homeTeam,
+          away: sm.awayTeam,
+          utc_date: upcoming.utc_date,
+          match_id: upcoming.match_id,
+          stage: sm.stage,
+          favorite,
+          favoritePct,
+        };
+      }
+    }
 
     // Recipients: real subscribers (no bots) who have never placed a pick.
     const testEmail = searchParams.get("test");
@@ -50,6 +80,9 @@ export async function GET(request: Request) {
         dryRun: true,
         recipients: subs.length,
         top,
+        nextMatch: nextMatch
+          ? `${nextMatch.home} vs ${nextMatch.away} — AI: ${nextMatch.favorite} ${nextMatch.favoritePct}% (${nextMatch.utc_date})`
+          : null,
         sampleRanks: subs.slice(0, 5).map((s) => ({
           email: s.email,
           rank: rankByEmail.get(s.email)?.rank ?? null,
@@ -57,7 +90,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const result = await sendInvitePredictEmail(subs, top, rankByEmail);
+    const result = await sendInvitePredictEmail(subs, top, rankByEmail, nextMatch);
     return NextResponse.json({
       success: true,
       recipients: subs.length,

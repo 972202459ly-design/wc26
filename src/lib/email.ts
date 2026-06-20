@@ -513,10 +513,40 @@ export async function sendDailyRecapEmail(
 
 // ── "Join the prediction game" re-engagement email ──
 
+// The soonest upcoming match + its AI prediction, to give the invite email a
+// concrete, time-sensitive hook ("predict this before kickoff").
+export interface NextMatchInfo {
+  home: string;
+  away: string;
+  utc_date: string;
+  match_id: string;
+  stage: string | null;
+  favorite: string; // team name, or "Draw"
+  favoritePct: number;
+}
+
+function nextMatchCard(nm: NextMatchInfo): string {
+  const matchUrl = `https://wc26live.org/match/${nm.match_id}`;
+  const meta = [stageLabel(nm.stage), formatDate(nm.utc_date)].filter(Boolean).join(" · ");
+  return `
+    <div style="background:#1a1a1a;border:1px solid #3498db;border-radius:8px;padding:20px;margin-bottom:16px">
+      <div style="display:inline-block;background:#3498db;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:12px;color:#fff">⏱ NEXT MATCH</div>
+      <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">${esc(nm.home)} <span style="color:#666;font-weight:400">vs</span> ${esc(nm.away)}</div>
+      <div style="color:#3498db;font-size:15px;font-weight:600;margin-top:6px">${countdownText(nm.utc_date)}</div>
+      <div style="background:#0f0f0f;border:1px solid #222;border-radius:6px;padding:10px 12px;margin-top:12px">
+        <div style="color:#f0a500;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">🧠 Our AI Prediction</div>
+        <div style="font-size:15px;color:#fff;font-weight:600">${esc(nm.favorite)} <span style="color:#f0a500">${nm.favoritePct}%</span></div>
+      </div>
+      <div style="color:#666;font-size:12px;margin-top:8px">${meta}</div>
+      <a href="${matchUrl}" style="display:inline-block;margin-top:14px;padding:10px 24px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:14px;font-weight:700">Make Your Prediction before kickoff →</a>
+    </div>`;
+}
+
 function inviteHtml(
   top: { name: string; points: number }[],
   myRank: DigestRank | null,
-  email: string
+  email: string,
+  nextMatch?: NextMatchInfo | null
 ): string {
   const rankLine = myRank
     ? `You're <b style="color:#f0a500">#${myRank.rank}</b> on the leaderboard with <b style="color:#fff">${myRank.points.toLocaleString()}</b> points.`
@@ -526,8 +556,10 @@ function inviteHtml(
     <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:22px;margin-bottom:16px;text-align:center">
       <div style="font-size:34px;margin-bottom:8px">🏆</div>
       <div style="font-size:17px;color:#ddd;line-height:1.5">${rankLine}</div>
-      <div style="font-size:14px;color:#999;margin-top:10px">But you haven't made a single prediction yet — so you're stuck at your starting score. Predict any World Cup match to win points and start climbing.</div>
+      <div style="font-size:14px;color:#999;margin-top:10px">But you haven't made a single prediction yet — so you're stuck at your starting score. Predict the match below to win points and start climbing.</div>
     </div>`;
+
+  const next = nextMatch ? nextMatchCard(nextMatch) : "";
 
   const medals = ["🥇", "🥈", "🥉"];
   const topRows = top
@@ -543,37 +575,43 @@ function inviteHtml(
 
   const leaderboard = `
     <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-bottom:8px">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Leaderboard</div>
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Prediction Leaderboard</div>
       ${topRows}
       ${mine}
     </div>`;
 
   const cta = `
     <div style="text-align:center;margin:18px 0 8px">
-      <a href="https://wc26live.org/predict" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your First Prediction →</a>
+      <a href="${nextMatch ? `https://wc26live.org/match/${nextMatch.match_id}` : "https://wc26live.org/predict"}" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your First Prediction →</a>
     </div>
     <p style="text-align:center;color:#666;font-size:12px;margin:6px 0 0">100% free · virtual points · just for fun</p>`;
 
-  return wrapHtml("", "Claim your spot on the leaderboard", hero + leaderboard + cta, email);
+  return wrapHtml("", "Claim your spot on the leaderboard", hero + next + leaderboard + cta, email);
 }
 
-function inviteText(myRank: DigestRank | null): string {
+function inviteText(myRank: DigestRank | null, nextMatch?: NextMatchInfo | null): string {
   const r = myRank ? `You're #${myRank.rank} with ${myRank.points} points. ` : "";
-  return `${r}But you haven't predicted yet. Make your first World Cup prediction and start climbing the leaderboard: https://wc26live.org/predict`;
+  const nm = nextMatch
+    ? `Next match: ${nextMatch.home} vs ${nextMatch.away} — ${countdownText(nextMatch.utc_date)}. Our AI prediction: ${nextMatch.favorite} ${nextMatch.favoritePct}%. `
+    : "";
+  return `${r}But you haven't predicted yet. ${nm}Make your prediction and start climbing the leaderboard: ${nextMatch ? `https://wc26live.org/match/${nextMatch.match_id}` : "https://wc26live.org/predict"}`;
 }
 
 export async function sendInvitePredictEmail(
   subscribers: { email: string }[],
   top: { name: string; points: number }[],
-  rankByEmail: Map<string, DigestRank>
+  rankByEmail: Map<string, DigestRank>,
+  nextMatch?: NextMatchInfo | null
 ): Promise<{ sent: number; failed: number }> {
   if (subscribers.length === 0) return { sent: 0, failed: 0 };
-  const subject = "🏆 You're on the WC26 leaderboard — claim your spot";
+  const subject = nextMatch
+    ? `⏱ ${nextMatch.home} vs ${nextMatch.away} is coming — make your prediction`
+    : "🏆 You're on the WC26 leaderboard — claim your spot";
   return sendBatch(
     subscribers,
     subject,
-    (email) => inviteHtml(top, rankByEmail.get(email) ?? null, email),
-    inviteText(null)
+    (email) => inviteHtml(top, rankByEmail.get(email) ?? null, email, nextMatch),
+    inviteText(null, nextMatch)
   );
 }
 
