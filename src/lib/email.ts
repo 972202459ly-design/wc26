@@ -511,6 +511,146 @@ export async function sendDailyRecapEmail(
   );
 }
 
+// ── Unified Daily Digest ──────────────────────────────────────────────
+// One email a day to every subscriber: yesterday's results (with the
+// recipient's own outcomes), today's matches to predict (with AI picks), and
+// the leaderboard. Replaces the separate Daily Picks, Daily Recap, per-match
+// Final-to-free, and Big-Event broadcasts to keep volume inside Resend's free
+// tier (~one send per user per day).
+
+function digestSectionTitle(text: string): string {
+  return `<div style="font-size:13px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.04em;margin:18px 0 10px">${text}</div>`;
+}
+
+function digestResultCard(r: RecapResult): string {
+  const url = `https://wc26live.org/match/${r.match_id}`;
+  const meta = stageLabel(r.stage);
+  return `
+    <a href="${url}" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:16px;font-weight:700;color:#fff">${esc(r.home_team)} <span style="color:#666;font-weight:400">vs</span> ${esc(r.away_team)}</div>
+        <div style="font-size:19px;font-weight:800;color:#2ecc71">${r.home_score} - ${r.away_score}</div>
+      </div>
+      <div style="color:#aaa;font-size:12px;margin-top:5px">${recapLine(r)}${meta ? ` · ${meta}` : ""}</div>
+    </a>`;
+}
+
+function digestPickCard(p: DailyPick): string {
+  const url = `https://wc26live.org/match/${p.match_id}`;
+  const meta = [stageLabel(p.stage), formatDate(p.utc_date)].filter(Boolean).join(" · ");
+  return `
+    <a href="${url}" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;margin-bottom:10px">
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:5px">${esc(p.home_team)} <span style="color:#666;font-weight:400">vs</span> ${esc(p.away_team)}</div>
+      <div style="color:#f0a500;font-size:13px;font-weight:600">🧠 AI Prediction: ${esc(p.favorite)} ${p.favoritePct}%</div>
+      <div style="color:#666;font-size:12px;margin-top:5px">${meta}</div>
+    </a>`;
+}
+
+// Per-recipient "how your predictions did" block, keyed off yesterday's results.
+function digestPersonalBlock(results: RecapResult[], picks: PersonalPick[]): string {
+  const byId = new Map(results.map((r) => [r.match_id, r] as const));
+  const relevant = picks.filter((p) => byId.has(p.match_id));
+  if (relevant.length === 0) return "";
+  const label = (r: RecapResult, pick: string) =>
+    pick === "home" ? `${esc(r.home_team)} to win` : pick === "away" ? `${esc(r.away_team)} to win` : "a draw";
+  const rows = relevant
+    .map((p) => {
+      const r = byId.get(p.match_id)!;
+      const head = p.status === "won"
+        ? `✅ <b style="color:#fff">${label(r, p.pick)}</b> — <b style="color:#2ecc71">+${p.payout.toLocaleString()} pts</b>`
+        : `❌ You picked <b style="color:#fff">${label(r, p.pick)}</b> — didn't land`;
+      return `<div style="padding:6px 0;border-bottom:1px solid #1e3a2d"><div style="font-size:13px;color:#ddd">${head}</div><div style="color:#666;font-size:11px;margin-top:1px">${esc(r.home_team)} ${r.home_score}-${r.away_score} ${esc(r.away_team)}</div></div>`;
+    })
+    .join("");
+  const wins = relevant.filter((p) => p.status === "won").length;
+  const gained = relevant.reduce((s, p) => s + (p.payout || 0), 0);
+  return `
+    <div style="background:#10221a;border:1px solid #2ecc71;border-radius:8px;padding:16px;margin-bottom:12px">
+      <div style="color:#2ecc71;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">📋 Your Predictions</div>
+      ${rows}
+      <div style="margin-top:10px;font-size:13px;color:#ddd">Your calls: <b style="color:#fff">${wins}/${relevant.length}</b> right${gained > 0 ? `, <b style="color:#2ecc71">+${gained.toLocaleString()} pts</b>` : ""}.</div>
+    </div>`;
+}
+
+function digestLeaderboard(top: { name: string; points: number }[], myRank: DigestRank | null): string {
+  const medals = ["🥇", "🥈", "🥉"];
+  const topRows = top
+    .map(
+      (t, i) =>
+        `<div style="display:flex;justify-content:space-between;font-size:14px;color:#ddd;padding:4px 0"><span>${medals[i] || `#${i + 1}`} ${esc(t.name)}</span><span style="color:#f0a500;font-weight:700">${t.points.toLocaleString()} pts</span></div>`
+    )
+    .join("");
+  const mine = myRank
+    ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#fff">You: <b style="color:#f0a500">#${myRank.rank}</b> — ${myRank.points.toLocaleString()} pts.</div>`
+    : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;font-size:14px;color:#aaa">Predict a match to climb the board!</div>`;
+  return `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🏆 Prediction Leaderboard</div>
+      ${topRows}
+      ${mine}
+    </div>`;
+}
+
+function digestHtml(
+  results: RecapResult[],
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  myPicks: PersonalPick[] | null,
+  email: string
+): string {
+  const parts: string[] = [];
+  if (results.length > 0) {
+    parts.push(digestSectionTitle("📊 Latest Results"));
+    if (myPicks && myPicks.length) parts.push(digestPersonalBlock(results, myPicks));
+    parts.push(results.map(digestResultCard).join(""));
+  }
+  if (picks.length > 0) {
+    parts.push(digestSectionTitle("⚽ Predict Today's Matches"));
+    parts.push(picks.map(digestPickCard).join(""));
+    parts.push(`
+      <div style="text-align:center;margin:14px 0 4px">
+        <a href="https://wc26live.org/predict" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your Predictions →</a>
+      </div>`);
+  }
+  parts.push(digestLeaderboard(top, myRank));
+  const subtitle = picks.length
+    ? `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`
+    : "Today's World Cup results";
+  return wrapHtml("", subtitle, parts.join(""), email);
+}
+
+function digestText(results: RecapResult[], picks: DailyPick[]): string {
+  const r = results.length
+    ? "Results:\n" + results.map((x) => `${x.home_team} ${x.home_score}-${x.away_score} ${x.away_team}`).join("\n") + "\n\n"
+    : "";
+  const p = picks.length
+    ? "Predict today:\n" + picks.map((x) => `${x.home_team} vs ${x.away_team} — AI: ${x.favorite} ${x.favoritePct}%`).join("\n") + "\n\n"
+    : "";
+  return `${r}${p}Play & climb the leaderboard: https://wc26live.org/predict`;
+}
+
+export async function sendDailyDigestEmail(
+  subscribers: { email: string }[],
+  results: RecapResult[],
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>,
+  settledByEmail: Map<string, PersonalPick[]>
+): Promise<{ sent: number; failed: number }> {
+  if (subscribers.length === 0) return { sent: 0, failed: 0 };
+  if (results.length === 0 && picks.length === 0) return { sent: 0, failed: 0 };
+  const subject = picks.length
+    ? `⚽ WC26 Daily — ${picks.length} match${picks.length > 1 ? "es" : ""} to predict`
+    : `📊 WC26 Daily — ${results.length} result${results.length > 1 ? "s" : ""}`;
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) => digestHtml(results, picks, top, rankByEmail.get(email) ?? null, settledByEmail.get(email) ?? null, email),
+    digestText(results, picks)
+  );
+}
+
 // ── "Join the prediction game" re-engagement email ──
 
 // The soonest upcoming match + its AI prediction, to give the invite email a

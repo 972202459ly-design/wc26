@@ -1,0 +1,16 @@
+name: Daily Digest
+
+on:
+  schedule:
+    # Once a day at 13:00 UTC — after overnight results settle, before the
+    # day's matches kick off.
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  daily-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call daily-digest endpoint
+        run: |
+          curl -s -f "${{ secrets.DAILY_DIGEST_URL }}" || echo "Daily Digest skipped (no DAILY_DIGEST_URL configured)"

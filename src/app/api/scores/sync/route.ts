@@ -7,7 +7,6 @@ import {
   upsertMatch,
   getAllScores,
   getSubscribers,
-  getMatchPickStats,
   getSettledPicksForMatches,
   getRankedPlayers,
 } from "@/lib/db";
@@ -16,20 +15,11 @@ import {
   sendKickoffEmails,
   sendGoalEmails,
   sendFinalEmails,
-  sendBigEventEmails,
   type ScoreChange,
-  type BigEvent,
   type PersonalPick,
   type DigestRank,
 } from "@/lib/email";
 import { getWorldCupFixtures, getGoalEvents } from "@/lib/apifootball";
-import { matches as staticMatches } from "@/lib/data";
-import { predictMatch } from "@/lib/predict";
-
-const staticById = new Map(staticMatches.map((m) => [m.id, m]));
-
-// An upset = the result that happened was rated ≤30% by the AI model.
-const UPSET_MAX_PCT = 30;
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -122,23 +112,26 @@ export async function GET(request: Request) {
       console.error("Pick settlement error:", e);
     }
 
-    // Send emails by preference.
+    // Send emails by preference. Premium = real-time (kickoff/goal/final);
+    // free subscribers get everything once a day via the unified Daily Digest.
     const allSubs = await getSubscribers();
-    // Tiering: Premium = kickoff + goal + final (real-time);
-    //          Free    = final scores only (post-match).
     const premiumSubs = allSubs.filter((s) => s.preferences === "premium");
-    const freeSubs = allSubs.filter((s) => s.preferences === "free");
 
+    // Real-time emails go to PREMIUM only (kickoff / goal / per-match final with
+    // the player's own result). Free subscribers get everything once a day via
+    // the unified Daily Digest instead — this keeps total volume inside Resend's
+    // free tier (per-match Final-to-everyone + Big-Event broadcasts were what
+    // blew the daily quota).
     const kickoffResult = await sendKickoffEmails(premiumSubs, kickoffChanges);
     const goalResult = await sendGoalEmails(premiumSubs, goalChanges.map((g) => g.change));
 
-    // Personalize Final emails: recipients who predicted a just-finished match
-    // see their own result (won/lost, points, new rank) above the score cards.
+    // Personalize the premium Final: recipients who predicted a just-finished
+    // match see their own result (won/lost, points, rank) above the score cards.
     const picksByEmail = new Map<string, PersonalPick[]>();
     const rankByEmail = new Map<string, DigestRank>();
     try {
       const finalMatchIds = finalChanges.map((c) => c.match_id).filter((id): id is string => !!id);
-      if (finalMatchIds.length > 0) {
+      if (premiumSubs.length > 0 && finalMatchIds.length > 0) {
         const settled = await getSettledPicksForMatches(finalMatchIds);
         for (const sp of settled) {
           const arr = picksByEmail.get(sp.email) ?? [];
@@ -154,38 +147,9 @@ export async function GET(request: Request) {
       console.error("Personal Final result lookup error (non-fatal):", e);
     }
 
-    const finalResult = await sendFinalEmails(
-      [...premiumSubs, ...freeSubs],
-      finalChanges,
-      picksByEmail,
-      rankByEmail
-    );
+    const finalResult = await sendFinalEmails(premiumSubs, finalChanges, picksByEmail, rankByEmail);
 
-    // Big Event / Upset alerts — when a just-finished result was rated unlikely by
-    // the AI, alert EVERYONE (free + premium) to drive re-engagement. finalChanges
-    // fires once per match, so no extra dedupe is needed.
-    let bigEventsSent = 0;
-    try {
-      const everyone = [...premiumSubs, ...freeSubs];
-      for (const c of finalChanges) {
-        const sm = staticById.get(c.match_id ?? "");
-        if (!sm) continue;
-        const pred = predictMatch(sm.homeTeam, sm.awayTeam);
-        const actualPct =
-          c.home_score > c.away_score ? pred.homePct : c.away_score > c.home_score ? pred.awayPct : pred.drawPct;
-        if (actualPct > UPSET_MAX_PCT) continue;
-
-        const stats = c.match_id ? await getMatchPickStats(c.match_id) : { total: 0, correct: 0 };
-        const playerPct = stats.total >= 5 ? Math.round((stats.correct / stats.total) * 100) : null;
-        const event: BigEvent = { change: c, aiPct: actualPct, playerPct };
-        const r = await sendBigEventEmails(everyone, event);
-        bigEventsSent += r.sent;
-      }
-    } catch (e) {
-      console.error("Big-event alert error (non-fatal):", e);
-    }
-
-    const totalSent = kickoffResult.sent + goalResult.sent + finalResult.sent + bigEventsSent;
+    const totalSent = kickoffResult.sent + goalResult.sent + finalResult.sent;
     const totalFailed = kickoffResult.failed + goalResult.failed + finalResult.failed;
     const liveCount = matches.filter((m) => m.status === "IN_PLAY" || m.status === "PAUSED").length;
 
@@ -198,7 +162,6 @@ export async function GET(request: Request) {
       kickoffs: kickoffChanges.length,
       goals: goalChanges.length,
       finals: finalChanges.length,
-      bigEventsSent,
       settledPicks,
       emailsSent: totalSent,
       emailsFailed: totalFailed,
