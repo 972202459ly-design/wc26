@@ -246,7 +246,7 @@ export default function FeaturedNextMatch() {
       <div className="mb-3 flex items-center justify-between">
         <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#f0a500]">
           <Sparkles className="h-3.5 w-3.5" />
-          Today&apos;s Matches
+          Live &amp; Upcoming
         </span>
         <span className="text-xs text-[#555]">{dateLabel} · UTC</span>
       </div>

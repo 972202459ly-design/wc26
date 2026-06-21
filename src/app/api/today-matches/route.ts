@@ -14,38 +14,21 @@ export const maxDuration = 15;
 
 const LIVE_STATUS = new Set(["IN_PLAY", "PAUSED", "LIVE"]);
 
+// How many match tabs the prediction module shows. Kept tight on purpose.
+const MAX_MATCHES = 4;
+// A just-finished match lingers this long (≈2h play + 2h after) so visitors can
+// see the AI's pre-match call against the actual result.
+const RECENT_FINISHED_MS = 4 * 60 * 60 * 1000;
+
 function teamGroup(teamName: string): string {
   return teams.find((t) => t.name === teamName)?.group ?? "";
 }
 
 export async function GET() {
   const now = Date.now();
-  const todayUTC = new Date(now).toISOString().slice(0, 10);
-  const yesterdayUTC = new Date(now - 86400000).toISOString().slice(0, 10);
 
-  // Today's matches + yesterday's late starters still within 4h window
-  let window = staticMatches.filter((m) => {
-    if (m.date === todayUTC) return true;
-    if (m.date === yesterdayUTC) {
-      const ko = new Date(`${m.date}T${m.time}`).getTime();
-      return ko > now - 4 * 3600 * 1000;
-    }
-    return false;
-  });
-
-  // Fallback: no matches today → show next 4 upcoming
-  if (window.length === 0) {
-    window = staticMatches
-      .filter((m) => new Date(`${m.date}T${m.time}`).getTime() > now)
-      .sort(
-        (a, b) =>
-          new Date(`${a.date}T${a.time}`).getTime() -
-          new Date(`${b.date}T${b.time}`).getTime()
-      )
-      .slice(0, 4);
-  }
-
-  // Pull live scores from DB
+  // Pull live scores from DB up front — we need each match's status to decide
+  // what's live vs upcoming.
   let dbMap = new Map<string, { home_score: number; away_score: number; status: string }>();
   try {
     const sql = neon(process.env.DATABASE_URL!);
@@ -55,26 +38,52 @@ export async function GET() {
     // Non-fatal — fall back to timestamp-derived status
   }
 
-  const result = window
-    .sort(
-      (a, b) =>
-        new Date(`${a.date}T${a.time}`).getTime() -
-        new Date(`${b.date}T${b.time}`).getTime()
-    )
-    .map((m) => {
-      const ko = new Date(`${m.date}T${m.time}`).getTime();
-      const db = dbMap.get(m.id);
+  // Annotate every fixture with its kickoff time + freshly-derived status, so
+  // the window is "now"-centric rather than tied to the UTC calendar day (WC
+  // match days routinely straddle UTC midnight, which made the old "today"
+  // filter show a different, arbitrary-looking set depending on the hour).
+  const annotated = staticMatches.map((m) => {
+    const ko = new Date(`${m.date}T${m.time}`).getTime();
+    const db = dbMap.get(m.id);
+    let status: "upcoming" | "live" | "finished";
+    if (db) {
+      if (LIVE_STATUS.has(db.status)) status = "live";
+      else if (db.status === "FINISHED") status = "finished";
+      else status = ko > now ? "upcoming" : "live";
+    } else {
+      status = ko > now ? "upcoming" : ko > now - 115 * 60 * 1000 ? "live" : "finished";
+    }
+    return { m, ko, db, status };
+  });
 
-      // Derive status fresh from timestamps (never use stale module-load status)
-      let status: "upcoming" | "live" | "finished";
-      if (db) {
-        if (LIVE_STATUS.has(db.status)) status = "live";
-        else if (db.status === "FINISHED") status = "finished";
-        else status = ko > now ? "upcoming" : "live";
-      } else {
-        status = ko > now ? "upcoming" : ko > now - 115 * 60 * 1000 ? "live" : "finished";
-      }
+  // This is the AI *prediction* module, so it looks forward: whatever is live
+  // right now, then the next kickoffs. Finished results still appear in the
+  // homepage "Today's matches" grid below, so nothing is lost here.
+  const live = annotated.filter((x) => x.status === "live").sort((a, b) => a.ko - b.ko);
+  const upcoming = annotated.filter((x) => x.status === "upcoming").sort((a, b) => a.ko - b.ko);
+  const recentFinished = annotated
+    .filter((x) => x.status === "finished" && x.ko > now - RECENT_FINISHED_MS)
+    .sort((a, b) => a.ko - b.ko);
 
+  // Forward-looking core first; only fill leftover slots with the most recent
+  // just-ended matches, prepended so the tabs read chronologically.
+  const core = [...live, ...upcoming];
+  const slots = Math.max(0, MAX_MATCHES - core.length);
+  const tail = slots > 0 ? recentFinished.slice(-slots) : [];
+  let chosen = [...tail, ...core].slice(0, MAX_MATCHES);
+
+  // Tournament over (nothing live, upcoming, or recently finished) → fall back
+  // to the most recent finished matches so the module is never empty.
+  if (chosen.length === 0) {
+    chosen = annotated
+      .filter((x) => x.status === "finished")
+      .sort((a, b) => b.ko - a.ko)
+      .slice(0, MAX_MATCHES)
+      .reverse();
+  }
+
+  const result = chosen
+    .map(({ m, db, status }) => {
       const homeId = getTeamIdByName(m.homeTeam) ?? m.id.split("-")[0];
       const awayId = getTeamIdByName(m.awayTeam) ?? m.id.split("-")[1];
       const pred = predictMatch(m.homeTeam, m.awayTeam);
