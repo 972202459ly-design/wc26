@@ -1,4 +1,6 @@
 import { getMatchByIdWithScore, stageLabel, matches } from "@/lib/data";
+import { predictMatch, oddsFromPct, predictionSentence } from "@/lib/predict";
+import { ensurePredictionsTable, getCachedAnalysis } from "@/lib/db";
 import { notFound } from "next/navigation";
 import MatchDetail from "./MatchDetail";
 import type { Metadata } from "next";
@@ -30,13 +32,15 @@ export async function generateMetadata({
         ? " (Full Time)"
         : "";
 
-  // Title targets the high-volume "X vs Y live score" query; finished matches
-  // surface the real result for stronger SERP click-through.
+  // Finished/live: lead with the result for click-through. Upcoming: target the
+  // high-intent "X vs Y prediction" query alongside "live score".
   const title = hasScore
     ? `${match.homeTeam} ${scoreStr} ${match.awayTeam}${liveTag} — World Cup 2026 ${stage}`
-    : `${match.homeTeam} vs ${match.awayTeam} Live Score — World Cup 2026 ${stage}`;
+    : `${match.homeTeam} vs ${match.awayTeam} Prediction & Live Score — World Cup 2026 ${stage}`;
 
-  const description = `${match.homeTeam} vs ${match.awayTeam} live score, lineups, goals and updates — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}. Follow it live on WC26 Live.`;
+  const description = hasScore
+    ? `${match.homeTeam} vs ${match.awayTeam} live score, goals and updates — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}. Follow it live on WC26 Live.`
+    : `${match.homeTeam} vs ${match.awayTeam} prediction, AI win probability, expected goals and live score — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}. Play the free pick'em on WC26 Live.`;
 
   return {
     title,
@@ -63,6 +67,29 @@ export default async function MatchPage({
   const { id } = await params;
   const match = await getMatchByIdWithScore(id);
   if (!match) notFound();
+
+  // Compute the prediction server-side so the win %, expected goals, scoreline
+  // and a descriptive sentence are in the HTML for crawlers and no-JS users —
+  // this is the unique content that ranks for "X vs Y prediction". Deterministic
+  // (predictMatch is pure), so it's safe inside the statically-generated page.
+  const p = predictMatch(match.homeTeam, match.awayTeam);
+  const prediction = {
+    ...p,
+    oddsHome: oddsFromPct(p.homePct),
+    oddsDraw: oddsFromPct(p.drawPct),
+    oddsAway: oddsFromPct(p.awayPct),
+  };
+  // Teaser = first sentence of the cached LLM analysis if present, else a
+  // deterministic sentence. No cookies() here, so the page stays static; the
+  // full Pro breakdown is hydrated client-side for premium users.
+  let analysisTeaser = predictionSentence(match.homeTeam, match.awayTeam, p);
+  try {
+    await ensurePredictionsTable();
+    const cached = await getCachedAnalysis(id);
+    if (cached) analysisTeaser = cached.split(/(?<=[.!?])\s/)[0];
+  } catch {
+    // DB unavailable — deterministic sentence already set.
+  }
 
   // Floating local datetime (valid ISO 8601); end ~2h after kickoff. Guard
   // against missing/odd date or time so we never emit an invalid startDate.
@@ -126,7 +153,11 @@ export default async function MatchPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <MatchDetail match={match} />
+      <MatchDetail
+        match={match}
+        prediction={prediction}
+        analysisTeaser={analysisTeaser}
+      />
     </>
   );
 }

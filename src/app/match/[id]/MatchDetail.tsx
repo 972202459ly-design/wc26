@@ -5,13 +5,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
-import MatchPrediction from "@/components/MatchPrediction";
+import MatchPrediction, { type InitialPred } from "@/components/MatchPrediction";
 import MatchCountdown from "@/components/MatchCountdown";
 import EventsTimeline from "@/components/EventsTimeline";
 import MatchComments from "@/components/MatchComments";
 import { useTranslations } from "next-intl";
 
-export default function MatchDetail({ match: initial }: { match: Match }) {
+export default function MatchDetail({
+  match: initial,
+  prediction,
+  analysisTeaser,
+}: {
+  match: Match;
+  prediction: InitialPred;
+  analysisTeaser: string;
+}) {
   const [match, setMatch] = useState(initial);
   const isLive = match.status === "live";
   const t = useTranslations("match");
@@ -137,7 +145,14 @@ export default function MatchDetail({ match: initial }: { match: Match }) {
       </div>
 
       {/* AI prediction + pick'em — prominent, right under the score header */}
-      <MatchPrediction matchId={match.id} home={match.homeTeam} away={match.awayTeam} />
+      <MatchPrediction
+        matchId={match.id}
+        home={match.homeTeam}
+        away={match.awayTeam}
+        initialPred={prediction}
+        initialAnalysis={analysisTeaser}
+        initialStatus={initial.status}
+      />
 
       {/* Match Events Timeline */}
       {(match.status === "live" || match.status === "finished") && (

@@ -28,6 +28,25 @@ export function oddsFromPct(pct: number): number {
   return Math.max(1.05, Math.round((100 / p) * 100) / 100);
 }
 
+/**
+ * Deterministic, server-renderable one-liner describing a prediction. Used as
+ * crawler-visible SEO text and as the fallback when the LLM analysis is missing
+ * or still generating. Pure (no LLM, no I/O) so it can render anywhere.
+ */
+export function predictionSentence(home: string, away: string, p: Prediction): string {
+  const pickLabel = p.pick === "home" ? home : p.pick === "away" ? away : "a draw";
+  const margin = Math.abs(p.homePct - p.awayPct);
+  const verdict =
+    p.pick === "draw" || margin <= 8
+      ? `${home} and ${away} look evenly matched`
+      : `${p.pick === "home" ? home : away} are favourites`;
+  return (
+    `Our model makes ${verdict}: ${home} ${p.homePct}%, draw ${p.drawPct}%, ` +
+    `${away} ${p.awayPct}% win probability. Expected goals ${p.lambdaHome}-${p.lambdaAway}, ` +
+    `with a most likely ${p.topHome}-${p.topAway} scoreline. Model's pick: ${pickLabel}.`
+  );
+}
+
 function poisson(k: number, lambda: number): number {
   let fact = 1;
   for (let i = 2; i <= k; i++) fact *= i;

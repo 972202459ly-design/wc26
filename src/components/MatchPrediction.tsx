@@ -13,19 +13,27 @@ interface Pred {
   lambdaHome: number; lambdaAway: number; topHome: number; topAway: number;
   oddsHome: number; oddsDraw: number; oddsAway: number;
 }
+// Prediction shape passed from the server component (may carry extra fields like
+// `pick`; structurally a superset of Pred).
+export type InitialPred = Pred;
 interface PickRow {
   match_id: string; pick: string; stake: number; odds: number; status: string; payout: number;
 }
 type Outcome = "home" | "draw" | "away";
 
 export default function MatchPrediction({
-  matchId, home, away,
-}: { matchId: string; home: string; away: string }) {
-  const [pred, setPred] = useState<Pred | null>(null);
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [analysisLocked, setAnalysisLocked] = useState(false);
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(true);
+  matchId, home, away, initialPred, initialAnalysis, initialStatus,
+}: {
+  matchId: string; home: string; away: string;
+  initialPred?: InitialPred; initialAnalysis?: string | null; initialStatus?: string;
+}) {
+  // Seed from server-rendered props so the prediction is in the SSR HTML; the
+  // client fetch below only upgrades the teaser to the full Pro breakdown.
+  const [pred, setPred] = useState<Pred | null>(initialPred ?? null);
+  const [analysis, setAnalysis] = useState<string | null>(initialAnalysis ?? null);
+  const [analysisLocked, setAnalysisLocked] = useState(true);
+  const [status, setStatus] = useState(initialStatus ?? "");
+  const [loading, setLoading] = useState(!initialPred);
 
   const [authed, setAuthed] = useState(false);
   const [points, setPoints] = useState<number | null>(null);
@@ -62,7 +70,14 @@ export default function MatchPrediction({
     fetch(`/api/predictions/${matchId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d) { setPred(d.prediction); setAnalysis(d.analysis); setAnalysisLocked(d.analysisLocked); setStatus(d.status); }
+        if (d) {
+          if (d.prediction) setPred(d.prediction);
+          setStatus(d.status);
+          // Only the full (premium) analysis replaces the SSR teaser — never
+          // wipe the teaser back to empty for free users/crawlers.
+          if (d.analysis) { setAnalysis(d.analysis); setAnalysisLocked(false); }
+          else setAnalysisLocked(!!d.analysisLocked);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -213,22 +228,22 @@ export default function MatchPrediction({
           )}
         </div>
 
-        {/* AI analysis — premium edge */}
-        <div className="mt-4 border-t border-[#222] pt-4">
-          {analysis ? (
-            <div>
-              <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#f0a500]">
-                <Sparkles className="h-3.5 w-3.5" /> AI Analyst
-              </div>
-              <p className="text-sm leading-relaxed text-[#ddd]">{analysis}</p>
+        {/* AI analysis — teaser shown to everyone (SEO + free users); full
+            breakdown is the premium edge, unlocked client-side for Pro. */}
+        {analysis && (
+          <div className="mt-4 border-t border-[#222] pt-4">
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#f0a500]">
+              <Sparkles className="h-3.5 w-3.5" /> AI Analyst
             </div>
-          ) : analysisLocked ? (
-            <Link href="/premium" className="flex items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]">
-              <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
-              <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">AI analyst&apos;s breakdown</b> &amp; value picks to predict smarter — <span className="text-[#f0a500]">go Pro</span>.</span>
-            </Link>
-          ) : null}
-        </div>
+            <p className="text-sm leading-relaxed text-[#ddd]">{analysis}</p>
+            {analysisLocked && (
+              <Link href="/premium" className="mt-3 flex items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]">
+                <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
+                <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">full AI breakdown</b> &amp; value picks to predict smarter — <span className="text-[#f0a500]">go Pro</span>.</span>
+              </Link>
+            )}
+          </div>
+        )}
       </div>
 
       <GameDisclaimer className="mt-3" />
