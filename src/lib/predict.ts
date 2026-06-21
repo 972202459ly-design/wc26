@@ -38,10 +38,10 @@ export function predictionSentence(home: string, away: string, p: Prediction): s
   const margin = Math.abs(p.homePct - p.awayPct);
   const verdict =
     p.pick === "draw" || margin <= 8
-      ? `${home} and ${away} look evenly matched`
-      : `${p.pick === "home" ? home : away} are favourites`;
+      ? `${home} and ${away} evenly matched`
+      : `${p.pick === "home" ? home : away} as favourites`;
   return (
-    `Our model makes ${verdict}: ${home} ${p.homePct}%, draw ${p.drawPct}%, ` +
+    `Our model has ${verdict}: ${home} ${p.homePct}%, draw ${p.drawPct}%, ` +
     `${away} ${p.awayPct}% win probability. Expected goals ${p.lambdaHome}-${p.lambdaAway}, ` +
     `with a most likely ${p.topHome}-${p.topAway} scoreline. Model's pick: ${pickLabel}.`
   );
