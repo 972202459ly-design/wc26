@@ -173,23 +173,30 @@ export default function MatchDetail({
         <AdPlaceholder size="banner" />
       </div>
 
-      {/* Affiliate — team gear */}
+      {/* Affiliate — watch party gear */}
       <div className="mt-6 rounded-xl border border-[#222] bg-[#111] p-5 text-center">
-        <p className="text-sm font-semibold mb-3">{t("getTeamGear")}</p>
+        <p className="text-sm font-semibold mb-3">🎉 Set Up the Ultimate Watch Party</p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <a
-            href={amazonSearchLink(`${match.homeTeam} jersey World Cup 2026`)}
+            href={amazonSearchLink("Fire TV Stick 4K streaming")}
             target="_blank" rel="noopener noreferrer"
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            {match.homeTeam} {t("jersey")}
+            📡 Fire TV Stick 4K
           </a>
           <a
-            href={amazonSearchLink(`${match.awayTeam} jersey World Cup 2026`)}
+            href={amazonSearchLink("portable bluetooth speaker outdoor party")}
             target="_blank" rel="noopener noreferrer"
             className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            {match.awayTeam} {t("jersey")}
+            🔊 Party Speaker
+          </a>
+          <a
+            href={amazonSearchLink("soccer watch party supplies decorations")}
+            target="_blank" rel="noopener noreferrer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#222] border border-[#444] text-[#ccc] hover:text-white transition-colors"
+          >
+            🎉 Party Supplies
           </a>
         </div>
         <p className="text-[10px] text-[#555] mt-2">

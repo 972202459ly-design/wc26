@@ -429,11 +429,11 @@ export default function FeaturedNextMatch() {
                   🏆 {selected.home} wins
                 </span>
                 <a
-                  href={amazonSearchLink(`${selected.home} 2026 World Cup jersey`)}
+                  href={amazonSearchLink("soccer watch party supplies speaker")}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-full bg-[#222] border border-[#333] px-3 py-1 text-xs text-[#aaa] hover:text-white hover:border-[#f0a500]/40 transition-all"
                 >
-                  👕 Shop {selected.home} jersey →
+                  🎉 Watch Party Gear →
                 </a>
               </>
             ) : selected.awayScore! > selected.homeScore ? (
@@ -442,11 +442,11 @@ export default function FeaturedNextMatch() {
                   🏆 {selected.away} wins
                 </span>
                 <a
-                  href={amazonSearchLink(`${selected.away} 2026 World Cup jersey`)}
+                  href={amazonSearchLink("soccer watch party supplies speaker")}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-full bg-[#222] border border-[#333] px-3 py-1 text-xs text-[#aaa] hover:text-white hover:border-[#3498db]/40 transition-all"
                 >
-                  👕 Shop {selected.away} jersey →
+                  🎉 Watch Party Gear →
                 </a>
               </>
             ) : (

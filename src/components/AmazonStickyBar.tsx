@@ -15,11 +15,11 @@ const SLOTS = [
     btnStyle: "bg-[#00a8e0] text-white hover:bg-[#008ec0]",
   },
   {
-    emoji: "🏆",
-    headline: "Official World Cup Gear",
-    sub: "Jerseys, flags & fan essentials",
+    emoji: "🎉",
+    headline: "Watch Party Essentials",
+    sub: "Speakers, snacks & party supplies",
     href: null, // dynamic per page
-    btn: "Shop Jerseys",
+    btn: "Shop Now",
     btnStyle: "bg-[#f0a500] text-black hover:bg-[#d49500]",
   },
 ] as const;
@@ -53,20 +53,17 @@ export default function AmazonStickyBar() {
 
   const slot = SLOTS[slotIdx];
 
-  // Build contextual jersey URL for the jersey slot
-  let jerseyHref = amazonSearchLink("2026 FIFA World Cup jersey official");
+  // Build contextual watch party URL for the gear slot
+  let gearHref = amazonSearchLink("soccer watch party supplies decorations");
   if (slot.href === null) {
-    // Extract team TLAs from pathname like /match/arg-aut or /teams/arg
+    // On a match page, surface the relevant streaming gear
     const matchM = pathname.match(/\/match\/([a-z]+)-([a-z]+)/);
     if (matchM) {
-      jerseyHref = amazonSearchLink(`${matchM[1]} ${matchM[2]} 2026 World Cup jersey`);
-    } else {
-      const teamM = pathname.match(/\/teams\/([a-z]+)/);
-      if (teamM) jerseyHref = amazonSearchLink(`${teamM[1]} 2026 World Cup jersey`);
+      gearHref = amazonSearchLink("soccer watch party speaker snacks");
     }
   }
 
-  const href = slot.href ?? jerseyHref;
+  const href = slot.href ?? gearHref;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#f0a500]/20 bg-[#1a1a2e]/96 backdrop-blur-md shadow-[0_-4px_30px_rgba(0,0,0,0.4)]">

@@ -185,29 +185,32 @@ export default function HomePage() {
             {shopT("description")}
           </p>
           <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto mb-5">
+            {/* Fire TV Stick — stream matches live */}
             <a
-              href={amazonSearchLink("2026 FIFA World Cup jersey official")}
+              href={amazonSearchLink("Fire TV Stick 4K streaming")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">👕</span>
-              <span className="text-xs font-semibold">{shopT("jerseys")}</span>
+              <span className="text-2xl">📡</span>
+              <span className="text-xs font-semibold text-center leading-tight">{shopT("jerseys")}</span>
             </a>
+            {/* Party Speaker */}
             <a
-              href={amazonSearchLink("World Cup 2026 fan flag")}
+              href={amazonSearchLink("portable bluetooth speaker outdoor party")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">🚩</span>
-              <span className="text-xs font-semibold">{shopT("flags")}</span>
+              <span className="text-2xl">🔊</span>
+              <span className="text-xs font-semibold text-center leading-tight">{shopT("flags")}</span>
             </a>
+            {/* Watch party supplies */}
             <a
-              href={amazonSearchLink("Adidas FIFA soccer ball official")}
+              href={amazonSearchLink("soccer watch party supplies decorations")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">⚽</span>
-              <span className="text-xs font-semibold">{shopT("balls")}</span>
+              <span className="text-2xl">🎉</span>
+              <span className="text-xs font-semibold text-center leading-tight">{shopT("balls")}</span>
             </a>
             {/* Prime Video — bounty link (pays $3 per new Prime trial) */}
             <a
@@ -220,7 +223,7 @@ export default function HomePage() {
             </a>
           </div>
           <a
-            href={amazonSearchLink("2026 World Cup fan gear merchandise")}
+            href={amazonSearchLink("soccer watch party supplies streaming")}
             target="_blank" rel="noopener noreferrer"
             className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
