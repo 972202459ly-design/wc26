@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Lock, Heart, ThumbsDown, Send } from "lucide-react";
 import PredictionSaveGate from "./PredictionSaveGate";
+import AmazonImageAd from "./AmazonImageAd";
 import { amazonSearchLink } from "@/lib/data";
 
 interface DayMatch {
@@ -483,39 +484,8 @@ export default function FeaturedNextMatch() {
           </div>
         </div>
 
-        {/* Sponsored row — Prime Video for live/upcoming, watch party gear for finished */}
-        <div className="mx-6 mb-4 flex items-center justify-between gap-3 rounded-lg border border-[#f0a500]/10 bg-[#0d0d1a] px-4 py-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-lg shrink-0">
-              {selected.status === "finished" ? "🎉" : "📺"}
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-white leading-tight truncate">
-                {selected.status === "finished"
-                  ? "Watch Party Essentials"
-                  : "Stream every match live"}
-              </p>
-              <p className="text-[10px] text-[#555] leading-tight">
-                {selected.status === "finished"
-                  ? "Speakers, snacks & party supplies"
-                  : "Amazon Prime Video · free trial"}
-              </p>
-            </div>
-          </div>
-          <a
-            href={
-              selected.status === "finished"
-                ? amazonSearchLink("soccer watch party supplies speaker")
-                : "https://www.amazon.com/amazonprime?tag=none03e04-20"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 rounded-md bg-[#00a8e0] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#008ec0] transition-colors"
-          >
-            {selected.status === "finished" ? "Shop →" : "Try Free →"}
-          </a>
-          <span className="text-[8px] text-[#333] uppercase tracking-widest shrink-0 ml-1">Ad</span>
-        </div>
+        {/* Image ad — Prime Video for live/upcoming, watch party for finished */}
+        <AmazonImageAd variant={selected.status === "finished" ? "party" : "prime"} />
 
         {/* AI preview (upcoming / live only) */}
         {selected.status !== "finished" && (
