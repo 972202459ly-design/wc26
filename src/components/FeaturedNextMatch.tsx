@@ -419,12 +419,31 @@ export default function FeaturedNextMatch() {
           </div>
         </div>
 
+        {/* Winner badge (finished only) */}
+        {selected.status === "finished" && selected.homeScore !== null && (
+          <div className="px-6 pb-3 text-center">
+            {selected.homeScore > selected.awayScore! ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0a500]/10 px-3 py-1 text-xs font-bold text-[#f0a500]">
+                🏆 {selected.home} wins
+              </span>
+            ) : selected.awayScore! > selected.homeScore ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3498db]/10 px-3 py-1 text-xs font-bold text-[#3498db]">
+                🏆 {selected.away} wins
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#6b7280]/10 px-3 py-1 text-xs font-bold text-[#9ca3af]">
+                🤝 Draw
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Win probability bars */}
         <div className="px-6 pb-5">
           <div className="mb-2.5 flex items-center gap-1.5">
             <Sparkles className="h-3 w-3 text-[#f0a500]" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#555]">
-              AI Win Probability
+              {selected.status === "finished" ? "Pre-match Prediction" : "AI Win Probability"}
             </span>
           </div>
           <div className="space-y-2">
