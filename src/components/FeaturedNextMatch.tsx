@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Lock, Heart, ThumbsDown, Send } from "lucide-react";
 import PredictionSaveGate from "./PredictionSaveGate";
+import { amazonSearchLink } from "@/lib/data";
 
 interface DayMatch {
   id: string;
@@ -419,17 +420,35 @@ export default function FeaturedNextMatch() {
           </div>
         </div>
 
-        {/* Winner badge (finished only) */}
+        {/* Winner badge + jersey hook (finished only) */}
         {selected.status === "finished" && selected.homeScore !== null && (
-          <div className="px-6 pb-3 text-center">
+          <div className="px-6 pb-3 flex flex-wrap items-center justify-center gap-2">
             {selected.homeScore > selected.awayScore! ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0a500]/10 px-3 py-1 text-xs font-bold text-[#f0a500]">
-                🏆 {selected.home} wins
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0a500]/10 px-3 py-1 text-xs font-bold text-[#f0a500]">
+                  🏆 {selected.home} wins
+                </span>
+                <a
+                  href={amazonSearchLink(`${selected.home} 2026 World Cup jersey`)}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full bg-[#222] border border-[#333] px-3 py-1 text-xs text-[#aaa] hover:text-white hover:border-[#f0a500]/40 transition-all"
+                >
+                  👕 Shop {selected.home} jersey →
+                </a>
+              </>
             ) : selected.awayScore! > selected.homeScore ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3498db]/10 px-3 py-1 text-xs font-bold text-[#3498db]">
-                🏆 {selected.away} wins
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3498db]/10 px-3 py-1 text-xs font-bold text-[#3498db]">
+                  🏆 {selected.away} wins
+                </span>
+                <a
+                  href={amazonSearchLink(`${selected.away} 2026 World Cup jersey`)}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full bg-[#222] border border-[#333] px-3 py-1 text-xs text-[#aaa] hover:text-white hover:border-[#3498db]/40 transition-all"
+                >
+                  👕 Shop {selected.away} jersey →
+                </a>
+              </>
             ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#6b7280]/10 px-3 py-1 text-xs font-bold text-[#9ca3af]">
                 🤝 Draw

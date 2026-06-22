@@ -184,34 +184,43 @@ export default function HomePage() {
           <p className="text-sm text-[#888] mb-6 max-w-lg mx-auto">
             {shopT("description")}
           </p>
-          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
+          <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto mb-5">
             <a
-              href={amazonSearchLink("World Cup 2026 jersey")}
+              href={amazonSearchLink("2026 FIFA World Cup jersey official")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-3xl">👕</span>
+              <span className="text-2xl">👕</span>
               <span className="text-xs font-semibold">{shopT("jerseys")}</span>
             </a>
             <a
-              href={amazonSearchLink("World Cup 2026 flag")}
+              href={amazonSearchLink("World Cup 2026 fan flag")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-3xl">🚩</span>
+              <span className="text-2xl">🚩</span>
               <span className="text-xs font-semibold">{shopT("flags")}</span>
             </a>
             <a
-              href={amazonSearchLink("soccer ball size 5 official match")}
+              href={amazonSearchLink("Adidas FIFA soccer ball official")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-3xl">⚽</span>
+              <span className="text-2xl">⚽</span>
               <span className="text-xs font-semibold">{shopT("balls")}</span>
+            </a>
+            {/* Prime Video — bounty link (pays $3 per new Prime trial) */}
+            <a
+              href="https://www.amazon.com/amazonprime?tag=none03e04-20"
+              target="_blank" rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#1a1a3e] hover:bg-[#222] border border-[#3a3a6e] hover:border-[#f0a500]/40 transition-all"
+            >
+              <span className="text-2xl">📺</span>
+              <span className="text-xs font-semibold text-center leading-tight">Prime<br/>Video</span>
             </a>
           </div>
           <a
-            href={amazonSearchLink("World Cup 2026 fan gear")}
+            href={amazonSearchLink("2026 World Cup fan gear merchandise")}
             target="_blank" rel="noopener noreferrer"
             className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
