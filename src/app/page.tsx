@@ -89,6 +89,13 @@ export default function HomePage() {
           <p className="text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
+          {/* Email capture — above the fold, before AI module */}
+          <div className="mx-auto mb-6 max-w-md">
+            <p className="text-sm text-[#aaa] mb-3">
+              ⚡ Free goal alerts &amp; AI match predictions — straight to your inbox
+            </p>
+            <HeroEmailCapture />
+          </div>
           <FeaturedNextMatch />
           <HomeSocialProof />
         </div>
@@ -110,12 +117,6 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Email capture — catch intent right after the scores */}
-      <section className="max-w-2xl mx-auto px-4 pb-10 text-center">
-        <h2 className="text-lg font-bold text-white mb-1">Never miss a match</h2>
-        <p className="text-sm text-[#999] mb-4">Free World Cup score &amp; goal alerts — straight to your inbox.</p>
-        <HeroEmailCapture />
-      </section>
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">

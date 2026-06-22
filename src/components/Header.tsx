@@ -52,6 +52,12 @@ export default function Header() {
               );
             })}
             <Link
+              href="/subscribe"
+              className="ml-1 shrink-0 rounded-lg bg-[#f0a500] px-3 py-1.5 text-xs font-bold text-black hover:bg-[#d49500] transition-colors"
+            >
+              Free Alerts
+            </Link>
+            <Link
               href="/account"
               aria-label={t("account")}
               className={`px-2 py-2 rounded-md transition-colors ${
