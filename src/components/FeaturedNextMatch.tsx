@@ -85,6 +85,7 @@ export default function FeaturedNextMatch() {
   const [loaded, setLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [flashId, setFlashId] = useState<string | null>(null);
 
   // Per-match UI state (reset on tab switch)
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -99,6 +100,8 @@ export default function FeaturedNextMatch() {
   const [authed, setAuthed] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
+  const userPickedRef = useRef(false);   // true after user manually clicks a tab
+  const prevScoresRef = useRef<Map<string, string>>(new Map()); // matchId → "h-a"
 
   // 1-second ticker for countdown
   useEffect(() => {
@@ -113,18 +116,50 @@ export default function FeaturedNextMatch() {
       .catch(() => {});
   }, []);
 
-  // Load today's matches
+  // Load today's matches + adaptive polling (15 s live, 30 s otherwise)
   useEffect(() => {
-    fetch("/api/today-matches")
-      .then((r) => r.json())
-      .then((data: DayMatch[]) => {
+    let timer: ReturnType<typeof setTimeout>;
+    let firstLoad = true;
+
+    async function poll() {
+      try {
+        const data: DayMatch[] = await fetch("/api/today-matches").then((r) => r.json());
+
+        // Detect score changes → flash
+        data.forEach((m) => {
+          if (m.homeScore === null) return;
+          const key = `${m.homeScore}-${m.awayScore}`;
+          const prev = prevScoresRef.current.get(m.id);
+          if (prev !== undefined && prev !== key) {
+            setFlashId(m.id);
+            setTimeout(() => setFlashId(null), 1800);
+          }
+          prevScoresRef.current.set(m.id, key);
+        });
+
         setMatches(data);
-        const live = data.find((m) => m.status === "live");
-        const upcoming = data.find((m) => m.status === "upcoming");
-        setSelectedId((live ?? upcoming ?? data[0])?.id ?? null);
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
+
+        if (firstLoad) {
+          firstLoad = false;
+          const live = data.find((m) => m.status === "live");
+          const upcoming = data.find((m) => m.status === "upcoming");
+          setSelectedId((live ?? upcoming ?? data[0])?.id ?? null);
+          setLoaded(true);
+        } else if (!userPickedRef.current) {
+          // Auto-follow a newly-live match
+          const live = data.find((m) => m.status === "live");
+          if (live) setSelectedId(live.id);
+        }
+
+        const hasLive = data.some((m) => m.status === "live");
+        timer = setTimeout(poll, hasLive ? 15_000 : 30_000);
+      } catch {
+        timer = setTimeout(poll, 30_000);
+      }
+    }
+
+    poll();
+    return () => clearTimeout(timer);
   }, []);
 
   // When selected tab changes: reset + load reactions, comments, AI preview
@@ -262,7 +297,7 @@ export default function FeaturedNextMatch() {
           return (
             <button
               key={m.id}
-              onClick={() => setSelectedId(m.id)}
+              onClick={() => { userPickedRef.current = true; setSelectedId(m.id); }}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
                 sel
                   ? "border-[#f0a500]/60 bg-[#f0a500]/10 text-white"
@@ -289,7 +324,7 @@ export default function FeaturedNextMatch() {
 
               {/* Score or time */}
               {m.status === "live" && m.homeScore !== null && (
-                <span className="font-bold text-green-400">
+                <span className={`font-bold transition-colors duration-300 ${flashId === m.id ? "text-yellow-300" : "text-green-400"}`}>
                   {m.homeScore}–{m.awayScore}
                 </span>
               )}
@@ -349,8 +384,12 @@ export default function FeaturedNextMatch() {
             <div className="flex flex-col items-center gap-0.5">
               {selected.status !== "upcoming" && selected.homeScore !== null ? (
                 <div
-                  className={`text-5xl font-extrabold tabular-nums sm:text-6xl ${
-                    selected.status === "live" ? "text-green-400" : "text-[#888]"
+                  className={`text-5xl font-extrabold tabular-nums sm:text-6xl transition-colors duration-300 ${
+                    flashId === selected.id
+                      ? "text-yellow-300"
+                      : selected.status === "live"
+                      ? "text-green-400"
+                      : "text-[#888]"
                   }`}
                 >
                   {selected.homeScore}
