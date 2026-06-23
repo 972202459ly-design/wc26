@@ -30,20 +30,23 @@ export default function AmazonStickyBar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Show after 3s (was 5s)
-    const showTimer = setTimeout(() => setVisible(true), 3000);
-
-    // Rotate slot every 12s
+    // Rotate slot every 12s.
     const rotateTimer = setInterval(() => setSlotIdx((i) => (i + 1) % SLOTS.length), 12000);
 
+    // Only appear once the visitor has scrolled past the first screen, so the
+    // hero + primary match content are never covered by an affiliate bar on
+    // first paint. Hide again near the very bottom (footer/CTA area).
     const handleScroll = () => {
-      const scrolled = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-      if (scrolled > 0.85) setVisible(false);
-      else if (scrolled < 0.1) setVisible(true);
+      const y = window.scrollY;
+      const max = document.body.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? y / max : 0;
+      if (y < window.innerHeight) setVisible(false);
+      else if (ratio > 0.9) setVisible(false);
+      else setVisible(true);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => {
-      clearTimeout(showTimer);
       clearInterval(rotateTimer);
       window.removeEventListener("scroll", handleScroll);
     };

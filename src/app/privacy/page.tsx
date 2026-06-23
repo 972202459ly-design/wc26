@@ -9,7 +9,7 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
-      <p className="text-sm text-[#888] mb-8">Last updated: June 11, 2026</p>
+      <p className="text-sm text-[#888] mb-8">Last updated: June 24, 2026</p>
 
       <div className="prose prose-invert prose-sm max-w-none space-y-6 text-[#ccc]">
         <Section title="1. Information We Collect">
@@ -44,7 +44,24 @@ export default function PrivacyPage() {
           <li>Comply with legal obligations</li>
         </ul>
 
-        <Section title="3. Third-Party Services">
+        <Section title="3. Email &amp; Marketing">
+          We use your email address <strong>only</strong> to send the World Cup updates you signed
+          up for — free final scores and match summaries, or, for premium subscribers, goal alerts
+          and kickoff reminders. We do not sell or rent your email address, and we do not send
+          unrelated marketing. Every email we send includes a one-click unsubscribe link; you can
+          also opt out at any time by visiting{" "}
+          <a href="https://wc26live.org/unsubscribe" className="text-[#f0a500] hover:underline">
+            wc26live.org/unsubscribe
+          </a>{" "}
+          or emailing{" "}
+          <a href="mailto:support@wc26live.org" className="text-[#f0a500] hover:underline">
+            support@wc26live.org
+          </a>
+          . Unsubscribing stops all emails except essential account/billing notices for active
+          premium subscribers.
+        </Section>
+
+        <Section title="4. Third-Party Services">
           We use the following third-party services:
         </Section>
         <ul className="list-disc pl-6 space-y-1 text-[#ccc]">
@@ -80,13 +97,13 @@ export default function PrivacyPage() {
           </li>
         </ul>
 
-        <Section title="4. Data Retention">
+        <Section title="5. Data Retention">
           We retain your email address and subscription data for as long as your account is active
           or as needed to provide the Service. You may request deletion of your data at any time
           by contacting us.
         </Section>
 
-        <Section title="5. Your Rights">
+        <Section title="6. Your Rights">
           Depending on your jurisdiction, you may have the right to:
         </Section>
         <ul className="list-disc pl-6 space-y-1 text-[#ccc]">
@@ -96,23 +113,23 @@ export default function PrivacyPage() {
           <li>Export your data in a portable format</li>
         </ul>
 
-        <Section title="6. Cookies">
+        <Section title="7. Cookies">
           We use minimal cookies essential for the operation of the Service. Google Analytics uses
           cookies to collect anonymized usage data. You can disable cookies in your browser
           settings.
         </Section>
 
-        <Section title="7. Data Security">
+        <Section title="8. Data Security">
           We implement industry-standard security measures including encryption in transit (TLS)
           and at rest. Payment data is handled entirely by Paddle, which is PCI Level 1 compliant.
         </Section>
 
-        <Section title="8. Changes to This Policy">
+        <Section title="9. Changes to This Policy">
           We may update this Privacy Policy from time to time. Changes will be posted on this
           page with an updated &quot;Last updated&quot; date.
         </Section>
 
-        <Section title="9. Contact">
+        <Section title="10. Contact">
           For privacy-related inquiries, contact us at{" "}
           <a href="mailto:support@wc26live.org" className="text-[#f0a500] hover:underline">
             support@wc26live.org

@@ -13,7 +13,13 @@
   "home": {
     "heroDate": "COPA MUNDIAL FIFA 2026 · 11 JUN – 19 JUL",
     "heroTitle": "Mundial 2026 — Marcadores en Vivo y Predicciones",
-    "heroSubtitle": "Marcadores en vivo gratis y un juego de predicciones — compite con aficionados de todo el mundo.",
+    "heroSubtitle": "Sigue el Mundial 2026: marcadores, calendario, clasificaciones y predicciones de aficionados en un solo lugar.",
+    "lastUpdated": "Última actualización",
+    "recentResults": "Resultados Recientes",
+    "email": {
+      "title": "Recibe los resultados por correo",
+      "subtitle": "Recibe resultados finales y resúmenes de partidos en tu correo. Gratis, sin necesidad de cuenta."
+    },
     "viewFullSchedule": "Ver Calendario Completo",
     "liveStandings": "Clasificaciones en Vivo",
     "heroSubscribe": "⚡ Alertas de Goles en Vivo — $4.99",
@@ -57,6 +63,7 @@
   },
   "schedule": {
     "title": "Calendario Copa Mundial 2026",
+    "disclaimer": "Sitio no oficial de aficionados. Los datos de los partidos se ofrecen con fines informativos.",
     "shop": {
       "sponsored": "Patrocinado",
       "title": "🎽 Equipo para el Día del Partido",
@@ -69,8 +76,9 @@
   },
   "standings": {
     "title": "Clasificaciones Copa Mundial 2026",
+    "disclaimer": "Sitio no oficial de aficionados. Los datos de los partidos se ofrecen con fines informativos.",
     "loading": "Cargando resultados en vivo...",
-    "liveBadge": "En vivo — actualizado automáticamente con datos oficiales de la FIFA",
+    "liveBadge": "En vivo — se actualiza al finalizar los partidos",
     "tableHeaders": {
       "pos": "#",
       "team": "Equipo",
@@ -166,13 +174,15 @@
   },
   "footer": {
     "brand": "WC26 Live",
-    "description": "Tu rastreador gratuito en tiempo real para la Copa Mundial de la FIFA 2026. Resultados en vivo, calendarios, clasificaciones y alertas.",
+    "description": "Un rastreador independiente hecho por aficionados para la Copa Mundial de la FIFA 2026: resultados en vivo, calendarios, clasificaciones y alertas. Actualizado a diario durante el torneo.",
+    "updatedDaily": "Datos de los partidos actualizados a diario durante el torneo.",
     "linksTitle": "Enlaces",
     "home": "Inicio",
     "schedule": "Calendario",
     "standings": "Clasificaciones",
     "groups": "Grupos",
     "teams": "Equipos",
+    "about": "Acerca de",
     "getAlerts": "Alertas",
     "legalTitle": "Legal",
     "tos": "Términos del Servicio",

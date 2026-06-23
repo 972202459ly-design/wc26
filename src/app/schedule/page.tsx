@@ -1,6 +1,6 @@
 "use client";
 
-import { matches, amazonSearchLink } from "@/lib/data";
+import { matches, amazonSearchLink, liveStatus } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
 import type { SocialPreview } from "@/lib/db";
 import MatchCard from "@/components/MatchCard";
@@ -20,13 +20,20 @@ function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
   const map = new Map<string, LiveMatch>();
   for (const lm of live) map.set(lm.match_id, lm);
   return staticMatches.map((m) => {
-    const live = map.get(m.id);
-    if (!live) return m;
+    const lm = map.get(m.id);
+    // No live row → derive status from the clock so past fixtures read "FT"
+    // and the current one reads "Live" even without a DB override.
+    if (!lm) return { ...m, status: liveStatus(m) };
     return {
       ...m,
-      homeScore: live.home_score ?? m.homeScore,
-      awayScore: live.away_score ?? m.awayScore,
-      status: live.status === "FINISHED" ? "finished" : live.status === "IN_PLAY" ? "live" : m.status,
+      homeScore: lm.home_score ?? m.homeScore,
+      awayScore: lm.away_score ?? m.awayScore,
+      status:
+        lm.status === "FINISHED"
+          ? "finished"
+          : lm.status === "IN_PLAY" || lm.status === "PAUSED"
+            ? "live"
+            : liveStatus(m),
     };
   });
 }
@@ -50,11 +57,12 @@ export default function SchedulePage() {
       .catch(() => {});
   }, []);
 
-  const merged = liveScores ? mergeScores(matches, liveScores) : matches;
+  const merged = mergeScores(matches, liveScores ?? []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+      <p className="mb-8 text-xs text-[#666]">{t("disclaimer")}</p>
 
       {matchDays.map((date, idx) => {
         const dayMatches = merged.filter((m) => m.date === date);

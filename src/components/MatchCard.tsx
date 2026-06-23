@@ -3,7 +3,7 @@
 import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useState } from "react";
-import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
+import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink, teams, stageLabel } from "@/lib/data";
 
 import MatchCountdown from "./MatchCountdown";
 
@@ -23,14 +23,25 @@ export default function MatchCard({
 }) {
   const [showShare, setShowShare] = useState(false);
 
-  const kickoff = new Date(`${match.date}T${match.time}`).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  // Render kickoff in the site's canonical timezone (ET) so the value is
+  // deterministic across server and client (no hydration mismatch) and matches
+  // the "Last updated … ET" stamp shown elsewhere.
+  const kickoff =
+    new Date(`${match.date}T${match.time}`).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "America/New_York",
+    }) + " ET";
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
+
+  // Meta line: group (group stage) or knockout round label, plus venue if known.
+  const group = teams.find((t) => t.name === match.homeTeam)?.group;
+  const stageStr = stageLabel(match.stage);
+  const metaLeft =
+    match.stage === "GROUP_STAGE" && group ? `${group} · Group Stage` : stageStr;
 
   const homeId = getTeamIdByName(match.homeTeam) || "";
   const awayId = getTeamIdByName(match.awayTeam) || "";
@@ -54,74 +65,85 @@ export default function MatchCard({
       onMouseEnter={() => setShowShare(true)}
       onMouseLeave={() => setShowShare(false)}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="font-semibold">
+      {/* Meta row: competition context + clear status label */}
+      <div className="mb-2 flex items-center justify-between gap-2 text-[11px]">
+        <span className="truncate text-[#777]">{metaLeft}</span>
+        {isLive ? (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 font-bold uppercase tracking-wide text-green-400">
+            <span className="live-dot" />
+            Live{match.minute ? ` · ${match.minute}'` : ""}
+          </span>
+        ) : isFinished ? (
+          <span className="shrink-0 rounded-full bg-[#222] px-2 py-0.5 font-bold uppercase tracking-wide text-[#999]">
+            FT
+          </span>
+        ) : (
+          <span className="shrink-0 rounded-full bg-[#f0a500]/10 px-2 py-0.5 font-bold uppercase tracking-wide text-[#f0a500]">
+            Upcoming
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">
             {homeFlag && <img src={homeFlag} alt="" className="w-5 h-3.5 inline-block mr-1.5 align-baseline" />}
             {match.homeTeam}
           </p>
         </div>
-        <div className="text-center px-4">
-          {isLive && (
-            <span className="text-xs text-green-400 font-semibold uppercase tracking-wider block mb-1">
-              <span className="live-dot align-middle mr-1" />
-              Live
-            </span>
-          )}
+        <div className="shrink-0 px-2 text-center sm:px-4">
           <span
-            className={`text-lg font-bold ${
+            className={`text-lg font-bold tabular-nums ${
               isLive ? "text-green-400" : ""
             }`}
           >
             {scoreDisplay}
           </span>
-          {isLive && match.minute && (
-            <span className="text-xs text-[#888] block">
-              {match.minute}&apos;
-            </span>
-          )}
-          {!isLive && !isFinished && (
-            <span className="text-xs text-[#888] block">
-              {kickoff}
-            </span>
+          {!isLive && (
+            <span className="block text-xs text-[#888]">{kickoff}</span>
           )}
           {!isLive && !isFinished && (
             <MatchCountdown date={match.date} time={match.time} />
           )}
         </div>
-        <div className="flex-1 text-right">
-          <p className="font-semibold">
+        <div className="min-w-0 flex-1 text-right">
+          <p className="truncate font-semibold">
             {match.awayTeam}
             {awayFlag && <img src={awayFlag} alt="" className="w-5 h-3.5 inline-block ml-1.5 align-baseline" />}
           </p>
         </div>
       </div>
-      <div className="text-xs text-[#666] mt-2">{match.venue}</div>
+      {match.venue && <div className="mt-2 text-xs text-[#666]">📍 {match.venue}</div>}
 
-      {/* AI win-probability bar — upcoming matches only */}
+      {/* Win-probability bar — upcoming matches only. Clearly labelled as a
+          model estimate so it's never mistaken for official odds. */}
       {prediction && !isLive && !isFinished && (
-        <div className="mt-3 flex items-center gap-2">
-          <span className="w-7 shrink-0 text-right text-[10px] font-bold tabular-nums text-[#f0a500]">
-            {prediction.homePct}%
-          </span>
-          <div className="relative flex-1 h-1.5 rounded-full overflow-hidden bg-[#1e1e1e]">
-            <div
-              className="absolute left-0 top-0 h-full rounded-l-full bg-[#f0a500]"
-              style={{ width: `${prediction.homePct}%` }}
-            />
-            <div
-              className="absolute top-0 h-full bg-[#3a3a3a]"
-              style={{ left: `${prediction.homePct}%`, width: `${prediction.drawPct}%` }}
-            />
-            <div
-              className="absolute right-0 top-0 h-full rounded-r-full bg-[#3498db]"
-              style={{ width: `${prediction.awayPct}%` }}
-            />
+        <div className="mt-3">
+          <div className="flex items-center gap-2">
+            <span className="w-7 shrink-0 text-right text-[10px] font-bold tabular-nums text-[#f0a500]">
+              {prediction.homePct}%
+            </span>
+            <div className="relative flex-1 h-1.5 rounded-full overflow-hidden bg-[#1e1e1e]">
+              <div
+                className="absolute left-0 top-0 h-full rounded-l-full bg-[#f0a500]"
+                style={{ width: `${prediction.homePct}%` }}
+              />
+              <div
+                className="absolute top-0 h-full bg-[#3a3a3a]"
+                style={{ left: `${prediction.homePct}%`, width: `${prediction.drawPct}%` }}
+              />
+              <div
+                className="absolute right-0 top-0 h-full rounded-r-full bg-[#3498db]"
+                style={{ width: `${prediction.awayPct}%` }}
+              />
+            </div>
+            <span className="w-7 shrink-0 text-[10px] font-bold tabular-nums text-[#3498db]">
+              {prediction.awayPct}%
+            </span>
           </div>
-          <span className="w-7 shrink-0 text-[10px] font-bold tabular-nums text-[#3498db]">
-            {prediction.awayPct}%
-          </span>
-          <span className="shrink-0 text-[10px] text-[#444]">🧠</span>
+          <p className="mt-1 text-right text-[10px] text-[#555]">
+            🧠 AI estimate · not betting odds
+          </p>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 // Low-friction primary CTA: one email field, instant free signup (no account,
 // no password). This is the path that actually converts — keep it prominent.
@@ -33,8 +34,12 @@ export default function HeroEmailCapture() {
 
   if (state === "done") {
     return (
-      <div className="mx-auto mb-3 max-w-md rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-300">
-        ✓ You&apos;re in! Free World Cup alerts are on the way — check your inbox (and your spam folder, just in case).
+      <div className="mx-auto mb-3 max-w-md rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-4 text-left text-sm text-green-300">
+        <p className="font-semibold">✓ You&apos;re subscribed!</p>
+        <p className="mt-1 text-green-300/90">
+          We&apos;ll email you final scores and match summaries during the World Cup. Check your
+          inbox (and spam folder) to confirm. You can unsubscribe from any email.
+        </p>
       </div>
     );
   }
@@ -60,7 +65,15 @@ export default function HeroEmailCapture() {
         </button>
       </form>
       {msg && <p className="mt-1.5 text-xs text-red-400">{msg}</p>}
-      <p className="mt-1.5 text-xs text-[#888]">Free World Cup match alerts · no account needed</p>
+      <p className="mt-2 text-xs text-[#888]">
+        <span className="text-[#bbb]">Free</span> — final scores &amp; match summaries · no account needed.
+      </p>
+      <p className="mt-0.5 text-[11px] text-[#666]">
+        <Link href="/premium" className="text-[#f0a500]/80 hover:text-[#f0a500]">
+          Premium ($4.99)
+        </Link>{" "}
+        adds instant goal alerts, kickoff reminders &amp; ad-free. Unsubscribe anytime.
+      </p>
     </div>
   );
 }

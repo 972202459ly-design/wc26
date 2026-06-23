@@ -580,15 +580,93 @@ export function getMatchesByDate(date: string): Match[] {
   return matches.filter((m) => m.date === date);
 }
 
-export function getTodayMatches(): Match[] {
-  const today = new Date().toISOString().slice(0, 10);
-  return matches.filter((m) => m.date === today);
+// ─── Time / "today" helpers ───────────────────────────────────────────
+// The 2026 World Cup is hosted across North America and its core audience is
+// in the US, so we treat US Eastern as the canonical "site time". Match days
+// routinely straddle UTC midnight, so bucketing by UTC date made "today" look
+// arbitrary depending on the hour. We bucket by the ET calendar date instead
+// and derive status from the live clock — never from build-time state.
+const SITE_TZ = "America/New_York";
+const MATCH_DURATION_MS = 120 * 60 * 1000;
+
+export function matchKickoff(m: Pick<Match, "date" | "time">): Date {
+  return new Date(`${m.date}T${m.time}`);
 }
 
-export function getUpcomingMatches(limit: number = 6): Match[] {
-  const now = new Date();
+/** YYYY-MM-DD for a Date in the site's display timezone (ET). */
+export function siteDateStr(d: Date): string {
+  // en-CA renders ISO-style YYYY-MM-DD.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: SITE_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+/** Human "Jun 23, 2026, 14:30 ET" stamp for the "last updated" line. */
+export function formatSiteTime(d: Date): string {
+  const s = new Intl.DateTimeFormat("en-US", {
+    timeZone: SITE_TZ,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `${s} ET`;
+}
+
+/** Live-clock status for a fixture, independent of build/render time. */
+export function liveStatus(m: Match, now: Date = new Date()): Match["status"] {
+  const ko = matchKickoff(m).getTime();
+  const t = now.getTime();
+  if (t >= ko + MATCH_DURATION_MS) return "finished";
+  if (t >= ko) return "live";
+  return "upcoming";
+}
+
+const isRealFixture = (m: Match) => m.homeTeam !== "tbd" && m.awayTeam !== "tbd";
+
+// Today = fixtures whose ET kickoff date is today AND not yet finished.
+// Finished games drop into getRecentResults so "Today's Matches" never shows a
+// stale result as if it were still to come.
+export function getTodayMatches(now: Date = new Date()): Match[] {
+  const today = siteDateStr(now);
   return matches
-    .filter((m) => new Date(m.date + "T" + m.time) > now)
+    .filter(isRealFixture)
+    .filter(
+      (m) =>
+        siteDateStr(matchKickoff(m)) === today &&
+        liveStatus(m, now) !== "finished"
+    )
+    .map((m) => ({ ...m, status: liveStatus(m, now) }))
+    .sort((a, b) => matchKickoff(a).getTime() - matchKickoff(b).getTime());
+}
+
+// Upcoming = kickoffs strictly after `now` on a later ET day than today
+// (today's fixtures already render in their own section). Soonest first.
+export function getUpcomingMatches(limit: number = 6, now: Date = new Date()): Match[] {
+  const today = siteDateStr(now);
+  return matches
+    .filter(isRealFixture)
+    .filter(
+      (m) =>
+        matchKickoff(m).getTime() > now.getTime() &&
+        siteDateStr(matchKickoff(m)) !== today
+    )
+    .map((m) => ({ ...m, status: "upcoming" as const }))
+    .sort((a, b) => matchKickoff(a).getTime() - matchKickoff(b).getTime())
+    .slice(0, limit);
+}
+
+// Recent results = finished fixtures, most recent first.
+export function getRecentResults(limit: number = 6, now: Date = new Date()): Match[] {
+  return matches
+    .filter((m) => isRealFixture(m) && liveStatus(m, now) === "finished")
+    .map((m) => ({ ...m, status: "finished" as const }))
+    .sort((a, b) => matchKickoff(b).getTime() - matchKickoff(a).getTime())
     .slice(0, limit);
 }
 

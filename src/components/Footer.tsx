@@ -55,6 +55,12 @@ export default async function Footer() {
                 {t("teams")}
               </Link>
               <Link
+                href="/about"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                {t("about")}
+              </Link>
+              <Link
                 href="/subscribe"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >
@@ -104,6 +110,7 @@ export default async function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-[var(--color-border)] text-center text-xs text-[#888]">
+          <p className="mb-1 text-[#666]">{t("updatedDaily")}</p>
           {t("copyright", { year: new Date().getFullYear() })}
         </div>
       </div>

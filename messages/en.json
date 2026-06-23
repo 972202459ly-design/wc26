@@ -13,7 +13,13 @@
   "home": {
     "heroDate": "2026 FIFA WORLD CUP · JUN 11 – JUL 19",
     "heroTitle": "World Cup 2026 — Live Scores & Predictions",
-    "heroSubtitle": "Free live scores plus a play-for-fun prediction game — compete with fans worldwide.",
+    "heroSubtitle": "Follow World Cup 2026 scores, schedules, standings, and fan predictions in one place.",
+    "lastUpdated": "Last updated",
+    "recentResults": "Recent Results",
+    "email": {
+      "title": "Get final scores by email",
+      "subtitle": "Get final scores and match summaries in your inbox. Free — no account needed."
+    },
     "viewFullSchedule": "View Full Schedule",
     "liveStandings": "Live Standings",
     "heroSubscribe": "⚡ Live Goal Alerts — $4.99",
@@ -57,6 +63,7 @@
   },
   "schedule": {
     "title": "World Cup 2026 Schedule",
+    "disclaimer": "Unofficial fan site. Match data is provided for informational use.",
     "shop": {
       "sponsored": "Sponsored",
       "title": "🎽 Match Day Gear",
@@ -69,8 +76,9 @@
   },
   "standings": {
     "title": "World Cup 2026 Standings",
+    "disclaimer": "Unofficial fan site. Match data is provided for informational use.",
     "loading": "Loading live scores...",
-    "liveBadge": "Live — auto-updating from official FIFA data",
+    "liveBadge": "Live — updates as matches finish",
     "tableHeaders": {
       "pos": "#",
       "team": "Team",
@@ -166,13 +174,15 @@
   },
   "footer": {
     "brand": "WC26 Live",
-    "description": "Your free, real-time tracker for the 2026 FIFA World Cup. Live scores, schedules, standings, and match alerts.",
+    "description": "An independent fan-built tracker for the 2026 FIFA World Cup — live scores, schedules, standings, and match alerts. Updated daily during the tournament.",
+    "updatedDaily": "Match data updated daily during the tournament.",
     "linksTitle": "Links",
     "home": "Home",
     "schedule": "Schedule",
     "standings": "Standings",
     "groups": "Groups",
     "teams": "Teams",
+    "about": "About",
     "getAlerts": "Get Alerts",
     "legalTitle": "Legal",
     "tos": "Terms of Service",

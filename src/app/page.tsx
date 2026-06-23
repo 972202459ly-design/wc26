@@ -1,78 +1,63 @@
-"use client";
-
 import Link from "next/link";
-import { matches, getTodayMatches, getUpcomingMatches, amazonSearchLink } from "@/lib/data";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import {
+  getTodayMatches,
+  getUpcomingMatches,
+  getRecentResults,
+  liveStatus,
+  amazonSearchLink,
+} from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
-import type { SocialPreview } from "@/lib/db";
-import MatchCard from "@/components/MatchCard";
-import AdPlaceholder from "@/components/AdPlaceholder";
+import type { Match } from "@/lib/types";
 import FeaturedNextMatch from "@/components/FeaturedNextMatch";
 import HeroEmailCapture from "@/components/HeroEmailCapture";
 import HomeSocialProof from "@/components/HomeSocialProof";
-import { useEffect, useState } from "react";
-import type { Match } from "@/lib/types";
-import { useTranslations } from "next-intl";
+import HomeMatchSections from "@/components/HomeMatchSections";
+import StandingsSnapshot from "@/components/StandingsSnapshot";
 
-interface LiveMatch {
-  match_id: string;
-  home_score: number | null;
-  away_score: number | null;
-  status: string;
-}
+// Re-render the served HTML periodically so crawlers and no-JS visitors always
+// see the correct "today / upcoming" set based on the real clock — never a
+// build-time snapshot.
+export const revalidate = 120;
 
-function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
-  const map = new Map<string, LiveMatch>();
-  for (const lm of live) map.set(lm.match_id, lm);
+export const metadata: Metadata = {
+  title: "World Cup 2026 Live Scores, Schedule, Standings & Predictions",
+  description:
+    "Follow the 2026 FIFA World Cup with live scores, match schedules, group standings, teams, brackets, and free prediction games.",
+  alternates: { canonical: "https://wc26live.org/" },
+};
 
-  return staticMatches.map((m) => {
-    const live = map.get(m.id);
-    if (!live) return m;
-    return {
-      ...m,
-      homeScore: live.home_score ?? m.homeScore,
-      awayScore: live.away_score ?? m.awayScore,
-      status: live.status === "FINISHED" ? "finished" : live.status === "IN_PLAY" ? "live" : m.status,
-    };
-  });
-}
+export default async function HomePage() {
+  const now = new Date();
+  const today = getTodayMatches(now);
+  const upcoming = getUpcomingMatches(6, now);
+  const recent = getRecentResults(6, now);
 
-export default function HomePage() {
-  const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
-  const [socialPreviews, setSocialPreviews] = useState<Record<string, SocialPreview>>({});
-  const t = useTranslations("home");
-  const navT = useTranslations("home.quickNav");
-  const shopT = useTranslations("home.shop");
-  const ctaT = useTranslations("home.cta");
+  const t = await getTranslations("home");
+  const navT = await getTranslations("home.quickNav");
+  const shopT = await getTranslations("home.shop");
+  const ctaT = await getTranslations("home.cta");
 
-  useEffect(() => {
-    fetch("/api/scores")
-      .then((r) => r.json())
-      .then((data) => { if (data.matches) setLiveScores(data.matches); })
-      .catch(() => {});
-    fetch("/api/social-preview")
-      .then((r) => r.json())
-      .then((data) => setSocialPreviews(data ?? {}))
-      .catch(() => {});
-  }, []);
-
-  const merged = liveScores ? mergeScores(matches, liveScores) : matches;
-  const mergedToday = liveScores ? mergeScores(getTodayMatches(), liveScores) : getTodayMatches();
-  const mergedUpcoming = liveScores ? mergeScores(getUpcomingMatches(6), liveScores) : getUpcomingMatches(6);
-
-  function getPrediction(m: Match) {
-    if (m.status !== "upcoming") return undefined;
-    const p = predictMatch(m.homeTeam, m.awayTeam);
-    return { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct };
+  // Deterministic predictions for the win-probability bars on upcoming cards —
+  // computed server-side so they land in the HTML for SEO.
+  const predictions: Record<string, { homePct: number; drawPct: number; awayPct: number }> = {};
+  for (const m of [...today, ...upcoming]) {
+    if (liveStatus(m, now) === "upcoming") {
+      const p = predictMatch(m.homeTeam, m.awayTeam);
+      predictions[m.id] = { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct };
+    }
   }
 
   return (
     <div>
-      {/* Hero Section — compact brand + email capture */}
+      {/* Hero — brand + live/upcoming prediction widget */}
       <section className="relative py-14 sm:py-16 text-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1400&q=80')",
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1400&q=80')",
             backgroundPosition: "center 30%",
           }}
         />
@@ -101,22 +86,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Today's matches + live scores — the SEO content visitors come for */}
-      <section className="max-w-7xl mx-auto px-4 pb-10">
-        <h2 className="text-xl font-bold mb-4">{t("todaysMatches")}</h2>
-        {mergedToday.length > 0 ? (
-          <div className="grid gap-3">
-            {mergedToday.map((match, i) => (
-              <MatchCard key={match.id} match={match} showShop={i % 4 === 0} prediction={getPrediction(match)} social={socialPreviews[match.id]} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-[#111] rounded-xl border border-[#222]">
-            <p className="text-[#888]">{t("noMatchesToday")}</p>
-          </div>
-        )}
-      </section>
+      {/* Today / Upcoming / Recent results — the core SEO content */}
+      <HomeMatchSections
+        today={today as Match[]}
+        upcoming={upcoming as Match[]}
+        recent={recent as Match[]}
+        predictions={predictions}
+        generatedAt={now.toISOString()}
+      />
 
+      {/* Standings snapshot */}
+      <StandingsSnapshot />
 
       {/* Quick Nav Cards */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
@@ -146,36 +126,35 @@ export default function HomePage() {
           <div className="flex-1">
             <h2 className="text-lg font-bold text-white">Play the World Cup Pick&apos;em</h2>
             <p className="mt-1 text-sm text-[#aaa]">
-              Predict matches with <b className="text-[#f0a500]">1,000 free points</b> using AI win probabilities, and climb the leaderboard. No money — just bragging rights.
+              Predict matches with <b className="text-[#f0a500]">1,000 free points</b> using AI win
+              probabilities, and climb the leaderboard. No money — just bragging rights.
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
-            <Link href="/leaderboard" className="rounded-lg border border-[#444] px-4 py-2.5 text-sm font-semibold text-white hover:border-[#f0a500]">
+            <Link
+              href="/leaderboard"
+              className="rounded-lg border border-[#444] px-4 py-2.5 text-sm font-semibold text-white hover:border-[#f0a500]"
+            >
               Leaderboard
             </Link>
-            <Link href="/predict" className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]">
+            <Link
+              href="/predict"
+              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
+            >
               Make a prediction →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Upcoming Matches */}
-      <section className="max-w-7xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-bold mb-4">{t("upcomingMatches")}</h2>
-        <div className="grid gap-3">
-          {mergedUpcoming.map((match, i) => (
-            <MatchCard key={match.id} match={match} showShop={i % 4 === 0} />
-          ))}
-        </div>
+      {/* Email alerts */}
+      <section className="max-w-2xl mx-auto px-4 pb-12 text-center">
+        <h2 className="text-lg font-bold text-white mb-1">{t("email.title")}</h2>
+        <p className="text-sm text-[#999] mb-4">{t("email.subtitle")}</p>
+        <HeroEmailCapture />
       </section>
 
-      {/* Ad banner */}
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <AdPlaceholder size="banner" />
-      </section>
-
-      {/* Shop — Amazon Affiliate */}
+      {/* Shop — Amazon Affiliate (kept after all primary content) */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <div className="rounded-xl border border-[#f0a500]/20 bg-gradient-to-br from-[#1e1e35] to-[#111] p-8 text-center">
           <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-4">
@@ -230,9 +209,7 @@ export default function HomePage() {
           >
             {shopT("browseAll")}
           </a>
-          <p className="text-[10px] text-[#555] mt-3">
-            {shopT("affiliateNotice")}
-          </p>
+          <p className="text-[10px] text-[#555] mt-3">{shopT("affiliateNotice")}</p>
         </div>
       </section>
 
@@ -240,9 +217,7 @@ export default function HomePage() {
       <section className="border-t border-[#222] py-16 text-center">
         <div className="max-w-xl mx-auto px-4">
           <h2 className="text-2xl font-bold mb-3">{ctaT("title")}</h2>
-          <p className="text-[#888] mb-6">
-            {ctaT("description")}
-          </p>
+          <p className="text-[#888] mb-6">{ctaT("description")}</p>
           <Link
             href="/subscribe"
             className="inline-block px-6 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"

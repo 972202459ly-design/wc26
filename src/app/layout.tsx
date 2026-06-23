@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | WC26 Live",
   },
   description:
-    "Live scores, match schedules, standings, and real-time updates for the 2026 FIFA World Cup. Hosted across USA, Canada, and Mexico.",
+    "Live scores, match schedules, standings, teams and predictions for the 2026 FIFA World Cup, hosted across the USA, Canada, and Mexico.",
   keywords: [
     "2026 World Cup",
     "FIFA World Cup",

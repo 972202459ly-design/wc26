@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Subscription Confirmed",
   description: "You're subscribed to WC26 Live match alerts.",
+  alternates: { canonical: "https://wc26live.org/subscribe/confirmed" },
+  robots: { index: false, follow: true },
 };
 
 export default function ConfirmedPage() {

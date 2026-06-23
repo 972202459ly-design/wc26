@@ -29,7 +29,8 @@ export async function generateMetadata({
 
   return {
     title: `${team.name} — 2026 World Cup Schedule & Results`,
-    description: `${team.name} 2026 FIFA World Cup match schedule, results, and group stage information. ${team.group}.`,
+    description: `${team.name} 2026 FIFA World Cup match schedule, results, live scores, and ${team.group} standings. Follow every ${team.name} fixture on WC26 Live.`,
+    alternates: { canonical: `https://wc26live.org/teams/${team.id}` },
     openGraph: {
       title: `${team.name} — 2026 FIFA World Cup`,
       description: `Follow ${team.name} in the 2026 World Cup. Match schedule, live scores, and results.`,
@@ -59,8 +60,42 @@ export default async function TeamPage({
     .reverse();
   const live = teamMatches.filter((m) => m.status === "live");
 
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsTeam",
+      name: team.name,
+      sport: "Football",
+      url: `https://wc26live.org/teams/${team.id}`,
+      logo: getTeamFlagUrl(team.id) || undefined,
+      memberOf: {
+        "@type": "SportsOrganization",
+        name: "2026 FIFA World Cup",
+        url: "https://wc26live.org",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://wc26live.org/" },
+        { "@type": "ListItem", position: 2, name: "Teams", item: "https://wc26live.org/teams" },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: team.name,
+          item: `https://wc26live.org/teams/${team.id}`,
+        },
+      ],
+    },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="text-sm text-[#888] mb-4">
         <Link href="/teams" className="hover:text-white transition-colors">
           {t("breadcrumb")}

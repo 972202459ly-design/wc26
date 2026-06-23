@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Unsubscribed",
   description: "You have been unsubscribed from WC26 Live emails.",
+  alternates: { canonical: "https://wc26live.org/subscribe/unsubscribed" },
+  robots: { index: false, follow: true },
 };
 
 export default function UnsubscribedPage() {

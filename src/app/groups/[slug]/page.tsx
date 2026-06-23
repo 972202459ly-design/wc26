@@ -34,6 +34,7 @@ export async function generateMetadata({
   return {
     title: `${group} — Standings & Schedule`,
     description: `2026 FIFA World Cup ${group} standings, match schedule, and results for ${teamNames}.`,
+    alternates: { canonical: `https://wc26live.org/groups/${slug}` },
     openGraph: {
       title: `${group} — 2026 FIFA World Cup`,
       description: `Live ${group} standings and match schedule for the 2026 World Cup.`,
@@ -58,8 +59,27 @@ export default async function GroupPage({
   const groupMatches = getMatchesByGroup(group);
   const groupStandings = getGroupStandings(group);
 
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://wc26live.org/" },
+      { "@type": "ListItem", position: 2, name: "Groups", item: "https://wc26live.org/groups" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: group,
+        item: `https://wc26live.org/groups/${slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
       <nav className="text-sm text-[#888] mb-4">
         <Link href="/groups" className="hover:text-white transition-colors">
           {t("breadcrumb")}

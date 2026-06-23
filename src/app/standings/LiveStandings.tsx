@@ -126,6 +126,7 @@ export default function LiveStandings({
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+      <p className="mb-4 text-xs text-[#666]">{t("disclaimer")}</p>
       {loading && liveGroups === null && (
         <p className="text-sm text-[#888] mb-6">{t("loading")}</p>
       )}

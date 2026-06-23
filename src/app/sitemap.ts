@@ -3,14 +3,23 @@ import { teams, matches, groups } from "@/lib/data";
 const baseUrl = "https://wc26live.org";
 
 export default async function sitemap() {
-  const staticPages = ["/", "/schedule", "/bracket", "/standings", "/teams", "/groups"].map(
-    (path) => ({
-      url: `${baseUrl}${path}`,
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: path === "/" ? 1.0 : 0.8,
-    })
-  );
+  const staticPages = [
+    "/",
+    "/schedule",
+    "/bracket",
+    "/standings",
+    "/teams",
+    "/groups",
+    "/predict",
+    "/leaderboard",
+    "/subscribe",
+    "/about",
+  ].map((path) => ({
+    url: `${baseUrl}${path}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: path === "/" ? 1.0 : 0.8,
+  }));
 
   const teamPages = teams.map((t) => ({
     url: `${baseUrl}/teams/${t.id}`,
@@ -27,7 +36,7 @@ export default async function sitemap() {
   }));
 
   const matchPages = matches
-    .filter((m) => m.homeTeam !== "TBD")
+    .filter((m) => m.homeTeam !== "tbd" && m.awayTeam !== "tbd")
     .map((m) => ({
       url: `${baseUrl}/match/${m.id}`,
       lastModified: new Date(),

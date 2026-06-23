@@ -147,11 +147,26 @@ export default async function MatchPage({
     },
   };
 
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://wc26live.org/" },
+      { "@type": "ListItem", position: 2, name: "Schedule", item: "https://wc26live.org/schedule" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${match.homeTeam} vs ${match.awayTeam}`,
+        item: `https://wc26live.org/match/${match.id}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, breadcrumb]) }}
       />
       <MatchDetail
         match={match}
