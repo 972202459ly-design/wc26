@@ -154,7 +154,7 @@ export default function FeaturedNextMatch() {
         }
 
         const hasLive = data.some((m) => m.status === "live");
-        timer = setTimeout(poll, hasLive ? 15_000 : 30_000);
+        timer = setTimeout(poll, hasLive ? 30_000 : 60_000);
       } catch {
         timer = setTimeout(poll, 30_000);
       }

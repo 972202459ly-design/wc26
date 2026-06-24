@@ -110,5 +110,10 @@ export async function GET() {
       };
     });
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      // Edge CDN caches this for 15s — all concurrent pollers share one DB hit
+      "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+    },
+  });
 }

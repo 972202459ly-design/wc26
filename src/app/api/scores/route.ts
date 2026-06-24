@@ -5,7 +5,9 @@ export async function GET() {
   try {
     await ensureTable();
     const scores = await getAllScores();
-    return NextResponse.json({ matches: scores });
+    return NextResponse.json({ matches: scores }, {
+      headers: { "Cache-Control": "public, s-maxage=20, stale-while-revalidate=40" },
+    });
   } catch (err: any) {
     console.error("Get scores error:", err);
     return NextResponse.json(
