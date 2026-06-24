@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AmazonStickyBar from "@/components/AmazonStickyBar";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
+import { Analytics } from "@vercel/analytics/next";
 import { getServerLocale } from "@/i18n/request";
 
 export const metadata: Metadata = {
@@ -97,6 +98,8 @@ export default async function RootLayout({
           <AmazonStickyBar />
           <Footer />
         </NextIntlClientProvider>
+
+        <Analytics />
 
         {gaId && (
           <>
