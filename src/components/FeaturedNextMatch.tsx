@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Sparkles, Lock, Heart, ThumbsDown, Send } from "lucide-react";
 import PredictionSaveGate from "./PredictionSaveGate";
 import AmazonImageAd from "./AmazonImageAd";
-import { amazonSearchLink } from "@/lib/data";
+import { amazonSearchLink, stageLabel } from "@/lib/data";
 
 interface DayMatch {
   id: string;
@@ -38,9 +38,9 @@ interface Comment {
 }
 
 const EMOJIS = [
-  { key: "fire", icon: "🔥" },
-  { key: "ball", icon: "⚽" },
-  { key: "shock", icon: "😮" },
+  { key: "fire", icon: "🔥", label: "Fire" },
+  { key: "ball", icon: "⚽", label: "Goal" },
+  { key: "shock", icon: "😮", label: "Shock" },
 ] as const;
 
 function pad(n: number) {
@@ -55,18 +55,35 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 86400)}d`;
 }
 
-function utcHHMM(iso: string) {
-  const d = new Date(iso);
-  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+// Times render in the visitor's own timezone (this widget is client-only and
+// hydrates after fetch, so there's no SSR/hydration concern).
+function localHHMM(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
-function utcDayLabel(iso: string) {
+function localDayLabel(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
-    timeZone: "UTC",
   });
+}
+
+// Short GMT offset for the visitor's timezone, e.g. "GMT+8".
+function localOffsetLabel() {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZoneName: "shortOffset",
+      hour: "numeric",
+    }).formatToParts(new Date());
+    return parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+  } catch {
+    return "";
+  }
 }
 
 function Flag({ src, size = 36 }: { src: string; size?: number }) {
@@ -274,7 +291,8 @@ export default function FeaturedNextMatch() {
   ];
   const topComments = [...comments].sort((a, b) => b.likes - a.likes).slice(0, 3);
 
-  const dateLabel = utcDayLabel(matches[0].utc_date);
+  const dateLabel = localDayLabel(matches[0].utc_date);
+  const tzLabel = localOffsetLabel();
 
   return (
     <section className="mx-auto mb-10 max-w-2xl px-4">
@@ -285,7 +303,7 @@ export default function FeaturedNextMatch() {
           <Sparkles className="h-3.5 w-3.5" />
           Live &amp; Upcoming
         </span>
-        <span className="text-xs text-[#555]">{dateLabel} · UTC</span>
+        <span className="text-xs text-[#555]">{dateLabel}{tzLabel ? ` · ${tzLabel}` : ""}</span>
       </div>
 
       {/* Match tab chips */}
@@ -337,7 +355,7 @@ export default function FeaturedNextMatch() {
               )}
               {m.status === "upcoming" && (
                 <span className={sel ? "text-[#f0a500]" : "text-[#555]"}>
-                  {utcHHMM(m.utc_date)}
+                  {localHHMM(m.utc_date)}
                 </span>
               )}
             </button>
@@ -351,7 +369,7 @@ export default function FeaturedNextMatch() {
         {/* Card top bar */}
         <div className="flex items-center justify-between border-b border-[#222] px-6 py-3">
           <span className="text-xs font-semibold text-[#666]">
-            {selected.stage}{selected.group ? ` · ${selected.group}` : ""}
+            {stageLabel(selected.stage)}{selected.group ? ` · ${selected.group}` : ""}
           </span>
           <span
             className={`text-xs font-bold ${
@@ -484,7 +502,7 @@ export default function FeaturedNextMatch() {
           </div>
         </div>
 
-        {/* Image ad — Prime Video for live/upcoming, watch party for finished */}
+        {/* Image ad — match-day gear for live/upcoming, watch party for finished */}
         <AmazonImageAd variant={selected.status === "finished" ? "party" : "prime"} />
 
         {/* AI preview (upcoming / live only) */}
@@ -532,10 +550,12 @@ export default function FeaturedNextMatch() {
               )}
             </span>
             <div className="flex items-center gap-1">
-              {EMOJIS.map(({ key, icon }) => (
+              {EMOJIS.map(({ key, icon, label }) => (
                 <button
                   key={key}
                   onClick={() => handleReact(key)}
+                  aria-label={`React: ${label}`}
+                  title={label}
                   className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${
                     reacted.has(key)
                       ? "cursor-default bg-[#f0a500]/20 text-[#f0a500]"
@@ -633,6 +653,8 @@ export default function FeaturedNextMatch() {
             <button
               onClick={() => (authed ? handlePost() : setGateOpen(true))}
               disabled={posting}
+              aria-label="Post comment"
+              title="Post comment"
               className="flex h-9 w-9 shrink-0 items-center justify-center self-end rounded-lg bg-[#f0a500] text-black transition-colors hover:bg-[#d49500] disabled:opacity-50"
             >
               <Send className="h-4 w-4" />

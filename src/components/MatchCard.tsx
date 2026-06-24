@@ -3,9 +3,10 @@
 import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useState } from "react";
-import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink, teams, stageLabel } from "@/lib/data";
+import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink, teams, stageLabel, matchKickoffISO } from "@/lib/data";
 
 import MatchCountdown from "./MatchCountdown";
+import MatchTime from "./MatchTime";
 
 interface Prediction { homePct: number; drawPct: number; awayPct: number }
 interface SocialPreview { reactions: Record<string, number>; topComment: string | null; commentCount: number }
@@ -23,17 +24,9 @@ export default function MatchCard({
 }) {
   const [showShare, setShowShare] = useState(false);
 
-  // Render kickoff in the site's canonical timezone (ET) so the value is
-  // deterministic across server and client (no hydration mismatch) and matches
-  // the "Last updated … ET" stamp shown elsewhere.
-  const kickoff =
-    new Date(`${match.date}T${match.time}`).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "America/New_York",
-    }) + " ET";
+  // Single canonical UTC kickoff — MatchTime converts it to the visitor's local
+  // timezone (with GMT offset) so every page shows the same instant.
+  const kickoffISO = matchKickoffISO(match);
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
 
@@ -57,14 +50,14 @@ export default function MatchCard({
   const shareText = `${match.homeTeam} ${match.homeScore ?? 0}-${match.awayScore ?? 0} ${match.awayTeam}${isLive ? " 🔴 LIVE" : ""} — World Cup 2026`;
 
   return (
-    <Link
-      href={`/match/${match.id}`}
-      className={`relative block p-4 rounded-xl border bg-[#111] card-hover ${
+    <article
+      className={`relative p-4 rounded-xl border bg-[#111] card-hover ${
         isLive ? "border-green-500/30 animate-glow" : "border-[#222]"
       }`}
       onMouseEnter={() => setShowShare(true)}
       onMouseLeave={() => setShowShare(false)}
     >
+      <Link href={`/match/${match.id}`} className="match-main block">
       {/* Meta row: competition context + clear status label */}
       <div className="mb-2 flex items-center justify-between gap-2 text-[11px]">
         <span className="truncate text-[#777]">{metaLeft}</span>
@@ -100,7 +93,7 @@ export default function MatchCard({
             {scoreDisplay}
           </span>
           {!isLive && (
-            <span className="block text-xs text-[#888]">{kickoff}</span>
+            <MatchTime iso={kickoffISO} className="block text-xs text-[#888]" />
           )}
           {!isLive && !isFinished && (
             <MatchCountdown date={match.date} time={match.time} />
@@ -170,15 +163,17 @@ export default function MatchCard({
         </div>
       )}
 
-      {/* Affiliate shop link — shown sparingly (see showShop) to avoid a storefront feel */}
+      </Link>
+
+      {/* Affiliate shop link — a sibling of the match link (never nested inside
+          it) so the markup is valid and the two targets can't be mis-clicked. */}
       {showShop && (
         <div className="mt-2 flex items-center gap-2">
           <a
             href={amazonSearchLink(`${match.homeTeam} ${match.awayTeam} World Cup jersey`)}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-[#f0a500]/60 hover:text-[#f0a500] transition-colors"
+            className="affiliate-link text-xs text-[#f0a500]/60 hover:text-[#f0a500] transition-colors"
           >
             Shop jerseys &rarr;
           </a>
@@ -199,12 +194,13 @@ export default function MatchCard({
           }}
           className="absolute top-2 right-2 p-1.5 rounded-md bg-[#222] hover:bg-[#333] transition-colors"
           title="Share on X"
+          aria-label="Share on X"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
           </svg>
         </button>
       )}
-    </Link>
+    </article>
   );
 }

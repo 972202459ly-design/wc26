@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import MatchCard from "@/components/MatchCard";
+import { matches, liveStatus, matchKickoff } from "@/lib/data";
+import { predictMatch } from "@/lib/predict";
 import type { Match } from "@/lib/types";
 import type { SocialPreview } from "@/lib/db";
 
@@ -40,6 +42,44 @@ function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
   });
 }
 
+const isReal = (m: Match) => m.homeTeam !== "tbd" && m.awayTeam !== "tbd";
+const realMatches = matches.filter(isReal);
+
+/** YYYY-MM-DD in the visitor's own local timezone. */
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// Re-bucket every real fixture by the visitor's LOCAL calendar date, so "Today"
+// reflects the user's day — not the server's US-Eastern day.
+function computeLocalBuckets(now: Date) {
+  const todayStr = localDateStr(now);
+  const withStatus = realMatches.map((m) => ({ ...m, status: liveStatus(m, now) }));
+  const byKickoffAsc = (a: Match, b: Match) =>
+    matchKickoff(a).getTime() - matchKickoff(b).getTime();
+
+  const today = withStatus
+    .filter((m) => localDateStr(matchKickoff(m)) === todayStr && m.status !== "finished")
+    .sort(byKickoffAsc);
+  const upcoming = withStatus
+    .filter(
+      (m) =>
+        matchKickoff(m).getTime() > now.getTime() &&
+        localDateStr(matchKickoff(m)) !== todayStr
+    )
+    .sort(byKickoffAsc)
+    .slice(0, 6);
+  const recent = withStatus
+    .filter((m) => m.status === "finished")
+    .sort((a, b) => matchKickoff(b).getTime() - matchKickoff(a).getTime())
+    .slice(0, 6);
+
+  return { today, upcoming, recent };
+}
+
 export default function HomeMatchSections({
   today,
   upcoming,
@@ -57,8 +97,23 @@ export default function HomeMatchSections({
   const [liveScores, setLiveScores] = useState<LiveMatch[] | null>(null);
   const [social, setSocial] = useState<Record<string, SocialPreview>>({});
   const [updatedAt, setUpdatedAt] = useState<string>(generatedAt);
+  // Local-timezone buckets — null until mounted, so the first client render
+  // matches the server (ET) HTML and there's no hydration mismatch.
+  const [local, setLocal] = useState<ReturnType<typeof computeLocalBuckets> | null>(null);
+  const [tzLabel, setTzLabel] = useState("");
 
   useEffect(() => {
+    setLocal(computeLocalBuckets(new Date()));
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZoneName: "shortOffset",
+        hour: "numeric",
+      }).formatToParts(new Date());
+      setTzLabel(parts.find((p) => p.type === "timeZoneName")?.value ?? "");
+    } catch {
+      /* ignore */
+    }
+
     fetch("/api/scores")
       .then((r) => r.json())
       .then((data) => {
@@ -74,26 +129,38 @@ export default function HomeMatchSections({
       .catch(() => {});
   }, []);
 
-  const mToday = liveScores ? mergeScores(today, liveScores) : today;
-  const mUpcoming = liveScores ? mergeScores(upcoming, liveScores) : upcoming;
-  const mRecent = liveScores ? mergeScores(recent, liveScores) : recent;
+  // Once mounted, prefer the visitor-local buckets; before that, the server's.
+  const baseToday = local ? local.today : today;
+  const baseUpcoming = local ? local.upcoming : upcoming;
+  const baseRecent = local ? local.recent : recent;
 
-  // ET-formatted "last updated" stamp, computed client-side so it reflects the
-  // visitor's actual last data refresh.
+  const mToday = liveScores ? mergeScores(baseToday, liveScores) : baseToday;
+  const mUpcoming = liveScores ? mergeScores(baseUpcoming, liveScores) : baseUpcoming;
+  const mRecent = liveScores ? mergeScores(baseRecent, liveScores) : baseRecent;
+
+  // Use the server prediction if present, else compute one client-side for any
+  // fixture promoted into the local "today/upcoming" buckets.
+  const predFor = (m: Match): Prediction | undefined => {
+    if (predictions[m.id]) return predictions[m.id];
+    if (m.status === "upcoming") {
+      const p = predictMatch(m.homeTeam, m.awayTeam);
+      return { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct };
+    }
+    return undefined;
+  };
+
   const updatedLabel =
     new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/New_York",
       month: "short",
       day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
-      hour12: false,
-    }).format(new Date(updatedAt)) + " ET";
+      hour12: true,
+    }).format(new Date(updatedAt)) + (tzLabel ? ` ${tzLabel}` : "");
 
   return (
     <>
-      {/* Today's matches */}
+      {/* Today's matches — bucketed by the visitor's local date */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-xl font-bold">{t("todaysMatches")}</h2>
@@ -108,7 +175,7 @@ export default function HomeMatchSections({
                 key={match.id}
                 match={match}
                 showShop={false}
-                prediction={predictions[match.id]}
+                prediction={predFor(match)}
                 social={social[match.id]}
               />
             ))}
@@ -120,7 +187,7 @@ export default function HomeMatchSections({
         )}
       </section>
 
-      {/* Upcoming matches */}
+      {/* Upcoming matches — strictly after today, so it never repeats Today */}
       {mUpcoming.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 pb-8">
           <h2 className="text-xl font-bold mb-4">{t("upcomingMatches")}</h2>
@@ -130,7 +197,7 @@ export default function HomeMatchSections({
                 key={match.id}
                 match={match}
                 showShop={false}
-                prediction={predictions[match.id]}
+                prediction={predFor(match)}
                 social={social[match.id]}
               />
             ))}

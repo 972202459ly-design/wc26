@@ -143,6 +143,7 @@ export default function MatchComments({ matchId }: { matchId: string }) {
                 key={key}
                 onClick={() => react(key)}
                 title={label}
+                aria-label={`React: ${label}`}
                 className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all ${
                   done
                     ? "border-[#f0a500]/60 bg-[#f0a500]/10 text-white"
@@ -187,6 +188,7 @@ export default function MatchComments({ matchId }: { matchId: string }) {
                 <button
                   onClick={() => likeC(c.id)}
                   disabled={liked.has(c.id) || disliked.has(c.id)}
+                  aria-label="Like comment"
                   className={`flex items-center gap-1 text-xs transition-colors ${
                     liked.has(c.id) ? "text-[#f0a500]" : "text-[#555] hover:text-[#f0a500] disabled:cursor-default"
                   }`}
@@ -197,6 +199,7 @@ export default function MatchComments({ matchId }: { matchId: string }) {
                 <button
                   onClick={() => dislikeC(c.id)}
                   disabled={liked.has(c.id) || disliked.has(c.id)}
+                  aria-label="Dislike comment"
                   className={`flex items-center gap-1 text-xs transition-colors ${
                     disliked.has(c.id) ? "text-blue-400" : "text-[#555] hover:text-blue-400 disabled:cursor-default"
                   }`}

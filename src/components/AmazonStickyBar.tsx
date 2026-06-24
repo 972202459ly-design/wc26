@@ -4,15 +4,16 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { amazonSearchLink } from "@/lib/data";
 
-// Rotate between two CTAs: merchandise (commission) and Prime (bounty $3/signup)
+// Rotate between two Amazon affiliate CTAs — match-day gear, no streaming-rights
+// claims.
 const SLOTS = [
   {
     emoji: "📺",
-    headline: "Amazon Prime Video",
-    sub: "Stream sports & more — free trial",
-    href: "https://www.amazon.com/amazonprime?tag=none03e04-20",
-    btn: "Try Free",
-    btnStyle: "bg-[#00a8e0] text-white hover:bg-[#008ec0]",
+    headline: "Match-day setup",
+    sub: "Streaming devices & 4K TVs on Amazon",
+    href: "https://www.amazon.com/s?k=4k+streaming+device+tv&tag=none03e04-20",
+    btn: "Shop",
+    btnStyle: "bg-[#f0a500] text-black hover:bg-[#d49500]",
   },
   {
     emoji: "🎉",
@@ -33,14 +34,14 @@ export default function AmazonStickyBar() {
     // Rotate slot every 12s.
     const rotateTimer = setInterval(() => setSlotIdx((i) => (i + 1) % SLOTS.length), 12000);
 
-    // Only appear once the visitor has scrolled past the first screen, so the
-    // hero + primary match content are never covered by an affiliate bar on
-    // first paint. Hide again near the very bottom (footer/CTA area).
+    // Stay hidden until the visitor is at least 30% down the page, so the hero
+    // and primary match content are never covered on entry. Hide again near the
+    // very bottom (footer/CTA area).
     const handleScroll = () => {
       const y = window.scrollY;
       const max = document.body.scrollHeight - window.innerHeight;
       const ratio = max > 0 ? y / max : 0;
-      if (y < window.innerHeight) setVisible(false);
+      if (ratio < 0.3) setVisible(false);
       else if (ratio > 0.9) setVisible(false);
       else setVisible(true);
     };

@@ -183,7 +183,7 @@ export default function MatchPrediction({
 
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-[#999]">
           <span>Expected goals: <span className="text-white">{pred.lambdaHome} – {pred.lambdaAway}</span></span>
-          <span>Most likely: <span className="text-white">{pred.topHome}–{pred.topAway}</span></span>
+          <span>Most likely score (AI predicted): <span className="text-white">{pred.topHome}–{pred.topAway}</span></span>
         </div>
 
         {/* Prediction panel */}

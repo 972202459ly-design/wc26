@@ -5,12 +5,12 @@ import { amazonSearchLink } from "@/lib/data";
 const ADS = {
   prime: {
     img: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=900&q=80",
-    eyebrow: "STREAM LIVE",
-    headline: "Every World Cup Match on Prime Video",
-    sub: "Watch free with your Prime trial — cancel anytime",
-    cta: "Try Prime Free →",
-    href: "https://www.amazon.com/amazonprime?tag=none03e04-20",
-    ctaStyle: "bg-[#00a8e0] hover:bg-[#0090c0] text-white",
+    eyebrow: "MATCH DAY",
+    headline: "Get ready for match day",
+    sub: "Streaming devices & watch-party gear on Amazon",
+    cta: "Shop on Amazon →",
+    href: amazonSearchLink("4K streaming device tv"),
+    ctaStyle: "bg-[#f0a500] hover:bg-[#d49500] text-black",
     gradient: "from-black/80 via-black/50 to-transparent",
   },
   party: {

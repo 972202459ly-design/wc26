@@ -91,15 +91,16 @@ export default async function MatchPage({
     // DB unavailable — deterministic sentence already set.
   }
 
-  // Floating local datetime (valid ISO 8601); end ~2h after kickoff. Guard
-  // against missing/odd date or time so we never emit an invalid startDate.
-  const rawStart = `${match.date}T${match.time || "12:00"}:00`;
-  const startMs = Date.parse(`${rawStart}Z`);
-  const valid = Number.isFinite(startMs);
-  const startDate = valid ? rawStart : `${match.date || "2026-06-11"}T12:00:00`;
+  // Single canonical kickoff instant (UTC ISO 8601); end ~2h after kickoff.
+  // `match.time` already carries the trailing "Z" (e.g. "19:00:00Z"), so we
+  // derive both timestamps from the same Date and never hand-concatenate.
+  const ko = new Date(`${match.date}T${match.time}`);
+  const valid = Number.isFinite(ko.getTime());
+  const toIso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const startDate = valid ? toIso(ko) : `${match.date || "2026-06-11"}T12:00:00Z`;
   const endDate = valid
-    ? new Date(startMs + 2 * 60 * 60 * 1000).toISOString().slice(0, 19)
-    : `${match.date || "2026-06-11"}T14:00:00`;
+    ? toIso(new Date(ko.getTime() + 2 * 60 * 60 * 1000))
+    : `${match.date || "2026-06-11"}T14:00:00Z`;
 
   const teams = [
     { "@type": "SportsTeam", name: match.homeTeam },
@@ -143,7 +144,7 @@ export default async function MatchPage({
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
-      validFrom: `${match.date}T00:00:00`,
+      validFrom: `${match.date}T00:00:00Z`,
     },
   };
 

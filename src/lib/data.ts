@@ -593,6 +593,16 @@ export function matchKickoff(m: Pick<Match, "date" | "time">): Date {
   return new Date(`${m.date}T${m.time}`);
 }
 
+/**
+ * The single canonical kickoff instant as a UTC ISO‑8601 string
+ * (e.g. "2026-06-24T19:00:00.000Z"). Every surface — cards, detail page,
+ * countdown, JSON‑LD — derives its display from this one value so all pages
+ * convert back to the same UTC time.
+ */
+export function matchKickoffISO(m: Pick<Match, "date" | "time">): string {
+  return matchKickoff(m).toISOString();
+}
+
 /** YYYY-MM-DD for a Date in the site's display timezone (ET). */
 export function siteDateStr(d: Date): string {
   // en-CA renders ISO-style YYYY-MM-DD.

@@ -17,8 +17,8 @@
     "lastUpdated": "Última actualización",
     "recentResults": "Resultados Recientes",
     "email": {
-      "title": "Recibe los resultados por correo",
-      "subtitle": "Recibe resultados finales y resúmenes de partidos en tu correo. Gratis, sin necesidad de cuenta."
+      "title": "Alertas gratis de resultados y previas",
+      "subtitle": "Resultados finales y previas de partidos en tu correo. Gratis, sin necesidad de cuenta."
     },
     "viewFullSchedule": "Ver Calendario Completo",
     "liveStandings": "Clasificaciones en Vivo",
@@ -40,24 +40,24 @@
       "teams": "Equipos",
       "teamsDesc": "Los 48 equipos",
       "subscribe": "Suscribirse",
-      "subscribeDesc": "Alertas gratuitas de partidos"
+      "subscribeDesc": "Alertas gratis de resultados"
     },
     "todaysMatches": "Partidos de Hoy",
     "noMatchesToday": "No hay partidos programados para hoy.",
     "upcomingMatches": "Próximos Partidos",
     "shop": {
       "sponsored": "Patrocinado",
-      "title": "🎉 Esenciales para Ver el Partido",
-      "description": "Transmite cada partido en vivo + prepara la mejor fiesta de fútbol. Los mejores en Amazon.",
+      "title": "🎉 Prepárate para el día de partido",
+      "description": "Descubre dispositivos de streaming y accesorios para ver el partido en Amazon.",
       "jerseys": "Fire TV Stick",
       "flags": "Altavoz Portátil",
       "balls": "Fiesta de Fútbol",
-      "browseAll": "Ver Accesorios →",
+      "browseAll": "Comprar en Amazon →",
       "affiliateNotice": "Como asociado de Amazon, ganamos por compras calificadas."
     },
     "cta": {
       "title": "Recibe Alertas del Mundial",
-      "description": "Gratis: resultados finales y resúmenes por correo. Hazte Premium ($4.99) para alertas de goles al instante con goleador, recordatorios y sin anuncios.",
+      "description": "Alertas gratis de resultados finales y previas por correo. Hazte Premium ($4.99) para alertas de goles al instante, recordatorios y análisis de IA completo.",
       "button": "Suscríbete Gratis"
     }
   },

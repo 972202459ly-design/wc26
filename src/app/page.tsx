@@ -7,6 +7,7 @@ import {
   getRecentResults,
   liveStatus,
   amazonSearchLink,
+  eventPerformers,
 } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
 import type { Match } from "@/lib/types";
@@ -49,10 +50,48 @@ export default async function HomePage() {
     }
   }
 
+  // Tournament-level SportsEvent — emitted only on the homepage so it never
+  // collides with the per-fixture SportsEvent on match pages.
+  const tournamentJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: "2026 FIFA World Cup",
+    description:
+      "The 2026 FIFA World Cup — 48 teams across the United States, Canada and Mexico. Live scores, schedule, standings and knockout bracket.",
+    sport: "Football",
+    startDate: "2026-06-11T00:00:00Z",
+    endDate: "2026-07-19T23:59:59Z",
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    url: "https://wc26live.org",
+    image: ["https://wc26live.org/opengraph-image"],
+    organizer: { "@type": "Organization", name: "FIFA", url: "https://www.fifa.com" },
+    location: {
+      "@type": "Place",
+      name: "United States, Canada & Mexico",
+      address: { "@type": "PostalAddress", addressCountry: "US" },
+    },
+    offers: {
+      "@type": "Offer",
+      url: "https://wc26live.org",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      validFrom: "2026-06-11T00:00:00Z",
+    },
+    performer: eventPerformers,
+  };
+
   return (
     <div>
-      {/* Hero — brand + live/upcoming prediction widget */}
-      <section className="relative py-14 sm:py-16 text-center overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tournamentJsonLd) }}
+      />
+      {/* Hero — brand + live/upcoming prediction widget. Kept compact on mobile
+          (≈ one short screen) so the first match content shows after a slight
+          scroll. */}
+      <section className="relative py-8 sm:py-16 text-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -68,16 +107,16 @@ export default async function HomePage() {
           <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a500] mb-4">
             {t("heroDate")}
           </span>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
+          <h1 className="text-[40px] sm:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 leading-[1.05]">
             {t("heroTitle")}
           </h1>
-          <p className="text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
+          <p className="hidden sm:block text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
           {/* Email capture — above the fold, before AI module */}
           <div className="mx-auto mb-6 max-w-md">
             <p className="text-sm text-[#aaa] mb-3">
-              ⚡ Free goal alerts &amp; AI match predictions — straight to your inbox
+              ⚡ Free final-score alerts &amp; match previews — straight to your inbox
             </p>
             <HeroEmailCapture />
           </div>
@@ -165,9 +204,9 @@ export default async function HomePage() {
             {shopT("description")}
           </p>
           <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto mb-5">
-            {/* Fire TV Stick — stream matches live */}
+            {/* Streaming device */}
             <a
-              href={amazonSearchLink("Fire TV Stick 4K streaming")}
+              href={amazonSearchLink("Fire TV Stick 4K streaming device")}
               target="_blank" rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
@@ -192,14 +231,14 @@ export default async function HomePage() {
               <span className="text-2xl">🎉</span>
               <span className="text-xs font-semibold text-center leading-tight">{shopT("balls")}</span>
             </a>
-            {/* Prime Video — bounty link (pays $3 per new Prime trial) */}
+            {/* TV / projector for the watch party */}
             <a
-              href="https://www.amazon.com/amazonprime?tag=none03e04-20"
+              href={amazonSearchLink("4K smart tv")}
               target="_blank" rel="noopener noreferrer"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#1a1a3e] hover:bg-[#222] border border-[#3a3a6e] hover:border-[#f0a500]/40 transition-all"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
               <span className="text-2xl">📺</span>
-              <span className="text-xs font-semibold text-center leading-tight">Prime<br/>Video</span>
+              <span className="text-xs font-semibold text-center leading-tight">TV &amp; Displays</span>
             </a>
           </div>
           <a

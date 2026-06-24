@@ -17,8 +17,8 @@
     "lastUpdated": "Last updated",
     "recentResults": "Recent Results",
     "email": {
-      "title": "Get final scores by email",
-      "subtitle": "Get final scores and match summaries in your inbox. Free — no account needed."
+      "title": "Free final-score alerts & match previews",
+      "subtitle": "Final scores and match previews in your inbox. Free — no account needed."
     },
     "viewFullSchedule": "View Full Schedule",
     "liveStandings": "Live Standings",
@@ -40,24 +40,24 @@
       "teams": "Teams",
       "teamsDesc": "All 48 teams",
       "subscribe": "Subscribe",
-      "subscribeDesc": "Free match alerts"
+      "subscribeDesc": "Free final-score alerts"
     },
     "todaysMatches": "Today's Matches",
     "noMatchesToday": "No matches scheduled for today.",
     "upcomingMatches": "Upcoming Matches",
     "shop": {
       "sponsored": "Sponsored",
-      "title": "🎉 Watch Party Essentials",
-      "description": "Stream every match live + set up the ultimate watch party. Top picks on Amazon.",
+      "title": "🎉 Get ready for match day",
+      "description": "Explore streaming devices and watch-party gear on Amazon.",
       "jerseys": "Fire TV Stick",
       "flags": "Party Speaker",
       "balls": "Watch Party",
-      "browseAll": "Shop Watch Party Gear →",
+      "browseAll": "Shop on Amazon →",
       "affiliateNotice": "As an Amazon Associate we earn from qualifying purchases."
     },
     "cta": {
       "title": "Get World Cup Match Alerts",
-      "description": "Free: final scores & post-match summaries by email. Go Premium ($4.99) for instant goal alerts with scorer, kickoff reminders, and ad-free.",
+      "description": "Free final-score alerts & match previews by email. Go Premium ($4.99) for instant goal alerts, kickoff reminders and full AI analysis.",
       "button": "Subscribe Free"
     }
   },

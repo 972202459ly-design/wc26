@@ -3,10 +3,11 @@
 import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getTeamFlagUrl, getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink } from "@/lib/data";
+import { getTeamFlagUrlBig, getTeamIdByName, amazonSearchLink, stageLabel, matchKickoffISO } from "@/lib/data";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import MatchPrediction, { type InitialPred } from "@/components/MatchPrediction";
 import MatchCountdown from "@/components/MatchCountdown";
+import MatchTime from "@/components/MatchTime";
 import EventsTimeline from "@/components/EventsTimeline";
 import MatchComments from "@/components/MatchComments";
 import { useTranslations } from "next-intl";
@@ -89,7 +90,7 @@ export default function MatchDetail({
 
       <div className="text-center">
         <p className="text-sm text-[#f0a500] font-semibold uppercase tracking-wider mb-2">
-          {match.stage}
+          {stageLabel(match.stage)}
         </p>
 
         {isLive && (
@@ -110,13 +111,8 @@ export default function MatchDetail({
         </h1>
 
         <p className="text-[#888] mb-6">
-          {match.venue} &middot;{" "}
-          {new Date(match.date + "T" + match.time).toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-          , {match.time}
+          {match.venue && <>{match.venue} &middot; </>}
+          <MatchTime iso={matchKickoffISO(match)} variant="full" />
         </p>
 
         {/* Countdown for upcoming matches */}

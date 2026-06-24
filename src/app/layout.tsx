@@ -6,7 +6,6 @@ import AmazonStickyBar from "@/components/AmazonStickyBar";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getServerLocale } from "@/i18n/request";
-import { eventPerformers } from "@/lib/data";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://wc26live.org"),
@@ -73,56 +72,21 @@ export default async function RootLayout({
         )}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a0a0a" />
+        {/* Site-wide WebSite node only — emitted exactly once across the whole
+            site. Page-specific SportsEvent nodes (tournament on the homepage,
+            individual fixtures on match pages) live on their own pages so no
+            page ever carries a duplicate SportsEvent. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([
-              {
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                name: "WC26 Live",
-                url: "https://wc26live.org",
-                description:
-                  "Live scores, schedule, standings and knockout bracket for the 2026 FIFA World Cup.",
-              },
-              {
-                "@context": "https://schema.org",
-                "@type": "SportsEvent",
-                name: "2026 FIFA World Cup",
-                description:
-                  "The 2026 FIFA World Cup — 48 teams across the United States, Canada and Mexico. Live scores, schedule, standings and knockout bracket.",
-                sport: "Football",
-                startDate: "2026-06-11T00:00:00",
-                endDate: "2026-07-19T23:59:59",
-                eventStatus: "https://schema.org/EventScheduled",
-                eventAttendanceMode:
-                  "https://schema.org/OfflineEventAttendanceMode",
-                url: "https://wc26live.org",
-                image: ["https://wc26live.org/opengraph-image"],
-                organizer: {
-                  "@type": "Organization",
-                  name: "FIFA",
-                  url: "https://www.fifa.com",
-                },
-                location: {
-                  "@type": "Place",
-                  name: "United States, Canada & Mexico",
-                  address: {
-                    "@type": "PostalAddress",
-                    addressCountry: "US",
-                  },
-                },
-                offers: {
-                  "@type": "Offer",
-                  url: "https://wc26live.org",
-                  price: "0",
-                  priceCurrency: "USD",
-                  availability: "https://schema.org/InStock",
-                  validFrom: "2026-06-11T00:00:00",
-                },
-                performer: eventPerformers,
-              },
-            ]),
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "WC26 Live",
+              url: "https://wc26live.org",
+              description:
+                "Live scores, schedule, standings and knockout bracket for the 2026 FIFA World Cup.",
+            }),
           }}
         />
       </head>
