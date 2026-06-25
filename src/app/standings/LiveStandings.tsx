@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { StandingEntry, TeamInfo } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
@@ -135,6 +136,16 @@ export default function LiveStandings({
           {t("liveBadge")}
         </p>
       )}
+
+      <Link
+        href="/simulator"
+        className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-[#f0a500]/30 bg-gradient-to-r from-[#1a1a2e] to-[#111] px-5 py-3 transition-colors hover:border-[#f0a500]/60"
+      >
+        <span className="text-sm text-[#ddd]">
+          🗺️ <b className="text-white">Who advances?</b> Change any result and see the Round of 32 — try the Qualification Simulator.
+        </span>
+        <span className="shrink-0 text-sm font-semibold text-[#f0a500]">Open →</span>
+      </Link>
 
       <div className="grid gap-8 md:grid-cols-2">
         {displayGroups.map(({ group, teams }) => (

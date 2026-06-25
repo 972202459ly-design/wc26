@@ -43,6 +43,12 @@ export default async function Footer() {
                 {t("standings")}
               </Link>
               <Link
+                href="/simulator"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Simulator
+              </Link>
+              <Link
                 href="/groups"
                 className="text-sm text-[#888] hover:text-white transition-colors"
               >

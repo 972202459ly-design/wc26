@@ -213,6 +213,26 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Qualification simulator CTA */}
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <Link
+          href="/simulator"
+          className="flex flex-col items-center gap-4 rounded-2xl border border-[#3a3a5e] bg-[#1e1e35] p-6 text-center transition-colors hover:border-[#f0a500] sm:flex-row sm:text-left"
+        >
+          <div className="text-4xl">🗺️</div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-white">Who advances? Try the Qualification Simulator</h2>
+            <p className="mt-1 text-sm text-[#aaa]">
+              Pick every group result and see all 32 teams that reach the Round of 32 — top two per
+              group plus the 8 best third-placed sides.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-lg border border-[#f0a500] px-4 py-2.5 text-sm font-semibold text-[#f0a500]">
+            Open simulator →
+          </span>
+        </Link>
+      </section>
+
       {/* Matchday sponsor (or house ad → /advertise when unsold) */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <SponsorSlot placement="matchday" />
