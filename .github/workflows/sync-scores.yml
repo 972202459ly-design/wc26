@@ -3,7 +3,7 @@ name: Sync Match Scores
 on:
   schedule:
     # Every 30 minutes during World Cup hours (matches typically 10:00-02:00 UTC)
-    - cron: "*/30 8-23 * * 6,7,1,2,3,4,5"
+    - cron: "*/30 8-23 * * *"
     - cron: "0 0-2 * * *"
   workflow_dispatch: # manual trigger
 
