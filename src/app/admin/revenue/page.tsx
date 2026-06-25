@@ -1,4 +1,4 @@
-import { getFunnelSummary, getOrdersBySource, getCtaClicksBySource } from "@/lib/events";
+import { getFunnelSummary, getOrdersBySource, getCtaClicksBySource, getSponsorStats } from "@/lib/events";
 
 // Internal revenue / funnel dashboard. Protected by ADMIN_SECRET passed as
 // ?key=… (server-only check — the secret never reaches the client bundle).
@@ -34,10 +34,11 @@ export default async function RevenueDashboard({
   }
 
   const days = Math.min(90, Math.max(1, parseInt(sp.days || "7") || 7));
-  const [f, bySource, ctaClicks] = await Promise.all([
+  const [f, bySource, ctaClicks, sponsors] = await Promise.all([
     getFunnelSummary(days),
     getOrdersBySource(days),
     getCtaClicksBySource(days),
+    getSponsorStats(days),
   ]);
 
   const cards: { label: string; value: string; hint?: string }[] = [
@@ -140,6 +141,37 @@ export default async function RevenueDashboard({
             <tr key={r.source} style={{ borderTop: "1px solid #262a31" }}>
               <td style={{ padding: "6px 8px" }}>{r.source}</td>
               <td style={{ padding: "6px 8px" }}>{r.clicks}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2 style={{ fontSize: 15, marginTop: 28, marginBottom: 10 }}>赞助位曝光/点击 Sponsor slots</h2>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <thead>
+          <tr style={{ color: "#8a909a", textAlign: "left" }}>
+            <th style={{ padding: "6px 8px" }}>Placement</th>
+            <th style={{ padding: "6px 8px" }}>Sponsor</th>
+            <th style={{ padding: "6px 8px" }}>Impressions</th>
+            <th style={{ padding: "6px 8px" }}>Clicks</th>
+            <th style={{ padding: "6px 8px" }}>CTR</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sponsors.length === 0 && (
+            <tr>
+              <td colSpan={5} style={{ padding: "8px", color: "#666" }}>
+                No sponsor activity yet.
+              </td>
+            </tr>
+          )}
+          {sponsors.map((r) => (
+            <tr key={`${r.placement}-${r.sponsor}`} style={{ borderTop: "1px solid #262a31" }}>
+              <td style={{ padding: "6px 8px" }}>{r.placement}</td>
+              <td style={{ padding: "6px 8px" }}>{r.sponsor}</td>
+              <td style={{ padding: "6px 8px" }}>{r.impressions}</td>
+              <td style={{ padding: "6px 8px" }}>{r.clicks}</td>
+              <td style={{ padding: "6px 8px" }}>{pct(r.impressions > 0 ? r.clicks / r.impressions : 0)}</td>
             </tr>
           ))}
         </tbody>

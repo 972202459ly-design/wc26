@@ -4,6 +4,9 @@ import { Trophy } from "lucide-react";
 import { ensureGameSchema, getLeaderboard, getTeamLeaderboard } from "@/lib/db";
 import { teams } from "@/lib/data";
 import GameDisclaimer from "@/components/GameDisclaimer";
+import SponsorSlot from "@/components/SponsorSlot";
+import AdSlot from "@/components/AdSlot";
+import { getTier } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +37,7 @@ export default async function LeaderboardPage() {
     rows = [];
     teamRows = [];
   }
+  const isPremium = (await getTier().catch(() => "free")) === "premium";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -69,6 +73,11 @@ export default async function LeaderboardPage() {
           <b className="text-[#f0a500]">Pro players earn +500 points a day</b> (free gets 200) — plus the full AI breakdown on every match. Climb faster for $7.99 →
         </span>
       </Link>
+
+      {/* Direct sponsor (or house ad → /advertise when unsold) */}
+      <div className="mb-6">
+        <SponsorSlot placement="leaderboard" />
+      </div>
 
       {/* Individual leaderboard */}
       <p className="mb-2 text-xs text-[#777]">
@@ -121,6 +130,9 @@ export default async function LeaderboardPage() {
           </table>
         </div>
       )}
+
+      {/* Display ad — free users only, inert until AdSense is configured */}
+      {!isPremium && rows.length > 10 && <AdSlot className="my-8" />}
 
       {/* Team leaderboard */}
       <div className="mt-10">

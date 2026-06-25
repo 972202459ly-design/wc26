@@ -5,8 +5,24 @@ import Link from "next/link";
 import { Sparkles, Lock } from "lucide-react";
 import GameDisclaimer from "./GameDisclaimer";
 import PredictionSaveGate from "./PredictionSaveGate";
+import ProUpsellModal from "./ProUpsellModal";
 
 const PENDING_KEY = "wc26_pending_pick";
+const UPSELL_SEEN_KEY = "wc26_pro_upsell_seen";
+
+// Show the post-prediction Pro upsell at most once per calendar day, and never
+// to a Pro user. Returns true if it opened the modal (so the cap is recorded).
+function shouldShowUpsell(tier: "free" | "premium" | null): boolean {
+  if (tier === "premium") return false;
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(UPSELL_SEEN_KEY) === today) return false;
+    localStorage.setItem(UPSELL_SEEN_KEY, today);
+  } catch {
+    /* no localStorage — fail open, show it */
+  }
+  return true;
+}
 
 interface Pred {
   homePct: number; drawPct: number; awayPct: number;
@@ -43,6 +59,8 @@ export default function MatchPrediction({
   const [msg, setMsg] = useState("");
   const [placing, setPlacing] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
+  const [tier, setTier] = useState<"free" | "premium" | null>(null);
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   // Persist the in-progress prediction to a POST and reflect the result in the UI.
   // Relies on the session cookie (set on signup/login), not the `authed` state.
@@ -61,6 +79,8 @@ export default function MatchPrediction({
         setMyPick({ match_id: matchId, pick, stake: stk, odds: d.odds, status: "open", payout: 0 });
         setMsg("✓ Prediction saved!");
         try { localStorage.removeItem(PENDING_KEY); } catch {}
+        // High-intent moment: nudge free players toward Pro (once/day, never Pro).
+        if (shouldShowUpsell(d.tier === "premium" ? "premium" : tier)) setUpsellOpen(true);
       } else setMsg(d.error || "Failed");
     } catch { setMsg("Network error"); }
     setPlacing(false);
@@ -86,6 +106,7 @@ export default function MatchPrediction({
       .then((d) => {
         if (!d) return;
         setAuthed(true); setPoints(d.points);
+        setTier(d.tier === "premium" ? "premium" : "free");
         const mine = (d.picks || []).find((p: PickRow) => p.match_id === matchId);
         if (mine) { setMyPick(mine); setSel(mine.pick as Outcome); setStake(mine.stake); return; }
         // Replay a prediction made just before signup (survives a page reload).
@@ -256,6 +277,8 @@ export default function MatchPrediction({
           onClose={() => setGateOpen(false)}
         />
       )}
+
+      {upsellOpen && <ProUpsellModal onClose={() => setUpsellOpen(false)} />}
     </section>
   );
 }

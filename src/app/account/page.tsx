@@ -108,9 +108,14 @@ export default async function AccountPage({
                 <div className="text-sm text-[#888]">Pick&apos;em balance</div>
                 <div className="mt-0.5 text-2xl font-bold text-[#f0a500]">{(points ?? 0).toLocaleString()} <span className="text-sm font-normal text-[#888]">pts</span></div>
               </div>
-              <Link href="/leaderboard" className="rounded-md border border-[#333] px-3 py-2 text-sm text-[#ccc] hover:border-[#555] hover:text-white">
-                Leaderboard →
-              </Link>
+              <div className="flex gap-2">
+                <Link href="/account/analytics" className="rounded-md border border-[#333] px-3 py-2 text-sm text-[#ccc] hover:border-[#555] hover:text-white">
+                  My Analytics →
+                </Link>
+                <Link href="/leaderboard" className="rounded-md border border-[#333] px-3 py-2 text-sm text-[#ccc] hover:border-[#555] hover:text-white">
+                  Leaderboard →
+                </Link>
+              </div>
             </div>
 
             <div className="mt-4 border-t border-[#222] pt-4">

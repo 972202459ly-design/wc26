@@ -25,6 +25,8 @@ export const EVENT_NAMES = [
   "email_subscribed",
   "private_league_created",
   "private_league_invite_joined",
+  "sponsor_impression",
+  "sponsor_click",
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];
@@ -192,6 +194,35 @@ export async function getOrdersBySource(days = 7): Promise<SourceRow[]> {
     ORDER BY cents DESC
   `) as any[];
   return rows.map((r) => ({ source: r.source, orders: r.orders, revenueCents: Number(r.cents) }));
+}
+
+export interface SponsorStatRow {
+  placement: string;
+  sponsor: string;
+  impressions: number;
+  clicks: number;
+}
+
+/** Per-sponsor impressions + clicks for advertiser reporting. */
+export async function getSponsorStats(days = 7): Promise<SponsorStatRow[]> {
+  await ensureEventsTable();
+  const rows = (await getSql()`
+    SELECT COALESCE(props->>'placement', '?') AS placement,
+           COALESCE(props->>'sponsor', '?') AS sponsor,
+           COUNT(*) FILTER (WHERE name = 'sponsor_impression')::int AS impressions,
+           COUNT(*) FILTER (WHERE name = 'sponsor_click')::int AS clicks
+    FROM events
+    WHERE name IN ('sponsor_impression', 'sponsor_click')
+      AND created_at >= NOW() - (${days} || ' days')::interval
+    GROUP BY 1, 2
+    ORDER BY impressions DESC
+  `) as any[];
+  return rows.map((r) => ({
+    placement: r.placement,
+    sponsor: r.sponsor,
+    impressions: r.impressions,
+    clicks: r.clicks,
+  }));
 }
 
 /** CTA-click volume grouped by source — shows which entry points drive intent. */

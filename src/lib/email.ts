@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getSponsor } from "@/lib/sponsor";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
@@ -400,7 +401,7 @@ function dailyPicksHtml(
       ${mine}
     </div>`;
 
-  return wrapHtml("", `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`, matchCards + cta + leaderboard, email);
+  return wrapHtml("", `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`, matchCards + cta + leaderboard + sponsorBlock(), email);
 }
 
 function dailyPicksText(picks: DailyPick[]): string {
@@ -493,7 +494,7 @@ function recapHtml(
       ${mine}
     </div>`;
 
-  return wrapHtml("", `${results.length} match${results.length > 1 ? "es" : ""} wrapped up today`, cards + cta + leaderboard, email);
+  return wrapHtml("", `${results.length} match${results.length > 1 ? "es" : ""} wrapped up today`, cards + cta + leaderboard + sponsorBlock(), email);
 }
 
 function recapText(results: RecapResult[]): string {
@@ -609,6 +610,21 @@ function digestProBlock(): string {
     </div>`;
 }
 
+// Single sponsor slot for the daily emails — one paid slot per send, far higher
+// attention than a web banner. Renders nothing until the slot is sold via the
+// NEXT_PUBLIC_SPONSOR_EMAIL config.
+function sponsorBlock(): string {
+  const s = getSponsor("email");
+  if (!s) return "";
+  return `
+    <div style="border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px;margin-top:14px">
+      <div style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Sponsored</div>
+      <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:4px">${esc(s.headline)}</div>
+      <div style="color:#aaa;font-size:12px;margin-bottom:10px">${esc(s.name)}</div>
+      <a href="${esc(s.url)}" style="display:inline-block;padding:8px 18px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">${esc(s.cta)} →</a>
+    </div>`;
+}
+
 function digestHtml(
   results: RecapResult[],
   picks: DailyPick[],
@@ -633,6 +649,7 @@ function digestHtml(
       </div>`);
   }
   parts.push(digestLeaderboard(top, myRank));
+  parts.push(sponsorBlock());
   if (showPro) parts.push(digestProBlock());
   const subtitle = picks.length
     ? `${picks.length} match${picks.length > 1 ? "es" : ""} to predict today`

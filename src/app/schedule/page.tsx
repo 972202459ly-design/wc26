@@ -5,6 +5,7 @@ import { predictMatch } from "@/lib/predict";
 import type { SocialPreview } from "@/lib/db";
 import MatchCard from "@/components/MatchCard";
 import AdPlaceholder from "@/components/AdPlaceholder";
+import AdSlot from "@/components/AdSlot";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Match } from "@/lib/types";
 import { useTranslations } from "next-intl";
@@ -243,6 +244,9 @@ export default function SchedulePage() {
                   );
                 })}
               </div>
+              {/* Real AdSense unit after the first day's matches (~4th match);
+                  inert until AdSense is configured. */}
+              {idx === 0 && <AdSlot className="mt-6" />}
               {idx > 0 && idx % 3 === 0 && (
                 <div className="mt-6">
                   <AdPlaceholder size="banner" />

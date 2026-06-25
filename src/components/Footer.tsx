@@ -66,6 +66,12 @@ export default async function Footer() {
               >
                 {t("getAlerts")}
               </Link>
+              <Link
+                href="/advertise"
+                className="text-sm text-[#888] hover:text-white transition-colors"
+              >
+                Advertise
+              </Link>
             </div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mt-4 mb-3">
               {t("legalTitle")}

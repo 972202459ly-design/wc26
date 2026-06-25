@@ -3,6 +3,7 @@ import { predictMatch, oddsFromPct, predictionSentence } from "@/lib/predict";
 import { ensurePredictionsTable, getCachedAnalysis } from "@/lib/db";
 import { notFound } from "next/navigation";
 import MatchDetail from "./MatchDetail";
+import AdSlot from "@/components/AdSlot";
 import type { Metadata } from "next";
 
 // Re-render server HTML periodically so crawlers and no-JS users see fresh
@@ -174,6 +175,10 @@ export default async function MatchPage({
         prediction={prediction}
         analysisTeaser={analysisTeaser}
       />
+      {/* Display ad below the match body — inert until AdSense is configured.
+          This page is statically generated (no cookies), so it can't be
+          premium-gated server-side; match traffic is overwhelmingly anonymous. */}
+      <AdSlot className="my-8" />
     </>
   );
 }

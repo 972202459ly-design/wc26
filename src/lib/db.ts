@@ -293,6 +293,106 @@ export async function getUserPicks(email: string): Promise<Pick[]> {
   return rows as unknown as Pick[];
 }
 
+export interface PlayerAnalytics {
+  totalPredictions: number; // settled (won + lost)
+  pending: number;
+  wins: number;
+  losses: number;
+  accuracy: number; // 0..1 over settled
+  siteAccuracy: number; // 0..1 across all players
+  netPoints: number; // lifetime payout − stake on settled picks
+  rank: number | null;
+  totalPlayers: number;
+  bestTeam: { team: string; wins: number } | null;
+  last10: { result: "won" | "lost"; net: number; team: string }[];
+  trend: { net: number }[]; // chronological net per settled pick (premium chart)
+}
+
+/** Aggregate a player's prediction performance for the analytics dashboard.
+ *  All figures derive from settled (won/lost) picks; team names come from the
+ *  synced match. Site accuracy is the community denominator for comparison. */
+export async function getPlayerAnalytics(email: string): Promise<PlayerAnalytics> {
+  const e = email.toLowerCase().trim();
+  const sql = getSql();
+
+  const [totals] = (await sql`
+    SELECT
+      COUNT(*) FILTER (WHERE status IN ('won','lost'))::int AS settled,
+      COUNT(*) FILTER (WHERE status = 'open')::int AS pending,
+      COUNT(*) FILTER (WHERE status = 'won')::int AS wins,
+      COALESCE(SUM(payout) FILTER (WHERE status = 'won'), 0)::int AS gross,
+      COALESCE(SUM(stake) FILTER (WHERE status IN ('won','lost')), 0)::int AS staked
+    FROM picks WHERE email = ${e}
+  `) as any[];
+
+  const settled = totals?.settled ?? 0;
+  const wins = totals?.wins ?? 0;
+  const losses = settled - wins;
+  const netPoints = (totals?.gross ?? 0) - (totals?.staked ?? 0);
+
+  const [site] = (await sql`
+    SELECT COUNT(*) FILTER (WHERE status = 'won')::float
+      / NULLIF(COUNT(*) FILTER (WHERE status IN ('won','lost')), 0) AS acc
+    FROM picks
+  `) as any[];
+
+  // Settled picks with the team they backed, newest first — drives last-10,
+  // best-team and the trend chart.
+  const history = (await sql`
+    SELECT p.pick, p.status, p.payout, p.stake,
+      CASE WHEN p.pick = 'home' THEN m.home_team
+           WHEN p.pick = 'away' THEN m.away_team
+           ELSE 'Draw' END AS team
+    FROM picks p
+    JOIN match_scores m ON m.match_id = p.match_id
+    WHERE p.email = ${e} AND p.status IN ('won','lost')
+    ORDER BY p.settled_at DESC NULLS LAST, p.created_at DESC
+    LIMIT 100
+  `) as any[];
+
+  const last10 = history.slice(0, 10).map((r) => ({
+    result: (r.status === "won" ? "won" : "lost") as "won" | "lost",
+    net: r.status === "won" ? r.payout - r.stake : -r.stake,
+    team: r.team,
+  }));
+
+  // Best team = most wins backing that team (Draw excluded).
+  const teamWins = new Map<string, number>();
+  for (const r of history) {
+    if (r.status === "won" && r.team && r.team !== "Draw") {
+      teamWins.set(r.team, (teamWins.get(r.team) ?? 0) + 1);
+    }
+  }
+  let bestTeam: { team: string; wins: number } | null = null;
+  for (const [team, w] of teamWins) {
+    if (!bestTeam || w > bestTeam.wins) bestTeam = { team, wins: w };
+  }
+
+  // Chronological net (oldest → newest) for the premium trend chart.
+  const trend = history
+    .slice()
+    .reverse()
+    .map((r) => ({ net: r.status === "won" ? r.payout - r.stake : -r.stake }));
+
+  const ranked = await getRankedPlayers();
+  const idx = ranked.findIndex((r) => r.email === e);
+
+  return {
+    totalPredictions: settled,
+    pending: totals?.pending ?? 0,
+    wins,
+    losses,
+    accuracy: settled > 0 ? wins / settled : 0,
+    siteAccuracy: site?.acc ?? 0,
+    netPoints,
+    rank: idx >= 0 ? idx + 1 : null,
+    totalPlayers: ranked.length,
+    bestTeam,
+    last10,
+    trend,
+  };
+}
+
 /**
  * Place (or replace, before kickoff) a stake on a match outcome. Refunds any
  * prior open stake on the same match, then deducts the new stake. Returns the

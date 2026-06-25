@@ -16,6 +16,7 @@ import HeroEmailCapture from "@/components/HeroEmailCapture";
 import HomeSocialProof from "@/components/HomeSocialProof";
 import HomeMatchSections from "@/components/HomeMatchSections";
 import StandingsSnapshot from "@/components/StandingsSnapshot";
+import SponsorSlot from "@/components/SponsorSlot";
 
 // Re-render the served HTML periodically so crawlers and no-JS visitors always
 // see the correct "today / upcoming" set based on the real clock — never a
@@ -184,6 +185,11 @@ export default async function HomePage() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Matchday sponsor (or house ad → /advertise when unsold) */}
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <SponsorSlot placement="matchday" />
       </section>
 
       {/* Private league CTA */}
