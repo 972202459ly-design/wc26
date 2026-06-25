@@ -159,6 +159,32 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Private league CTA — flagship new feature, surfaced above the generic game CTA */}
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-[#f0a500]/70 bg-gradient-to-br from-[#241a3a] to-[#111] p-6 text-center shadow-lg shadow-[#f0a500]/10 sm:flex-row sm:text-left">
+          <div className="text-4xl">🏆</div>
+          <div className="flex-1">
+            <div className="flex items-center justify-center gap-2 sm:justify-start">
+              <h2 className="text-lg font-bold text-white">Run a private World Cup Pick&apos;em</h2>
+              <span className="rounded bg-[#f0a500] px-1.5 py-0.5 text-[10px] font-bold text-black">NEW</span>
+            </div>
+            <p className="mt-1 text-sm text-[#aaa]">
+              Create a league for friends, coworkers or your watch party — everyone predicts, you crown
+              your own champion.{" "}
+              <span className="text-[#ddd]">$14.99 one-time as host · everyone you invite joins free.</span>
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/leagues/create"
+              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
+            >
+              Create a Private League →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Pick'em game CTA */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#f0a500]/40 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center sm:flex-row sm:text-left">
@@ -190,28 +216,6 @@ export default async function HomePage() {
       {/* Matchday sponsor (or house ad → /advertise when unsold) */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <SponsorSlot placement="matchday" />
-      </section>
-
-      {/* Private league CTA */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#f0a500]/40 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center sm:flex-row sm:text-left">
-          <div className="text-4xl">🏆</div>
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-white">Run a private World Cup Pick&apos;em</h2>
-            <p className="mt-1 text-sm text-[#aaa]">
-              Create a league for friends, coworkers or your watch party. Everyone predicts, you
-              crown your own champion.
-            </p>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Link
-              href="/leagues/create"
-              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
-            >
-              Create a Private League
-            </Link>
-          </div>
-        </div>
       </section>
 
       {/* Email alerts */}

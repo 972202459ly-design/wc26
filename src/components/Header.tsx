@@ -12,12 +12,12 @@ export default function Header() {
   const t = useTranslations("nav");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const navLinks = [
+  const navLinks: { href: string; label: string; badge?: string }[] = [
     { href: "/", label: t("home") },
     { href: "/schedule", label: t("schedule") },
     { href: "/bracket", label: t("bracket") },
     { href: "/leaderboard", label: t("leaderboard") },
-    { href: "/leagues", label: "Leagues" },
+    { href: "/leagues", label: "Leagues", badge: "NEW" },
     { href: "/standings", label: t("standings") },
     { href: "/groups", label: t("groups") },
     { href: "/teams", label: t("teams") },
@@ -60,18 +60,29 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                className={`relative px-3 py-2 text-sm rounded-md transition-colors ${
                   isActive(link.href)
                     ? "text-white bg-white/10"
                     : "text-[#888] hover:text-white hover:bg-white/5"
                 }`}
               >
                 {link.label}
+                {link.badge && (
+                  <span className="ml-1 rounded bg-[#f0a500] px-1 py-0.5 text-[8px] font-bold align-top text-black">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
             <Link
-              href="/subscribe"
+              href="/premium"
               className="ml-1 shrink-0 rounded-lg bg-[#f0a500] px-3 py-1.5 text-xs font-bold text-black hover:bg-[#d49500] transition-colors"
+            >
+              Go Pro
+            </Link>
+            <Link
+              href="/subscribe"
+              className="shrink-0 rounded-lg border border-[#444] px-3 py-1.5 text-xs font-bold text-[#ccc] hover:border-[#f0a500] hover:text-white transition-colors"
             >
               Free Alerts
             </Link>
@@ -116,18 +127,29 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive(link.href) ? "page" : undefined}
-                className={`flex min-h-[44px] items-center rounded-lg px-4 text-base transition-colors ${
+                className={`flex min-h-[44px] items-center gap-2 rounded-lg px-4 text-base transition-colors ${
                   isActive(link.href)
                     ? "bg-[#f0a500]/15 font-semibold text-[#f0a500]"
                     : "text-[#ccc] hover:bg-white/5 hover:text-white"
                 }`}
               >
                 {link.label}
+                {link.badge && (
+                  <span className="rounded bg-[#f0a500] px-1.5 py-0.5 text-[9px] font-bold text-black">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
             <Link
-              href="/subscribe"
+              href="/premium"
               className="mt-4 flex min-h-[44px] items-center justify-center rounded-lg bg-[#f0a500] px-4 text-base font-bold text-black hover:bg-[#d49500]"
+            >
+              Go Pro — $7.99
+            </Link>
+            <Link
+              href="/subscribe"
+              className="mt-2 flex min-h-[44px] items-center justify-center rounded-lg border border-[#444] px-4 text-base font-bold text-[#ccc] hover:border-[#f0a500] hover:text-white"
             >
               Free Alerts
             </Link>
