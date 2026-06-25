@@ -16,4 +16,4 @@ jobs:
     steps:
       - name: Call sync endpoint
         run: |
-          curl -s -f "${{ secrets.SYNC_URL }}" || echo "Sync skipped (no SYNC_URL configured)"
+          curl -s -f -L --max-redirs 3 "${{ secrets.SYNC_URL }}" || echo "Sync skipped (no SYNC_URL configured)"
