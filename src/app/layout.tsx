@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AmazonStickyBar from "@/components/AmazonStickyBar";
+import PageViewTracker from "@/components/PageViewTracker";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { Analytics } from "@vercel/analytics/next";
@@ -100,6 +101,7 @@ export default async function RootLayout({
         </NextIntlClientProvider>
 
         <Analytics />
+        <PageViewTracker />
 
         {gaId && (
           <>

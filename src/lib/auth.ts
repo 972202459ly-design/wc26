@@ -94,6 +94,14 @@ export async function getSession(): Promise<Session | null> {
   return { email, tier };
 }
 
+/** Just the verified email from the session cookie — no DB tier lookup. For
+ *  high-frequency paths (analytics) that only need identity, not entitlement. */
+export async function getSessionEmail(): Promise<string | null> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  return verify(token, "s", SESSION_MAX_AGE_S * 1000);
+}
+
 /** Tier of the current visitor; "free" when not signed in. */
 export async function getTier(): Promise<Tier> {
   const session = await getSession();

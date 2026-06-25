@@ -1,6 +1,7 @@
 "use client";
 
 import { amazonSearchLink } from "@/lib/data";
+import { track } from "@/lib/track";
 
 const ADS = {
   prime: {
@@ -31,7 +32,8 @@ export default function AmazonImageAd({ variant }: { variant: "prime" | "party" 
     <a
       href={ad.href}
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener noreferrer sponsored"
+      onClick={() => track("affiliate_click", undefined, { placement: "image_ad", variant })}
       className="group relative mx-6 mb-4 block overflow-hidden rounded-xl border border-white/5"
       style={{ height: 110 }}
     >

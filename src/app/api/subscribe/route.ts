@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureSubscribersTable, subscribeEmail } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
+import { recordEvent } from "@/lib/events";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +27,11 @@ export async function POST(request: NextRequest) {
     // New tiering: free signups are "free" (final scores only). Real-time
     // alerts are the premium tier (granted via Paddle purchase).
     const subscriber = await subscribeEmail(email, "free");
+
+    recordEvent("email_subscribed", {
+      source: typeof body.source === "string" ? body.source : undefined,
+      email,
+    });
 
     // Fire-and-forget welcome email (whitelist guidance for deliverability).
     sendWelcomeEmail(email).catch(() => {});

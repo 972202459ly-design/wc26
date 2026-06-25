@@ -186,6 +186,28 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Private league CTA */}
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#f0a500]/40 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center sm:flex-row sm:text-left">
+          <div className="text-4xl">🏆</div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-white">Run a private World Cup Pick&apos;em</h2>
+            <p className="mt-1 text-sm text-[#aaa]">
+              Create a league for friends, coworkers or your watch party. Everyone predicts, you
+              crown your own champion.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/leagues/create"
+              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
+            >
+              Create a Private League
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Email alerts */}
       <section className="max-w-2xl mx-auto px-4 pb-12 text-center">
         <h2 className="text-lg font-bold text-white mb-1">{t("email.title")}</h2>

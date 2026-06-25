@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Paddle } from "@paddle/paddle-js";
+import { track } from "@/lib/track";
 
 const plans = [
   {
@@ -22,6 +24,14 @@ const plans = [
 
 export default function PremiumCheckout() {
   const [paddle, setPaddle] = useState<Paddle | null>(null);
+  const searchParams = useSearchParams();
+  // Which CTA brought the visitor here — attributes the eventual order.
+  const source = searchParams.get("source") || "premium_page";
+
+  // Funnel: landed on the premium page.
+  useEffect(() => {
+    track("premium_view", source, { product: "fan_pro" });
+  }, [source]);
 
   useEffect(() => {
     const initPaddle = async () => {
@@ -42,10 +52,15 @@ export default function PremiumCheckout() {
     initPaddle();
   }, []);
 
-  const handleCheckout = (priceId: string) => {
+  const handleCheckout = (priceId: string, product: string) => {
     if (!paddle || !priceId) return;
+    // Funnel: CTA click → checkout opened. `source`/`product` ride in
+    // customData so the webhook can attribute the completed purchase.
+    track("premium_cta_click", source, { product });
+    track("checkout_started", source, { product });
     paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
+      customData: { source, product },
       settings: {
         displayMode: "overlay",
         theme: "dark",
@@ -109,7 +124,7 @@ export default function PremiumCheckout() {
               ))}
             </ul>
             <button
-              onClick={() => handleCheckout(plan.priceId)}
+              onClick={() => handleCheckout(plan.priceId, "fan_pro")}
               disabled={!paddle}
               className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

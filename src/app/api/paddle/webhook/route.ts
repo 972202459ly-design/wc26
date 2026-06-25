@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { neon } from "@neondatabase/serverless";
 import { ensureSubscriptionsTable, ensureSubscribersTable, subscribeEmail } from "@/lib/db";
+import { recordEvent } from "@/lib/events";
+import { markLeaguePaid } from "@/lib/leagues";
 import { EventName, Webhooks } from "@paddle/paddle-node-sdk";
 
 // Paddle SDK uses a 5-second replay window which is too tight for Vercel cold
@@ -81,6 +83,33 @@ export async function POST(request: NextRequest) {
         await ensureSubscribersTable();
         await subscribeEmail(email, "premium");
         console.log(`Granted premium to ${email} (transaction ${d.id})`);
+        // Funnel: real-money purchase. Paddle sends the amount in the
+        // currency's lowest denomination (e.g. cents) as a string. `source`
+        // and `product` ride along in custom_data set at checkout time.
+        const grand = d.details?.totals?.grand_total;
+        recordEvent("purchase_completed", {
+          source: d.custom_data?.source,
+          email,
+          props: {
+            amount_cents: grand != null ? Number(grand) : undefined,
+            currency: d.currency_code,
+            product: d.custom_data?.product,
+            transaction_id: d.id,
+          },
+        });
+
+        // League Host purchase → activate the draft league. Fan Pro is already
+        // granted above (subscribeEmail premium), since League Host includes it.
+        const leagueId = Number(d.custom_data?.leagueId);
+        if (d.custom_data?.product === "league_host" && Number.isFinite(leagueId) && leagueId > 0) {
+          await markLeaguePaid(leagueId);
+          recordEvent("private_league_created", {
+            source: d.custom_data?.source,
+            email,
+            props: { leagueId, transaction_id: d.id },
+          });
+          console.log(`Activated league ${leagueId} for ${email}`);
+        }
       } else {
         console.error(`transaction.completed — no email resolved. customer: ${customerId}, tx: ${d.id}`);
       }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import PremiumCheckout from "./PremiumCheckout";
 
 export const metadata: Metadata = {
@@ -6,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function PremiumPage() {
-  return <PremiumCheckout />;
+  return (
+    <Suspense>
+      <PremiumCheckout />
+    </Suspense>
+  );
 }

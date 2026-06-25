@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import type { ReactNode } from "react";
+import TrackView from "./TrackView";
 
 /**
  * Locked-state UI for premium features. The PAGE decides what to render:
@@ -10,17 +11,20 @@ import type { ReactNode } from "react";
  */
 export default function Paywall({
   teaser,
-  title = "Unlock with a Tournament Pass",
+  title = "Unlock with Fan Pro",
   description = "AI win predictions, the qualification simulator, and real-time alerts — one payment, all the way to the final.",
   signedIn = false,
+  source = "paywall",
 }: {
   teaser?: ReactNode;
   title?: string;
   description?: string;
   signedIn?: boolean;
+  source?: string;
 }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-[#2a2a2a]">
+      <TrackView event="premium_teaser_view" source={source} />
       {teaser && (
         <div
           aria-hidden
@@ -38,10 +42,10 @@ export default function Paywall({
         <p className="max-w-sm text-sm text-[#aaa]">{description}</p>
         <div className="mt-1 flex items-center gap-3">
           <Link
-            href="/premium"
+            href={`/premium?source=${encodeURIComponent(source)}`}
             className="rounded-md bg-[#f0a500] px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
           >
-            Get the Pass — $4.99
+            Get Fan Pro — $7.99
           </Link>
           {!signedIn && (
             <Link

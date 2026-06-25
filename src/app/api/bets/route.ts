@@ -9,6 +9,7 @@ import {
   getOrCreatePlayer,
   dailyTopup,
 } from "@/lib/db";
+import { recordEvent } from "@/lib/events";
 
 // GET: current player's balance + pick history (also grants the daily top-up).
 export async function GET() {
@@ -64,6 +65,13 @@ export async function POST(request: NextRequest) {
 
   const result = await placePick(session.email, matchId, pick, stake, odds);
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+
+  // Funnel: a confirmed prediction is the top of the conversion path.
+  recordEvent("prediction_submitted", {
+    source: "match_page",
+    email: session.email,
+    props: { matchId, pick, stake },
+  });
 
   return NextResponse.json({ ok: true, points: result.points, pick, stake, odds });
 }

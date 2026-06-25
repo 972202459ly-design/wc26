@@ -17,6 +17,7 @@ export default function Header() {
     { href: "/schedule", label: t("schedule") },
     { href: "/bracket", label: t("bracket") },
     { href: "/leaderboard", label: t("leaderboard") },
+    { href: "/leagues", label: "Leagues" },
     { href: "/standings", label: t("standings") },
     { href: "/groups", label: t("groups") },
     { href: "/teams", label: t("teams") },
@@ -55,7 +56,7 @@ export default function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 md:flex">
-            {navLinks.slice(0, 8).map((link) => (
+            {navLinks.slice(0, 9).map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

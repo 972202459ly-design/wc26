@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { amazonSearchLink } from "@/lib/data";
+import { track } from "@/lib/track";
 
 // Rotate between two Amazon affiliate CTAs — match-day gear, no streaming-rights
 // claims.
@@ -82,7 +83,8 @@ export default function AmazonStickyBar() {
         <a
           href={href}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
+          onClick={() => track("affiliate_click", undefined, { placement: "sticky_bar", slot: slot.headline })}
           className={`shrink-0 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${slot.btnStyle}`}
         >
           {slot.btn}
