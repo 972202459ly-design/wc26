@@ -66,7 +66,7 @@ export default async function LeaderboardPage() {
       >
         <span className="text-xl">🏆</span>
         <span className="text-sm text-[#ddd]">
-          <b className="text-[#f0a500]">Pro players earn +500 points a day</b> (free gets 200) — plus the full AI breakdown on every match. Climb faster for $4.99 →
+          <b className="text-[#f0a500]">Pro players earn +500 points a day</b> (free gets 200) — plus the full AI breakdown on every match. Climb faster for $7.99 →
         </span>
       </Link>
 

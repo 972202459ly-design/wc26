@@ -167,8 +167,8 @@ function promoBlock(): string {
   return `
     <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:14px 16px;margin-bottom:16px;text-align:center">
       <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:6px">⚡ Want goal alerts the second they happen?</div>
-      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Tournament Pass: instant alerts (with scorer), kickoff reminders, follow your team, ad-free — all the way to the final.</div>
-      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Get the Tournament Pass — $4.99 →</a>
+      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Fan Pro: instant alerts (with scorer), kickoff reminders, follow your team, ad-free — all the way to the final.</div>
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Get Fan Pro — $7.99 →</a>
     </div>`;
 }
 
@@ -318,7 +318,7 @@ export async function sendMagicLink(email: string, url: string): Promise<void> {
     <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:24px;text-align:center">
       <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">Sign in to WC26 Live</div>
       <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 20px">
-        Click the button below to access your account and any active Tournament Pass.
+        Click the button below to access your account and any active Fan Pro.
         This link expires in 15 minutes.
       </p>
       <a href="${url}" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Sign in →</a>
@@ -605,7 +605,7 @@ function digestProBlock(): string {
     <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:14px 16px;margin-top:14px;text-align:center">
       <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:6px">🏆 Want the edge?</div>
       <div style="color:#aaa;font-size:12px;margin-bottom:10px">Pro unlocks the full AI breakdown + value pick on every match and earns you <b style="color:#f0a500">+500 points a day</b> (free gets 200) — climb the leaderboard faster, all the way to the July 19 final.</div>
-      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Go Pro — $4.99 one-time →</a>
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Go Pro — $7.99 one-time →</a>
     </div>`;
 }
 
@@ -693,7 +693,7 @@ function proPitchHtml(
 
   const valueList = `
     <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:18px;margin-bottom:16px">
-      <div style="color:#f0a500;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Tournament Pass — $4.99 one-time</div>
+      <div style="color:#f0a500;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Fan Pro — $7.99 one-time</div>
       <div style="font-size:14px;color:#ddd;line-height:1.9">
         🧠 <b style="color:#fff">Full AI breakdown + value pick</b> on every match (free only sees the summary)<br>
         🏆 <b style="color:#fff">+500 points every day</b> to climb faster (free gets 200)<br>
@@ -708,7 +708,7 @@ function proPitchHtml(
 
   const cta = `
     <div style="text-align:center;margin:6px 0 8px">
-      <a href="https://wc26live.org/premium" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Get the Tournament Pass — $4.99 →</a>
+      <a href="https://wc26live.org/premium" style="display:inline-block;padding:13px 30px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Get Fan Pro — $7.99 →</a>
     </div>`;
 
   const medals = ["🥇", "🥈", "🥉"];
@@ -729,7 +729,7 @@ function proPitchHtml(
 
 function proPitchText(myRank: DigestRank | null): string {
   const r = myRank ? `You're #${myRank.rank} with ${myRank.points} points. ` : "";
-  return `${r}Get the Tournament Pass ($4.99 one-time): full AI breakdown + value picks on every match, +500 points/day, real-time alerts, all the way to the July 19 final. https://wc26live.org/premium`;
+  return `${r}Get Fan Pro ($7.99 one-time): full AI breakdown + value picks on every match, +500 points/day, real-time alerts, all the way to the July 19 final. https://wc26live.org/premium`;
 }
 
 export async function sendProPitchEmail(

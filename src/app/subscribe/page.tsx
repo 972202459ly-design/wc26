@@ -119,7 +119,7 @@ export default function SubscribePage() {
         <div className="rounded-xl border border-[#f0a500]/50 bg-gradient-to-b from-[#1a1a2e] to-[#111] p-5">
           <div className="mb-1 flex items-center justify-between">
             <span className="text-sm font-bold text-[#f0a500]">Premium</span>
-            <span className="text-xs text-[#888]">$4.99 · whole tournament</span>
+            <span className="text-xs text-[#888]">$7.99 · whole tournament</span>
           </div>
           <p className="mb-3 text-xs text-[#777]">Everything in Free, plus:</p>
           <ul className="space-y-2">
@@ -139,7 +139,7 @@ export default function SubscribePage() {
           href="/premium"
           className="inline-block rounded-lg border border-[#f0a500] px-6 py-3 text-sm font-bold text-[#f0a500] transition-colors hover:bg-[#f0a500] hover:text-black"
         >
-          Upgrade to Premium — $4.99
+          Upgrade to Premium — $7.99
         </Link>
         <p className="mt-2 text-[11px] text-[#888]">One payment covers the entire tournament. No recurring charges.</p>
       </div>

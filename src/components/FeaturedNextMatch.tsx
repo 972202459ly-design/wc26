@@ -526,7 +526,7 @@ export default function FeaturedNextMatch() {
                   >
                     <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
                     <span className="text-sm text-[#ddd]">
-                      <b className="text-[#f0a500]">Unlock the full AI breakdown + value pick</b> with Pro — $4.99 →
+                      <b className="text-[#f0a500]">Unlock the full AI breakdown + value pick</b> with Pro — $7.99 →
                     </span>
                   </Link>
                 )}

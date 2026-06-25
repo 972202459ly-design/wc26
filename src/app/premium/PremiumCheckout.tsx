@@ -7,8 +7,8 @@ import { track } from "@/lib/track";
 
 const plans = [
   {
-    name: "Tournament Pass",
-    price: "$4.99",
+    name: "Fan Pro",
+    price: "$7.99",
     period: " one-time",
     description: "Your competitive edge for the whole tournament — one payment, no recurring charges, all the way to the July 19 final.",
     features: [
@@ -128,7 +128,7 @@ export default function PremiumCheckout() {
               disabled={!paddle}
               className="block w-full text-center px-4 py-3 text-sm font-semibold rounded-lg border border-[#f0a500] text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {paddle ? "Get the Tournament Pass — $4.99" : "Loading..."}
+              {paddle ? "Get Fan Pro — $7.99" : "Loading..."}
             </button>
           </div>
         ))}

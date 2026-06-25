@@ -13,7 +13,7 @@ export default function RefundPage() {
 
       <div className="prose prose-invert prose-sm max-w-none space-y-6 text-[#ccc]">
         <Section title="1. Digital Subscription Services">
-          WC26 Live sells digital subscription services (Monthly Pass and Tournament Pass). All
+          WC26 Live sells digital subscription services (Monthly Pass and Fan Pro). All
           purchases are processed through Paddle, our authorized payment processor.
         </Section>
 
@@ -25,7 +25,7 @@ export default function RefundPage() {
               given for unused time remaining in a billing period.
             </li>
             <li>
-              <strong>Tournament Pass:</strong> This is a one-time purchase for the duration of
+              <strong>Fan Pro:</strong> This is a one-time purchase for the duration of
               the 2026 FIFA World Cup tournament. Refunds are considered on a case-by-case basis
               within 14 days of purchase if the Service has not been used.
             </li>

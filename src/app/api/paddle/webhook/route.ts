@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const body = JSON.parse(rawBody);
     const eventType: string = body.event_type;
 
-    // One-time Tournament Pass purchases come through as transaction events.
+    // One-time Fan Pro purchases come through as transaction events.
     if (eventType === "transaction.completed" || eventType === "transaction.paid") {
       const d = body.data || {};
       let email: string | undefined =

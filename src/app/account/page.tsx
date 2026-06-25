@@ -17,7 +17,7 @@ const pickName = (id: string, pick: string) => {
 
 export const metadata: Metadata = {
   title: "Account",
-  description: "Sign in to manage your WC26 Live account and Tournament Pass.",
+  description: "Sign in to manage your WC26 Live account and Fan Pro.",
   robots: { index: false, follow: false },
 };
 
@@ -71,7 +71,7 @@ export default async function AccountPage({
               <span className="text-sm text-[#888]">Plan:</span>
               {session.tier === "premium" ? (
                 <span className="rounded-full bg-[#f0a500] px-2.5 py-0.5 text-xs font-bold text-black">
-                  TOURNAMENT PASS ✓
+                  FAN PRO ✓
                 </span>
               ) : (
                 <span className="rounded-full bg-[#333] px-2.5 py-0.5 text-xs font-bold text-[#bbb]">
@@ -89,13 +89,13 @@ export default async function AccountPage({
               <div className="mt-4">
                 <p className="text-sm text-[#aaa]">
                   Unlock AI win predictions, the qualification simulator, and real-time
-                  alerts with a one-time Tournament Pass.
+                  alerts with a one-time Fan Pro.
                 </p>
                 <Link
                   href="/premium"
                   className="mt-3 inline-block rounded-md bg-[#f0a500] px-4 py-2 text-sm font-semibold text-black hover:opacity-90"
                 >
-                  Get the Tournament Pass — $4.99 →
+                  Get Fan Pro — $7.99 →
                 </Link>
               </div>
             )}
@@ -184,7 +184,7 @@ export default async function AccountPage({
             </p>
           )}
           <p className="text-sm text-[#aaa]">
-            Sign in to access your Tournament Pass. We&apos;ll email you a secure link — no
+            Sign in to access your Fan Pro. We&apos;ll email you a secure link — no
             password required.
           </p>
           <SignInForm />

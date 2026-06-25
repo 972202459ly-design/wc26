@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 // Pro upgrade pitch to ENGAGED free players — those who have placed at least
 // one pick (they value the game, so they're the realistic converters). Shows
-// their rank, the next match, and the Tournament Pass value. Guarded by
+// their rank, the next match, and the Fan Pro value. Guarded by
 // CRON_SECRET; supports ?dry=1 and ?test=<email>. Triggered manually.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

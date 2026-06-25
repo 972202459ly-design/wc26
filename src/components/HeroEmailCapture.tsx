@@ -70,7 +70,7 @@ export default function HeroEmailCapture() {
       </p>
       <p className="mt-0.5 text-[11px] text-[#666]">
         <Link href="/premium" className="text-[#f0a500]/80 hover:text-[#f0a500]">
-          Premium ($4.99)
+          Premium ($7.99)
         </Link>{" "}
         adds instant goal alerts, kickoff reminders &amp; full AI analysis. Unsubscribe anytime.
       </p>
