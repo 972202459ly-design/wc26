@@ -22,7 +22,7 @@
     },
     "viewFullSchedule": "View Full Schedule",
     "liveStandings": "Live Standings",
-    "heroSubscribe": "⚡ Live Goal Alerts — $4.99",
+    "heroSubscribe": "⚡ Live Goal Alerts — $7.99",
     "heroFreeLink": "Free Match Alerts",
     "heroPlay": "Start Predicting",
     "heroScores": "Live Scores",
@@ -57,7 +57,7 @@
     },
     "cta": {
       "title": "Get World Cup Match Alerts",
-      "description": "Free final-score alerts & match previews by email. Go Premium ($4.99) for instant goal alerts, kickoff reminders and full AI analysis.",
+      "description": "Free final-score alerts & match previews by email. Go Premium ($7.99) for instant goal alerts, kickoff reminders and full AI analysis.",
       "button": "Subscribe Free"
     }
   },
