@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getTeamFlagUrl } from "@/lib/data";
 import { track } from "@/lib/track";
+import SignInForm from "./SignInForm";
 
 export type Outcome = "home" | "draw" | "away";
 
@@ -48,7 +49,7 @@ function cmp(a: Row, b: Row): number {
   return b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.localeCompare(b.team);
 }
 
-export default function QualificationSimulator({ groups }: { groups: SimGroup[] }) {
+export default function QualificationSimulator({ groups, authed }: { groups: SimGroup[]; authed: boolean }) {
   const initPicks = (): Record<string, Outcome> => {
     const init: Record<string, Outcome> = {};
     for (const g of groups) for (const m of g.matches) init[m.id] = m.aiPick;
@@ -57,6 +58,16 @@ export default function QualificationSimulator({ groups }: { groups: SimGroup[] 
 
   const [picks, setPicks] = useState<Record<string, Outcome>>(initPicks);
   const [live, setLive] = useState<Record<string, { hs: number; as: number; status: string }>>({});
+  const [gateOpen, setGateOpen] = useState(false);
+
+  // Free to view (SSR content stays crawlable), but running what-if scenarios
+  // requires a free account — turning the simulator into a registration driver.
+  const requireAuth = (): boolean => {
+    if (authed) return false;
+    setGateOpen(true);
+    track("premium_teaser_view", "simulator", { feature: "simulator_signin_gate" });
+    return true;
+  };
 
   // Layer in real scores so finished matches lock to the actual result.
   useEffect(() => {
@@ -144,10 +155,26 @@ export default function QualificationSimulator({ groups }: { groups: SimGroup[] 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picks, live]);
 
-  const set = (id: string, o: Outcome) => setPicks((p) => ({ ...p, [id]: o }));
+  const set = (id: string, o: Outcome) => {
+    if (requireAuth()) return;
+    setPicks((p) => ({ ...p, [id]: o }));
+  };
 
   return (
     <div>
+      {/* Sign-in gate banner — viewing is free, running scenarios needs an account */}
+      {!authed && (
+        <button
+          type="button"
+          onClick={() => requireAuth()}
+          className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl border border-[#f0a500]/40 bg-gradient-to-r from-[#1e1e35] to-[#111] px-5 py-3 text-left transition-colors hover:border-[#f0a500]/70"
+        >
+          <span className="text-sm text-[#ddd]">
+            🔒 <b className="text-white">Sign in free to run the simulator</b> — change any result and see who advances. Takes 10 seconds.
+          </span>
+          <span className="shrink-0 rounded-lg bg-[#f0a500] px-4 py-2 text-xs font-bold text-black">Sign in free →</span>
+        </button>
+      )}
       {/* Summary + controls */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f0a500]/30 bg-[#111] px-5 py-4">
         <div className="text-sm text-[#ddd]">
@@ -157,7 +184,7 @@ export default function QualificationSimulator({ groups }: { groups: SimGroup[] 
         </div>
         <button
           type="button"
-          onClick={() => setPicks(initPicks())}
+          onClick={() => { if (!requireAuth()) setPicks(initPicks()); }}
           className="rounded-lg border border-[#444] px-3 py-1.5 text-xs font-semibold text-[#ccc] hover:border-[#f0a500] hover:text-white"
         >
           Reset to AI prediction
@@ -276,6 +303,31 @@ export default function QualificationSimulator({ groups }: { groups: SimGroup[] 
           Go Pro — $7.99 →
         </Link>
       </div>
+
+      {/* Free sign-in gate — appears the moment a logged-out visitor tries to use it */}
+      {gateOpen && !authed && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setGateOpen(false)}
+        >
+          <div className="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 text-center">
+              <div className="text-lg font-bold text-white">Run the simulator — it&apos;s free</div>
+              <p className="mt-1 text-sm text-[#aaa]">
+                Create a free account (1,000 bonus points) to change results and see who advances.
+              </p>
+            </div>
+            <SignInForm redirectTo="/simulator" />
+            <button
+              type="button"
+              onClick={() => setGateOpen(false)}
+              className="mt-3 w-full text-center text-xs text-[#888] hover:text-white"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

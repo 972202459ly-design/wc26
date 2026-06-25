@@ -6,6 +6,7 @@ import {
   getTeamIdByName,
 } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
+import { getSession } from "@/lib/auth";
 import QualificationSimulator, { type SimGroup, type Outcome } from "@/components/QualificationSimulator";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 // Static group data is enough to render the simulator on the server (finished
 // scores get layered in client-side from /api/scores). AI default picks come
 // from the same deterministic model used across the site.
-export default function SimulatorPage() {
+export default async function SimulatorPage() {
+  const session = await getSession();
+  const authed = !!session;
+
   const simGroups: SimGroup[] = groups.map((g) => {
     const teams = getTeamsByGroup(g).map((t) => ({ name: t.name, id: t.id }));
     const matches = getMatchesByGroup(g).map((m) => {
@@ -55,7 +59,7 @@ export default function SimulatorPage() {
           everything else starts on the AI&apos;s call for you to override.
         </p>
       </header>
-      <QualificationSimulator groups={simGroups} />
+      <QualificationSimulator groups={simGroups} authed={authed} />
     </div>
   );
 }

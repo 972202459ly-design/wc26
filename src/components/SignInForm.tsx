@@ -10,7 +10,7 @@ const TABS: { key: Mode; label: string }[] = [
   { key: "magic", label: "Email link" },
 ];
 
-export default function SignInForm() {
+export default function SignInForm({ redirectTo = "/account?signed_in=1" }: { redirectTo?: string }) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +40,7 @@ export default function SignInForm() {
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok) {
-        window.location.href = "/account?signed_in=1";
+        window.location.href = redirectTo;
         return;
       }
       setStatus("error");
