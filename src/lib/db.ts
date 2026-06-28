@@ -17,7 +17,10 @@ export interface SyncedMatch {
   utc_date: string;
 }
 
+let matchTableReady = false;
+
 export async function ensureTable(): Promise<void> {
+  if (matchTableReady) return; // idempotent per warm instance — saves a DDL round trip on every sync
   await getSql()`
     CREATE TABLE IF NOT EXISTS match_scores (
       api_id INTEGER PRIMARY KEY,
@@ -33,6 +36,42 @@ export async function ensureTable(): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW()
     )
   `;
+  matchTableReady = true;
+}
+
+/**
+ * Upsert many matches in a SINGLE round trip via UNNEST, instead of N sequential
+ * INSERTs. The per-call loop was the sync route's heaviest DB cost (48+ round
+ * trips every poll); this collapses it to one statement.
+ */
+export async function upsertMatches(ms: SyncedMatch[]): Promise<number> {
+  if (ms.length === 0) return 0;
+  await getSql()`
+    INSERT INTO match_scores
+      (api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, updated_at)
+    SELECT api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, NOW()
+    FROM UNNEST(
+      ${ms.map((m) => m.api_id)}::int[],
+      ${ms.map((m) => m.match_id)}::text[],
+      ${ms.map((m) => m.home_team)}::text[],
+      ${ms.map((m) => m.away_team)}::text[],
+      ${ms.map((m) => m.home_score)}::int[],
+      ${ms.map((m) => m.away_score)}::int[],
+      ${ms.map((m) => m.status)}::text[],
+      ${ms.map((m) => m.stage)}::text[],
+      ${ms.map((m) => m.group_name)}::text[],
+      ${ms.map((m) => m.utc_date)}::text[]
+    ) AS t(api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date)
+    ON CONFLICT (api_id) DO UPDATE SET
+      home_score = EXCLUDED.home_score,
+      away_score = EXCLUDED.away_score,
+      status = EXCLUDED.status,
+      stage = EXCLUDED.stage,
+      group_name = EXCLUDED.group_name,
+      utc_date = EXCLUDED.utc_date,
+      updated_at = NOW()
+  `;
+  return ms.length;
 }
 
 export async function upsertMatch(m: SyncedMatch): Promise<void> {
@@ -74,7 +113,10 @@ export async function getLastSyncTime(): Promise<Date | null> {
 
 // ─── Subscribers ──────────────────────────────────────────────────────
 
+let subscribersTableReady = false;
+
 export async function ensureSubscribersTable(): Promise<void> {
+  if (subscribersTableReady) return; // idempotent per warm instance
   await getSql()`
     CREATE TABLE IF NOT EXISTS subscribers (
       id SERIAL PRIMARY KEY,
@@ -83,6 +125,7 @@ export async function ensureSubscribersTable(): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW()
     )
   `;
+  subscribersTableReady = true;
 }
 
 export async function subscribeEmail(

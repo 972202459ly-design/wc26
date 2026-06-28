@@ -4,7 +4,7 @@ import {
   ensureSubscribersTable,
   ensureGameSchema,
   settleOpenPicks,
-  upsertMatch,
+  upsertMatches,
   getAllScores,
   getSubscribers,
   getSettledPicksForMatches,
@@ -32,11 +32,36 @@ export async function GET(request: Request) {
   }
 
   try {
-    await ensureTable();
-    await ensureSubscribersTable();
-
+    // Fetch fixtures FIRST (external API — no DB). This lets us decide whether
+    // any DB work is needed before waking the Neon branch.
     const fixtures = await getWorldCupFixtures();
     const matches: SyncedMatch[] = fixtures.map((f) => f.synced);
+
+    // ─── Compute gate ───────────────────────────────────────────────────
+    // Only touch the database when a match is in its active window (about to
+    // kick off, in play, or recently finished — long enough to record the
+    // final score and settle picks). Outside that window we return without a
+    // single DB query, so the Neon branch can auto-suspend and burn ~0 compute
+    // on rest days and dead hours. This is the main compute saver.
+    const now = Date.now();
+    const WINDOW_BEFORE = 20 * 60 * 1000; // 20 min before kickoff
+    const WINDOW_AFTER = 3 * 60 * 60 * 1000; // 3 h after kickoff (play + settle)
+    const anyActive = matches.some((m) => {
+      if (m.status === "IN_PLAY" || m.status === "PAUSED") return true;
+      const ko = new Date(m.utc_date).getTime();
+      if (Number.isNaN(ko)) return false;
+      return now >= ko - WINDOW_BEFORE && now <= ko + WINDOW_AFTER;
+    });
+    if (!anyActive) {
+      return NextResponse.json({
+        success: true,
+        skipped: "no active matches — db untouched",
+        total: matches.length,
+      });
+    }
+
+    await ensureTable();
+    await ensureSubscribersTable();
     const halfTimeScores = new Map<number, { home: number; away: number }>();
     for (const f of fixtures) if (f.halfTime) halfTimeScores.set(f.synced.api_id, f.halfTime);
 
@@ -96,12 +121,8 @@ export async function GET(request: Request) {
       })
     );
 
-    // Upsert all matches.
-    let updated = 0;
-    for (const m of matches) {
-      await upsertMatch(m);
-      updated++;
-    }
+    // Upsert all matches in a single round trip.
+    const updated = await upsertMatches(matches);
 
     // Settle any prediction-game picks whose match just finished (idempotent).
     let settledPicks = 0;
