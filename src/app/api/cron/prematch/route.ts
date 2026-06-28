@@ -25,13 +25,32 @@ export async function GET(request: Request) {
   }
 
   try {
+    const testEmail = searchParams.get("test");
+
+    // Compute gate: reminders only matter when a match kicks off within the
+    // 15-min window. Decide from the static schedule (no DB, no external API)
+    // so the ~144 empty runs/day during match hours don't wake the Neon branch.
+    if (!testEmail) {
+      const nowMs = Date.now();
+      const anyImminent = staticMatches.some((m) => {
+        const ko = new Date(`${m.date}T${m.time}:00Z`).getTime();
+        return !Number.isNaN(ko) && ko > nowMs && ko <= nowMs + 15 * 60 * 1000;
+      });
+      if (!anyImminent) {
+        return NextResponse.json({
+          success: true,
+          reminded: 0,
+          reason: "no imminent match — db untouched",
+        });
+      }
+    }
+
     await ensureTable();
     await ensureSubscribersTable();
     await ensurePrematchRemindersTable();
 
     // test=<email>: preview the Match Reminder (with AI win prob) for the next
     // upcoming matches, sent only to that address.
-    const testEmail = searchParams.get("test");
     if (testEmail) {
       const nowMs = Date.now();
       const sample: UpcomingMatch[] = staticMatches

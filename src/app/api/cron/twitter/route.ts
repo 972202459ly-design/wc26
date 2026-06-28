@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureTable, ensureTweetTable, getAllScores, isMatchTweeted, markMatchTweeted } from "@/lib/db";
+import { matches as staticMatches } from "@/lib/data";
 import { TwitterApi } from "twitter-api-v2";
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -48,6 +49,18 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Compute gate: this bot only tweets live or just-finished matches, so it
+    // only needs the DB when a match is in its play window. Decide from the
+    // static schedule (no DB) so empty runs let the Neon branch stay suspended.
+    const nowMs = Date.now();
+    const anyInPlayWindow = staticMatches.some((m) => {
+      const ko = new Date(`${m.date}T${m.time}:00Z`).getTime();
+      return !Number.isNaN(ko) && nowMs >= ko && nowMs <= ko + 3.5 * 60 * 60 * 1000;
+    });
+    if (!anyInPlayWindow) {
+      return NextResponse.json({ success: true, tweeted: 0, reason: "no match in play window — db untouched" });
+    }
+
     await ensureTable();
     await ensureTweetTable();
 
