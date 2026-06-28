@@ -1,4 +1,5 @@
 import { Match, StandingEntry, TeamInfo } from "./types";
+import type { SyncedMatch } from "./db";
 
 // ─── Amazon Associates ─────────────────────────────────────────────────
 export const AMAZON_TAG = "none03e04-20";
@@ -462,10 +463,13 @@ export function getMatchById(id: string): Match | undefined {
 // Falls back to static data if the DB is unavailable (e.g. at build time).
 export async function getMatchByIdWithScore(id: string): Promise<Match | undefined> {
   const base = getMatchById(id);
-  if (!base) return undefined;
   try {
     const { getAllScores } = await import("./db");
     const live = (await getAllScores()).find((s) => s.match_id === id);
+    // Knockout fixtures aren't in the static skeleton (their teams weren't known
+    // at build time), so when there's no static base, serve the fixture straight
+    // from the DB instead of 404ing.
+    if (!base) return live ? dbRowToMatch(live) : undefined;
     if (!live) return base;
     return {
       ...base,
@@ -482,6 +486,105 @@ export async function getMatchByIdWithScore(id: string): Promise<Match | undefin
   } catch {
     return base;
   }
+}
+
+/** Build a Match from a DB fixture row — used for fixtures that exist only in
+ *  the DB (real knockout matchups whose teams weren't known at build time). */
+function dbRowToMatch(s: SyncedMatch, now: Date = new Date()): Match {
+  const ko = new Date(s.utc_date);
+  const date = ko.toISOString().slice(0, 10);
+  const time = ko.toISOString().slice(11, 19) + "Z"; // matches static "HH:MM:SSZ" UTC convention
+  const status: Match["status"] =
+    s.status === "FINISHED"
+      ? "finished"
+      : s.status === "IN_PLAY" || s.status === "PAUSED"
+        ? "live"
+        : liveStatus({ date, time } as Match, now);
+  return {
+    id: s.match_id,
+    homeTeam: s.home_team,
+    awayTeam: s.away_team,
+    homeScore: s.home_score,
+    awayScore: s.away_score,
+    status,
+    minute: null,
+    date,
+    time,
+    venue: "",
+    stage: s.stage ?? "GROUP_STAGE",
+  };
+}
+
+/** All real fixtures with live scores/status merged from the DB. Static fixtures
+ *  supply the group-stage structure; real knockout matchups (unknown at build
+ *  time) come straight from the DB. TBD placeholders are dropped in favour of
+ *  the DB's real fixtures. */
+export async function getFixturesWithScores(now: Date = new Date()): Promise<Match[]> {
+  let db: SyncedMatch[] = [];
+  try {
+    const { getAllScores } = await import("./db");
+    db = await getAllScores();
+  } catch {
+    db = [];
+  }
+  const dbById = new Map(db.map((s) => [s.match_id, s]));
+
+  const merged: Match[] = matches.filter(isRealFixture).map((m) => {
+    const s = dbById.get(m.id);
+    const status: Match["status"] = s
+      ? s.status === "FINISHED"
+        ? "finished"
+        : s.status === "IN_PLAY" || s.status === "PAUSED"
+          ? "live"
+          : liveStatus(m, now)
+      : liveStatus(m, now);
+    return s
+      ? {
+          ...m,
+          homeScore: s.home_score ?? m.homeScore,
+          awayScore: s.away_score ?? m.awayScore,
+          status,
+          stage: s.stage ?? m.stage,
+        }
+      : { ...m, status };
+  });
+
+  // Real fixtures that live only in the DB — i.e. knockout matchups.
+  const staticIds = new Set(matches.map((m) => m.id));
+  for (const s of db) {
+    if (!staticIds.has(s.match_id) && s.home_team !== "tbd" && s.away_team !== "tbd") {
+      merged.push(dbRowToMatch(s, now));
+    }
+  }
+  return merged;
+}
+
+/** Homepage match buckets (today / upcoming / recent results), DB-aware so real
+ *  knockout fixtures appear once their matchups are known. Mirrors the
+ *  getTodayMatches / getUpcomingMatches / getRecentResults logic over the merged
+ *  fixture list. */
+export async function getHomeMatchSections(
+  now: Date = new Date()
+): Promise<{ today: Match[]; upcoming: Match[]; recent: Match[] }> {
+  const all = await getFixturesWithScores(now);
+  const today = siteDateStr(now);
+  const byKo = (a: Match, b: Match) => matchKickoff(a).getTime() - matchKickoff(b).getTime();
+
+  return {
+    today: all
+      .filter((m) => siteDateStr(matchKickoff(m)) === today && m.status !== "finished")
+      .sort(byKo),
+    upcoming: all
+      .filter(
+        (m) => matchKickoff(m).getTime() > now.getTime() && siteDateStr(matchKickoff(m)) !== today
+      )
+      .sort(byKo)
+      .slice(0, 6),
+    recent: all
+      .filter((m) => m.status === "finished")
+      .sort((a, b) => matchKickoff(b).getTime() - matchKickoff(a).getTime())
+      .slice(0, 6),
+  };
 }
 
 // ─── Knockout bracket ─────────────────────────────────────────────────
@@ -504,6 +607,7 @@ export interface BracketRound {
 }
 
 const KNOCKOUT_ROUNDS: { key: string; label: string; stages: string[] }[] = [
+  { key: "r32", label: "Round of 32", stages: ["ROUND_OF_32"] },
   { key: "r16", label: "Round of 16", stages: ["LAST_16", "ROUND_OF_16"] },
   { key: "qf", label: "Quarter-finals", stages: ["QUARTER_FINALS"] },
   { key: "sf", label: "Semi-finals", stages: ["SEMI_FINALS"] },
@@ -566,6 +670,7 @@ export async function getKnockoutBracket(): Promise<BracketRound[]> {
 export function stageLabel(stage: string): string {
   const map: Record<string, string> = {
     GROUP_STAGE: "Group Stage",
+    ROUND_OF_32: "Round of 32",
     LAST_16: "Round of 16",
     ROUND_OF_16: "Round of 16",
     QUARTER_FINALS: "Quarter-final",

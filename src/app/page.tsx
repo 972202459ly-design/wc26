@@ -2,9 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import {
-  getTodayMatches,
-  getUpcomingMatches,
-  getRecentResults,
+  getHomeMatchSections,
   liveStatus,
   amazonSearchLink,
   eventPerformers,
@@ -32,9 +30,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const now = new Date();
-  const today = getTodayMatches(now);
-  const upcoming = getUpcomingMatches(6, now);
-  const recent = getRecentResults(6, now);
+  const { today, upcoming, recent } = await getHomeMatchSections(now);
 
   const t = await getTranslations("home");
   const navT = await getTranslations("home.quickNav");

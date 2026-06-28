@@ -22,6 +22,7 @@ export function mapStatus(short: string): string {
 export function mapStage(round: string): string {
   const r = (round || "").toLowerCase();
   if (r.includes("group")) return "GROUP_STAGE";
+  if (r.includes("32")) return "ROUND_OF_32"; // 48-team format: first KO round
   if (r.includes("16")) return "LAST_16";
   if (r.includes("quarter")) return "QUARTER_FINALS";
   if (r.includes("semi")) return "SEMI_FINALS";

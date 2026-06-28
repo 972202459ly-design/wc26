@@ -12,9 +12,39 @@ import { useTranslations } from "next-intl";
 
 interface LiveMatch {
   match_id: string;
+  home_team?: string;
+  away_team?: string;
   home_score: number | null;
   away_score: number | null;
   status: string;
+  utc_date?: string;
+  stage?: string;
+}
+
+// Build a Match from a DB-only fixture row (real knockout matchups that aren't
+// in the static skeleton).
+function koToMatch(lm: LiveMatch): Match {
+  const ko = new Date(lm.utc_date!);
+  const date = ko.toISOString().slice(0, 10);
+  const time = ko.toISOString().slice(11, 19) + "Z";
+  return {
+    id: lm.match_id,
+    homeTeam: lm.home_team!,
+    awayTeam: lm.away_team!,
+    homeScore: lm.home_score,
+    awayScore: lm.away_score,
+    status:
+      lm.status === "FINISHED"
+        ? "finished"
+        : lm.status === "IN_PLAY" || lm.status === "PAUSED"
+          ? "live"
+          : liveStatus({ date, time } as Match),
+    minute: null,
+    date,
+    time,
+    venue: "",
+    stage: lm.stage ?? "GROUP_STAGE",
+  };
 }
 
 function mergeScores(staticMatches: Match[], live: LiveMatch[]): Match[] {
@@ -106,10 +136,24 @@ export default function SchedulePage() {
       .catch(() => {});
   }, []);
 
-  const merged = useMemo(
-    () => mergeScores(matches.filter(isReal), liveScores ?? []),
-    [liveScores]
-  );
+  const merged = useMemo(() => {
+    const live = liveScores ?? [];
+    const base = mergeScores(matches.filter(isReal), live);
+    // Append real knockout fixtures that exist only in the DB (their teams
+    // weren't known at build time, so they're not in the static skeleton).
+    const staticIds = new Set(matches.map((m) => m.id));
+    const ko = live
+      .filter(
+        (lm) =>
+          !staticIds.has(lm.match_id) &&
+          !!lm.home_team &&
+          lm.home_team !== "tbd" &&
+          lm.away_team !== "tbd" &&
+          !!lm.utc_date
+      )
+      .map(koToMatch);
+    return [...base, ...ko];
+  }, [liveScores]);
 
   const now = new Date();
   const todayStr = localDateStr(now);

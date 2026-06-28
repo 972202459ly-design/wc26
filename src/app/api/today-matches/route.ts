@@ -30,19 +30,44 @@ export async function GET() {
   // Pull live scores from DB up front — we need each match's status to decide
   // what's live vs upcoming.
   let dbMap = new Map<string, { home_score: number; away_score: number; status: string }>();
+  let dbRows: any[] = [];
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const rows = (await sql`SELECT match_id, home_score, away_score, status FROM match_scores`) as any[];
-    dbMap = new Map(rows.map((r) => [r.match_id, r]));
+    dbRows = (await sql`SELECT match_id, home_team, away_team, home_score, away_score, status, stage, utc_date FROM match_scores`) as any[];
+    dbMap = new Map(dbRows.map((r) => [r.match_id, r]));
   } catch {
     // Non-fatal — fall back to timestamp-derived status
   }
+
+  // Knockout fixtures aren't in the static schedule (teams unknown at build
+  // time), so fold in real DB-only fixtures as synthetic static entries so the
+  // module shows live/upcoming knockout matches too.
+  const staticIds = new Set(staticMatches.map((m) => m.id));
+  const koMatches = dbRows
+    .filter((r) => !staticIds.has(r.match_id) && r.home_team !== "tbd" && r.away_team !== "tbd")
+    .map((r) => {
+      const ko = new Date(r.utc_date);
+      return {
+        id: r.match_id,
+        homeTeam: r.home_team,
+        awayTeam: r.away_team,
+        homeScore: null,
+        awayScore: null,
+        status: "upcoming" as const,
+        minute: null,
+        date: ko.toISOString().slice(0, 10),
+        time: ko.toISOString().slice(11, 19) + "Z",
+        venue: "",
+        stage: r.stage ?? "GROUP_STAGE",
+      };
+    });
+  const allFixtures = [...staticMatches, ...koMatches];
 
   // Annotate every fixture with its kickoff time + freshly-derived status, so
   // the window is "now"-centric rather than tied to the UTC calendar day (WC
   // match days routinely straddle UTC midnight, which made the old "today"
   // filter show a different, arbitrary-looking set depending on the hour).
-  const annotated = staticMatches.map((m) => {
+  const annotated = allFixtures.map((m) => {
     const ko = new Date(`${m.date}T${m.time}`).getTime();
     const db = dbMap.get(m.id);
     let status: "upcoming" | "live" | "finished";
