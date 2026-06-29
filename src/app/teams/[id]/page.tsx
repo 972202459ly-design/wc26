@@ -1,7 +1,7 @@
 import {
   teams,
   getTeamById,
-  getMatchesByTeam,
+  getFixturesWithScores,
   getTeamFlagUrl,
   getTeamIdByName,
   amazonSearchLink,
@@ -51,7 +51,12 @@ export default async function TeamPage({
   const t = await getTranslations({ locale, namespace: "team" });
   const shopT = await getTranslations({ locale, namespace: "team.shop" });
 
-  const teamMatches = getMatchesByTeam(team.name);
+  const fixtures = await getFixturesWithScores();
+  const teamMatches = fixtures.filter(
+    (m) =>
+      getTeamIdByName(m.homeTeam) === team.id ||
+      getTeamIdByName(m.awayTeam) === team.id
+  );
   const teamFlag = getTeamFlagUrl(team.id);
 
   const upcoming = teamMatches.filter((m) => m.status === "upcoming");
