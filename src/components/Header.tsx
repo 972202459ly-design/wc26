@@ -79,8 +79,14 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/premium"
+              href="/account?mode=register"
               className="ml-1 shrink-0 rounded-lg bg-[#f0a500] px-3 py-1.5 text-xs font-bold text-black hover:bg-[#d49500] transition-colors"
+            >
+              Join Free
+            </Link>
+            <Link
+              href="/premium"
+              className="shrink-0 rounded-lg border border-[#f0a500]/60 px-3 py-1.5 text-xs font-bold text-[#f0a500] hover:bg-[#f0a500] hover:text-black transition-colors"
             >
               Go Pro
             </Link>
@@ -106,9 +112,15 @@ export default function Header() {
             </div>
           </nav>
 
-          {/* Mobile controls: language + hamburger only */}
+          {/* Mobile controls */}
           <div className="flex items-center gap-1 md:hidden">
             <LanguageSwitcher />
+            <Link
+              href="/account?mode=register"
+              className="rounded-md bg-[#f0a500] px-3 py-2 text-xs font-bold text-black hover:bg-[#d49500]"
+            >
+              Join
+            </Link>
             <button
               type="button"
               onClick={() => setMenuOpen((o) => !o)}
@@ -146,8 +158,14 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/premium"
+              href="/account?mode=register"
               className="mt-4 flex min-h-[44px] items-center justify-center rounded-lg bg-[#f0a500] px-4 text-base font-bold text-black hover:bg-[#d49500]"
+            >
+              Join Free
+            </Link>
+            <Link
+              href="/premium"
+              className="mt-2 flex min-h-[44px] items-center justify-center rounded-lg border border-[#f0a500]/60 px-4 text-base font-bold text-[#f0a500] hover:bg-[#f0a500] hover:text-black"
             >
               Go Pro — $7.99
             </Link>

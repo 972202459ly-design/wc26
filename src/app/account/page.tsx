@@ -24,10 +24,11 @@ export const metadata: Metadata = {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; signed_in?: string }>;
+  searchParams: Promise<{ error?: string; signed_in?: string; mode?: string }>;
 }) {
   const sp = await searchParams;
   const session = await getSession();
+  const initialMode = sp.mode === "register" ? "register" : "login";
 
   // Daily top-up + pick history for the prediction game (signed-in only).
   let points: number | null = null;
@@ -192,7 +193,7 @@ export default async function AccountPage({
             Sign in to access your Fan Pro. We&apos;ll email you a secure link — no
             password required.
           </p>
-          <SignInForm />
+          <SignInForm initialMode={initialMode} />
         </div>
       )}
     </div>

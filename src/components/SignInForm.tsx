@@ -10,8 +10,14 @@ const TABS: { key: Mode; label: string }[] = [
   { key: "magic", label: "Email link" },
 ];
 
-export default function SignInForm({ redirectTo = "/account?signed_in=1" }: { redirectTo?: string }) {
-  const [mode, setMode] = useState<Mode>("login");
+export default function SignInForm({
+  redirectTo = "/account?signed_in=1",
+  initialMode = "login",
+}: {
+  redirectTo?: string;
+  initialMode?: Mode;
+}) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
