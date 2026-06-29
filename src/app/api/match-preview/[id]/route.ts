@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMatchById, stageLabel } from "@/lib/data";
+import { getMatchByIdWithScore, stageLabel } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
 import { generateAnalysis } from "@/lib/ai";
 import { getSession } from "@/lib/auth";
@@ -32,7 +32,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const match = getMatchById(id);
+  const match = await getMatchByIdWithScore(id);
   if (!match) {
     return NextResponse.json({ teaser: null, full: null, locked: false });
   }
