@@ -119,12 +119,12 @@ export default async function HomePage() {
               Check Streaming Options
             </Link>
             <a
-              href={amazonSearchLink("Prime membership streaming sports")}
+              href="https://www.amazon.com/amazonprime?tag=none03e04-20"
               target="_blank"
               rel="noopener noreferrer sponsored"
               className="w-full rounded-lg border border-[#f0a500]/60 px-6 py-3 text-sm font-bold text-[#f0a500] transition-colors hover:bg-[#f0a500] hover:text-black sm:w-auto"
             >
-              Check Prime Options
+              Amazon Prime
             </a>
           </div>
           <p className="mx-auto mb-6 max-w-md text-[11px] leading-5 text-[#777]">

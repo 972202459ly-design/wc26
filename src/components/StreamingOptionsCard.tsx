@@ -51,7 +51,7 @@ export default function StreamingOptionsCard({
             onClick={() => track("affiliate_click", undefined, { placement, slot: "prime_membership" })}
             className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-center text-sm font-bold text-black hover:bg-[#d49500]"
           >
-            Check Prime Options
+            Amazon Prime
           </a>
           <Link
             href="/watch"
