@@ -15,6 +15,7 @@ import HomeSocialProof from "@/components/HomeSocialProof";
 import HomeMatchSections from "@/components/HomeMatchSections";
 import StandingsSnapshot from "@/components/StandingsSnapshot";
 import SponsorSlot from "@/components/SponsorSlot";
+import StreamingOptionsCard from "@/components/StreamingOptionsCard";
 
 // Re-render the served HTML periodically so crawlers and no-JS visitors always
 // see the correct "today / upcoming" set based on the real clock — never a
@@ -130,6 +131,10 @@ export default async function HomePage() {
         predictions={predictions}
         generatedAt={now.toISOString()}
       />
+
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <StreamingOptionsCard placement="home_after_matches" />
+      </section>
 
       {/* Standings snapshot */}
       <StandingsSnapshot />

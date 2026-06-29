@@ -21,6 +21,7 @@ export default function Header() {
     { href: "/standings", label: t("standings") },
     { href: "/groups", label: t("groups") },
     { href: "/teams", label: t("teams") },
+    { href: "/watch", label: "Watch", badge: "NEW" },
     { href: "/premium", label: t("premium") },
     { href: "/account", label: t("account") },
   ];

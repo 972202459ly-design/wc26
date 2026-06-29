@@ -10,6 +10,7 @@ export default async function sitemap() {
     "/standings",
     "/teams",
     "/groups",
+    "/watch",
     "/predict",
     "/leaderboard",
     "/subscribe",

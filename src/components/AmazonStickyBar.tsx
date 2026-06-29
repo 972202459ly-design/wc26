@@ -9,11 +9,11 @@ import { track } from "@/lib/track";
 // claims.
 const SLOTS = [
   {
-    emoji: "📺",
-    headline: "Match-day setup",
-    sub: "Streaming devices & 4K TVs on Amazon",
-    href: "https://www.amazon.com/s?k=4k+streaming+device+tv&tag=none03e04-20",
-    btn: "Shop",
+    emoji: "▶",
+    headline: "Watch online",
+    sub: "Check Prime membership options",
+    href: "https://www.amazon.com/amazonprime?tag=none03e04-20",
+    btn: "Check",
     btnStyle: "bg-[#f0a500] text-black hover:bg-[#d49500]",
   },
   {

@@ -10,6 +10,7 @@ import MatchCountdown from "@/components/MatchCountdown";
 import MatchTime from "@/components/MatchTime";
 import EventsTimeline from "@/components/EventsTimeline";
 import MatchComments from "@/components/MatchComments";
+import StreamingOptionsCard from "@/components/StreamingOptionsCard";
 import { useTranslations } from "next-intl";
 
 export default function MatchDetail({
@@ -149,6 +150,15 @@ export default function MatchDetail({
         initialAnalysis={analysisTeaser}
         initialStatus={initial.status}
       />
+
+      <div className="mt-6">
+        <StreamingOptionsCard
+          placement="match_detail"
+          compact
+          title={`How to watch ${match.homeTeam} vs ${match.awayTeam}`}
+          matchLabel={`${match.homeTeam} vs ${match.awayTeam}`}
+        />
+      </div>
 
       {/* Match Events Timeline */}
       {(match.status === "live" || match.status === "finished") && (
