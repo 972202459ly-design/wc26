@@ -86,7 +86,7 @@ export function getTeamFlagUrlBig(id: string): string {
 }
 
 export function getTeamIdByName(name: string): string | undefined {
-  return Object.entries(teamNames).find(([, v]) => v === name)?.[0];
+  return tlaFromName(name);
 }
 
 // Representative competitors for tournament-level SportsEvent JSON-LD — supplies
