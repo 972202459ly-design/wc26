@@ -215,26 +215,41 @@ function MatchCard({
     .toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
     .replace(":00", "");
 
-  const opponent = m.homeTeam === team ? m.awayTeam : m.homeTeam;
   const isHome = m.homeTeam === team;
-  const oppId = getTeamIdByName(opponent) || "";
-  const oppFlag = getTeamFlagUrl(oppId);
+  const homeFlag = getTeamFlagUrl(getTeamIdByName(m.homeTeam) || "");
+  const awayFlag = getTeamFlagUrl(getTeamIdByName(m.awayTeam) || "");
+  const hasScore = m.homeScore !== null && m.awayScore !== null;
+  const resultText = hasScore ? `${m.homeScore} - ${m.awayScore}` : "Result pending";
 
   return (
     <Link
       href={`/match/${m.id}`}
-      className="flex items-center justify-between p-4 rounded-xl border border-[#222] bg-[#111] hover:border-[#f0a500]/50 transition-all"
+      className="flex flex-col gap-3 rounded-xl border border-[#222] bg-[#111] p-4 transition-all hover:border-[#f0a500]/50 sm:flex-row sm:items-center sm:justify-between"
     >
-      <div className="flex items-center gap-3 flex-1">
-        <span className="text-xs px-2 py-0.5 rounded bg-[#1a1a2e] text-[#888] uppercase">
-          {isHome ? "H" : "A"}
+      <div className="min-w-0 flex-1">
+        <span className="mb-2 inline-flex rounded bg-[#1a1a2e] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#888]">
+          {isHome ? "Home" : "Away"}
         </span>
-        <span className="font-semibold">vs {oppFlag && <img src={oppFlag} alt="" className="w-5 h-3.5 inline-block mr-1 align-baseline" />}{opponent}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-semibold text-white sm:text-base">
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            {homeFlag && <img src={homeFlag} alt="" className="h-3.5 w-5 shrink-0 rounded-sm" />}
+            <span className={m.homeTeam === team ? "text-white" : "text-[#aaa]"}>
+              {m.homeTeam}
+            </span>
+          </span>
+          <span className="text-xs font-bold uppercase text-[#666]">vs</span>
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            {awayFlag && <img src={awayFlag} alt="" className="h-3.5 w-5 shrink-0 rounded-sm" />}
+            <span className={m.awayTeam === team ? "text-white" : "text-[#aaa]"}>
+              {m.awayTeam}
+            </span>
+          </span>
+        </div>
       </div>
-      <div className="text-right">
-        {m.status === "finished" && m.homeScore !== null ? (
-          <span className="text-lg font-bold text-white">
-            {m.homeScore} — {m.awayScore}
+      <div className="shrink-0 text-left sm:text-right">
+        {m.status === "finished" ? (
+          <span className="text-sm font-semibold text-[#888]">
+            {resultText}
           </span>
         ) : (
           <>
