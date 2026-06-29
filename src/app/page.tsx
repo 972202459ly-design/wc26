@@ -112,7 +112,7 @@ export default async function HomePage() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-[#0a0a0a]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-b from-[#f0a500]/10 to-transparent blur-3xl" />
+        <div className="absolute top-0 left-1/2 h-[300px] w-[calc(100vw-2rem)] max-w-[600px] -translate-x-1/2 bg-gradient-to-b from-[#f0a500]/10 to-transparent blur-3xl" />
 
         <div className="relative max-w-3xl mx-auto px-4">
           <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a500] mb-4">
