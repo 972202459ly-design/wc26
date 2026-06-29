@@ -4,6 +4,7 @@ import { Match } from "@/lib/types";
 import Link from "next/link";
 import { useState } from "react";
 import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink, teams, stageLabel, matchKickoffISO } from "@/lib/data";
+import { track } from "@/lib/track";
 
 import MatchCountdown from "./MatchCountdown";
 import MatchTime from "./MatchTime";
@@ -111,7 +112,7 @@ export default function MatchCard({
       {/* Win-probability bar — upcoming matches only. Clearly labelled as a
           model estimate so it's never mistaken for official odds. */}
       {prediction && !isLive && !isFinished && (
-        <div className="mt-3">
+        <div className="mt-3 hidden sm:block">
           <div className="flex items-center gap-2">
             <span className="w-7 shrink-0 text-right text-[10px] font-bold tabular-nums text-[#f0a500]">
               {prediction.homePct}%
@@ -177,6 +178,25 @@ export default function MatchCard({
           >
             Shop jerseys &rarr;
           </a>
+        </div>
+      )}
+
+      {!isFinished && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link
+            href={`/match/${match.id}`}
+            onClick={() => track("match_center_click", "homepage", { matchId: match.id })}
+            className="min-h-10 rounded-lg border border-[#333] px-3 py-2 text-center text-xs font-semibold text-white transition-colors hover:border-[#f0a500]"
+          >
+            Match Center
+          </Link>
+          <Link
+            href="/watch"
+            onClick={() => track("watch_guide_click", "homepage", { placement: "match_card", matchId: match.id })}
+            className="min-h-10 rounded-lg bg-[#f0a500] px-3 py-2 text-center text-xs font-bold text-black transition-colors hover:bg-[#d49500]"
+          >
+            How to Watch
+          </Link>
         </div>
       )}
 

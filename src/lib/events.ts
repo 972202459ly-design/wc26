@@ -22,6 +22,10 @@ export const EVENT_NAMES = [
   "prediction_submitted",
   "premium_teaser_view",
   "affiliate_click",
+  "watch_guide_click",
+  "match_center_click",
+  "trending_click",
+  "quick_nav_click",
   "email_subscribed",
   "private_league_created",
   "private_league_invite_joined",
@@ -33,6 +37,7 @@ export type EventName = (typeof EVENT_NAMES)[number];
 
 export const VALID_SOURCES = [
   "homepage",
+  "watch_page",
   "match_page",
   "leaderboard",
   "post_prediction",

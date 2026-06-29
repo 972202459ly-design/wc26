@@ -16,6 +16,9 @@ import HomeMatchSections from "@/components/HomeMatchSections";
 import StandingsSnapshot from "@/components/StandingsSnapshot";
 import SponsorSlot from "@/components/SponsorSlot";
 import StreamingOptionsCard from "@/components/StreamingOptionsCard";
+import HomeTrendingNow from "@/components/HomeTrendingNow";
+import HeroQuickLinks from "@/components/HeroQuickLinks";
+import { buildTrendingItems } from "@/lib/trending";
 
 // Re-render the served HTML periodically so crawlers and no-JS visitors always
 // see the correct "today / upcoming" set based on the real clock — never a
@@ -23,9 +26,9 @@ import StreamingOptionsCard from "@/components/StreamingOptionsCard";
 export const revalidate = 120;
 
 export const metadata: Metadata = {
-  title: "World Cup 2026 Live Scores, Schedule, Standings & Predictions",
+  title: "World Cup 2026 Live Scores, Schedule & How to Watch",
   description:
-    "Follow the 2026 FIFA World Cup with live scores, match schedules, group standings, teams, brackets, and free prediction games.",
+    "Follow the 2026 FIFA World Cup with live scores, match schedules, group standings, brackets, and streaming guide links for U.S. fans.",
   alternates: { canonical: "https://wc26live.org/" },
 };
 
@@ -37,6 +40,16 @@ export default async function HomePage() {
   const navT = await getTranslations("home.quickNav");
   const shopT = await getTranslations("home.shop");
   const ctaT = await getTranslations("home.cta");
+  const quickLinks = [
+    { href: "/watch", label: "How to Watch" },
+    { href: "/schedule", label: navT("schedule") },
+    { href: "/bracket", label: "Bracket" },
+    { href: "/teams", label: navT("teams") },
+  ];
+  const trendingItems = buildTrendingItems(
+    [...today, ...upcoming, ...recent] as Match[],
+    now
+  );
 
   // Deterministic predictions for the win-probability bars on upcoming cards —
   // computed server-side so they land in the HTML for SEO.
@@ -124,12 +137,13 @@ export default async function HomePage() {
               rel="noopener noreferrer sponsored"
               className="w-full rounded-lg border border-[#f0a500]/60 px-6 py-3 text-sm font-bold text-[#f0a500] transition-colors hover:bg-[#f0a500] hover:text-black sm:w-auto"
             >
-              Amazon Prime
+              Prime / Fire TV setup
             </a>
           </div>
           <p className="mx-auto mb-6 max-w-md text-[11px] leading-5 text-[#777]">
             WC26 Live does not stream matches. Availability varies by country and broadcaster.
           </p>
+          <HeroQuickLinks links={quickLinks} />
           <FeaturedNextMatch />
           <HomeSocialProof />
         </div>
@@ -138,6 +152,8 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <StreamingOptionsCard placement="home_before_matches" title="Watching World Cup 2026 online?" />
       </section>
+
+      <HomeTrendingNow items={trendingItems} />
 
       {/* Today / Upcoming / Recent results — the core SEO content */}
       <HomeMatchSections
@@ -150,101 +166,6 @@ export default async function HomePage() {
 
       {/* Standings snapshot */}
       <StandingsSnapshot />
-
-      {/* Quick Nav Cards */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { href: "/schedule", label: navT("schedule"), desc: navT("scheduleDesc") },
-            { href: "/standings", label: navT("standings"), desc: navT("standingsDesc") },
-            { href: "/teams", label: navT("teams"), desc: navT("teamsDesc") },
-            { href: "/subscribe", label: navT("subscribe"), desc: navT("subscribeDesc") },
-          ].map((card) => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="p-4 rounded-xl border border-[#3a3a5e] bg-[#1e1e35] hover:border-[#f0a500] hover:bg-[#2a2a4e] transition-all"
-            >
-              <h3 className="font-semibold text-white">{card.label}</h3>
-              <p className="text-sm text-[#888] mt-1">{card.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Private league CTA — flagship new feature, surfaced above the generic game CTA */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-[#f0a500]/70 bg-gradient-to-br from-[#241a3a] to-[#111] p-6 text-center shadow-lg shadow-[#f0a500]/10 sm:flex-row sm:text-left">
-          <div className="text-4xl">🏆</div>
-          <div className="flex-1">
-            <div className="flex items-center justify-center gap-2 sm:justify-start">
-              <h2 className="text-lg font-bold text-white">Run a private World Cup Pick&apos;em</h2>
-              <span className="rounded bg-[#f0a500] px-1.5 py-0.5 text-[10px] font-bold text-black">NEW</span>
-            </div>
-            <p className="mt-1 text-sm text-[#aaa]">
-              Create a league for friends, coworkers or your watch party — everyone predicts, you crown
-              your own champion.{" "}
-              <span className="text-[#ddd]">$14.99 one-time as host · everyone you invite joins free.</span>
-            </p>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Link
-              href="/leagues/create"
-              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
-            >
-              Create a Private League →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Pick'em game CTA */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#f0a500]/40 bg-gradient-to-br from-[#1e1e35] to-[#111] p-6 text-center sm:flex-row sm:text-left">
-          <div className="text-4xl">🎯</div>
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-white">Play the World Cup Pick&apos;em</h2>
-            <p className="mt-1 text-sm text-[#aaa]">
-              Predict matches with <b className="text-[#f0a500]">1,000 free points</b> using AI win
-              probabilities, and climb the leaderboard. No money — just bragging rights.
-            </p>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Link
-              href="/leaderboard"
-              className="rounded-lg border border-[#444] px-4 py-2.5 text-sm font-semibold text-white hover:border-[#f0a500]"
-            >
-              Leaderboard
-            </Link>
-            <Link
-              href="/predict"
-              className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#d49500]"
-            >
-              Make a prediction →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Qualification simulator CTA */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <Link
-          href="/simulator"
-          className="flex flex-col items-center gap-4 rounded-2xl border border-[#3a3a5e] bg-[#1e1e35] p-6 text-center transition-colors hover:border-[#f0a500] sm:flex-row sm:text-left"
-        >
-          <div className="text-4xl">🗺️</div>
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-white">Who advances? Try the Qualification Simulator</h2>
-            <p className="mt-1 text-sm text-[#aaa]">
-              Pick every group result and see all 32 teams that reach the Round of 32 — top two per
-              group plus the 8 best third-placed sides.
-            </p>
-          </div>
-          <span className="shrink-0 rounded-lg border border-[#f0a500] px-4 py-2.5 text-sm font-semibold text-[#f0a500]">
-            Open simulator →
-          </span>
-        </Link>
-      </section>
 
       {/* Matchday sponsor (or house ad → /advertise when unsold) */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
@@ -268,17 +189,17 @@ export default async function HomePage() {
           </span>
           <h2 className="text-2xl font-bold mb-2">Watch World Cup 2026 Online</h2>
           <p className="text-sm text-[#888] mb-6 max-w-lg mx-auto">
-            Check Prime membership options, streaming devices and match-day setup before kickoff.
+            Check official streaming options, Prime and Fire TV setup ideas, and match-day devices before kickoff.
           </p>
           <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto mb-5 sm:grid-cols-5">
-            {/* Prime membership */}
+            {/* Prime / Fire TV setup */}
             <a
               href="https://www.amazon.com/amazonprime?tag=none03e04-20"
               target="_blank" rel="noopener noreferrer sponsored"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
               <span className="text-lg font-bold">Prime</span>
-              <span className="text-xs font-semibold text-center leading-tight">Prime Options</span>
+              <span className="text-xs font-semibold text-center leading-tight">Setup</span>
             </a>
             {/* Streaming device */}
             <a
@@ -322,7 +243,7 @@ export default async function HomePage() {
             target="_blank" rel="noopener noreferrer sponsored"
             className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            Check Prime Options
+            Check Prime / Fire TV Setup
           </a>
           <p className="text-[10px] text-[#555] mt-3">
             {shopT("affiliateNotice")} Streaming availability varies by country and broadcaster.

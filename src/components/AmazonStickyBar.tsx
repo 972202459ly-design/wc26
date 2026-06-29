@@ -10,8 +10,8 @@ import { track } from "@/lib/track";
 const SLOTS = [
   {
     emoji: "▶",
-    headline: "Watch online",
-    sub: "Check Prime membership options",
+    headline: "Streaming setup",
+    sub: "Prime & Fire TV options",
     href: "https://www.amazon.com/amazonprime?tag=none03e04-20",
     btn: "Check",
     btnStyle: "bg-[#f0a500] text-black hover:bg-[#d49500]",

@@ -34,14 +34,14 @@ export async function generateMetadata({
         : "";
 
   // Finished/live: lead with the result for click-through. Upcoming: target the
-  // high-intent "X vs Y prediction" query alongside "live score".
+  // high-intent preview/time/watch queries alongside "live score".
   const title = hasScore
     ? `${match.homeTeam} ${scoreStr} ${match.awayTeam}${liveTag} — World Cup 2026 ${stage}`
-    : `${match.homeTeam} vs ${match.awayTeam} Prediction & Live Score — World Cup 2026 ${stage}`;
+    : `${match.homeTeam} vs ${match.awayTeam} Preview, Stars & Live Score — World Cup 2026 ${stage}`;
 
   const description = hasScore
     ? `${match.homeTeam} vs ${match.awayTeam} live score, goals and updates — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}. Follow it live on WC26 Live.`
-    : `${match.homeTeam} vs ${match.awayTeam} prediction, AI win probability, expected goals and live score — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}. Play the free pick'em on WC26 Live.`;
+    : `${match.homeTeam} vs ${match.awayTeam} pre-match preview, key players, match outlook, kickoff time and live score — ${stage}, FIFA World Cup 2026${match.venue ? ` at ${match.venue}` : ""}.`;
 
   return {
     title,
@@ -69,10 +69,10 @@ export default async function MatchPage({
   const match = await getMatchByIdWithScore(id);
   if (!match) notFound();
 
-  // Compute the prediction server-side so the win %, expected goals, scoreline
-  // and a descriptive sentence are in the HTML for crawlers and no-JS users —
-  // this is the unique content that ranks for "X vs Y prediction". Deterministic
-  // (predictMatch is pure), so it's safe inside the statically-generated page.
+  // Compute the model output server-side so the match outlook, expected goals,
+  // scoreline and a descriptive sentence are in the HTML for crawlers and no-JS
+  // users. Deterministic (predictMatch is pure), so it's safe inside the
+  // statically-generated page.
   const p = predictMatch(match.homeTeam, match.awayTeam);
   const prediction = {
     ...p,
@@ -116,7 +116,7 @@ export default async function MatchPage({
     "@context": "https://schema.org",
     "@type": "SportsEvent",
     name: `${match.homeTeam} vs ${match.awayTeam}`,
-    description: `${match.homeTeam} vs ${match.awayTeam} — ${stageLabel(match.stage)}, FIFA World Cup 2026. Live score, predictions and updates.`,
+    description: `${match.homeTeam} vs ${match.awayTeam} — ${stageLabel(match.stage)}, FIFA World Cup 2026. Live score, pre-match preview and updates.`,
     startDate,
     endDate,
     eventStatus: "https://schema.org/EventScheduled",

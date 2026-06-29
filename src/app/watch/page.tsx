@@ -1,46 +1,50 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import StreamingOptionsCard from "@/components/StreamingOptionsCard";
-import { amazonSearchLink } from "@/lib/data";
+import WatchSetupLinks from "@/components/WatchSetupLinks";
 
 export const metadata: Metadata = {
-  title: "How to Watch World Cup 2026 Online | Streaming Guide",
+  title: "How to Watch World Cup 2026 in the USA | TV & Streaming Guide",
   description:
-    "World Cup 2026 streaming guide with match alerts, TV schedule links, Prime membership options, and match-day device ideas.",
+    "USA-focused World Cup 2026 watching guide with kickoff times, official TV and streaming checklist, Prime and Fire TV setup ideas, devices, and match-day tips.",
   alternates: { canonical: "https://wc26live.org/watch" },
 };
 
 const guideItems = [
   {
-    title: "Check your local broadcaster",
-    body: "World Cup rights are usually country-specific. Start with the official broadcaster or streaming partner in your country.",
+    title: "Check the U.S. TV listing",
+    body: "Start with the official U.S. broadcaster and streaming provider for the match, then use WC26 Live for kickoff time, score and schedule context.",
   },
   {
-    title: "Compare streaming memberships",
-    body: "Some viewers use Prime, live TV apps, sports bundles, or broadcaster apps for tournament coverage and match-day channels.",
+    title: "Confirm your streaming setup",
+    body: "Before kickoff, make sure your official streaming provider, browser, phone, or TV device is ready and signed in.",
   },
   {
-    title: "Set up the device early",
-    body: "Test your TV, Fire TV, browser, phone, or tablet before kickoff so you are not troubleshooting during the match.",
+    title: "Use the match page before kickoff",
+    body: "Open the match page for live score, pre-match briefing, stars to watch, and a direct How to Watch block for that fixture.",
   },
   {
-    title: "Use alerts for kickoff times",
-    body: "WC26 Live can help you track schedules, live scores, standings, and match reminders as the tournament moves across time zones.",
+    title: "Set reminders for U.S. time zones",
+    body: "World Cup kickoff times can be awkward across the U.S. Use the schedule and alerts so you do not miss early or late matches.",
   },
 ];
 
 const faq = [
   {
-    q: "Can I watch World Cup 2026 on Amazon Prime?",
-    a: "Availability depends on your country, local broadcasters, and Prime Video offerings at the time of the match. Check Prime Video and your local rights holder before kickoff.",
+    q: "How can I watch World Cup 2026 in the USA?",
+    a: "Use the official U.S. broadcaster or streaming provider for match video. WC26 Live helps you find kickoff times, live scores, match previews, schedules, and watch setup links.",
   },
   {
-    q: "What is the best way to follow World Cup 2026 online?",
-    a: "Use the official broadcaster or streaming provider in your country, then use WC26 Live for schedules, live scores, standings, predictions, and match alerts.",
+    q: "Can I watch World Cup 2026 on Amazon Prime?",
+    a: "Prime is not listed here as the primary U.S. World Cup live-rights platform. Availability depends on U.S. rights, Prime Video offerings, and the official broadcaster package at the time of the match, so check the official rights holder before kickoff.",
   },
   {
     q: "Does WC26 Live stream matches?",
-    a: "No. WC26 Live provides schedules, scores, standings, predictions, alerts, and viewing guides. It does not host live match video.",
+    a: "No. WC26 Live provides schedules, scores, standings, pre-match previews, alerts, and viewing guides. It does not host live match video.",
+  },
+  {
+    q: "What should I set up before match day?",
+    a: "Confirm your streaming provider, test your TV or device, check kickoff time in your U.S. time zone, and open WC26 Live for live score and match updates.",
   },
 ];
 
@@ -64,20 +68,35 @@ export default function WatchPage() {
 
       <section className="mb-8 text-center">
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-[#f0a500]">
-          World Cup 2026 streaming guide
+          USA World Cup 2026 watch guide
         </p>
         <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight text-white sm:text-5xl">
-          How to watch World Cup 2026 online
+          How to watch World Cup 2026 in the USA
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#aaa]">
-          Find kickoff times, check streaming options, compare Prime membership offers, and set up your
+          Find kickoff times, check official TV and streaming options, compare Prime and Fire TV setup ideas, and set up your
           match-day device before the game starts.
         </p>
       </section>
 
       <div className="mb-8">
-        <StreamingOptionsCard placement="watch_page_hero" title="Check Prime and streaming options" />
+        <StreamingOptionsCard placement="watch_page_hero" title="Check U.S. streaming and match-day setup" />
       </div>
+
+      <section className="mb-8 rounded-2xl border border-[#f0a500]/25 bg-[#111] p-6">
+        <h2 className="text-xl font-bold text-white">Fast path for U.S. viewers</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <Link href="/schedule" className="rounded-lg border border-[#333] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]">
+            Games today and kickoff times
+          </Link>
+          <Link href="/teams/usa" className="rounded-lg border border-[#333] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]">
+            Follow USA matches
+          </Link>
+          <Link href="/bracket" className="rounded-lg border border-[#333] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]">
+            Knockout bracket
+          </Link>
+        </div>
+      </section>
 
       <section className="mb-8 grid gap-4 sm:grid-cols-2">
         {guideItems.map((item, index) => (
@@ -94,35 +113,10 @@ export default function WatchPage() {
       <section className="mb-8 rounded-2xl border border-[#222] bg-[#101018] p-6">
         <h2 className="text-xl font-bold text-white">Match-day setup ideas</h2>
         <p className="mt-2 text-sm leading-6 text-[#999]">
-          A stable streaming device, a clear TV setup, and kickoff reminders matter more than browsing
-          at the last minute.
+          A stable streaming device, a clear TV setup, and kickoff reminders matter more than searching
+          for options at the last minute.
         </p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <a
-            href={amazonSearchLink("Fire TV Stick 4K streaming device")}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="rounded-lg border border-[#333] bg-[#181818] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]"
-          >
-            Fire TV Stick 4K
-          </a>
-          <a
-            href={amazonSearchLink("4K smart TV streaming sports")}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="rounded-lg border border-[#333] bg-[#181818] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]"
-          >
-            4K TV for sports
-          </a>
-          <a
-            href={amazonSearchLink("portable bluetooth speaker outdoor party")}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="rounded-lg border border-[#333] bg-[#181818] p-4 text-sm font-semibold text-[#ddd] hover:border-[#f0a500]"
-          >
-            Watch-party speaker
-          </a>
-        </div>
+        <WatchSetupLinks placement="watch_page_setup" />
         <p className="mt-3 text-[10px] text-[#555]">
           Sponsored links. As an Amazon Associate, WC26 Live may earn from qualifying purchases.
         </p>

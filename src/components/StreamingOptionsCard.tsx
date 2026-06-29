@@ -36,8 +36,8 @@ export default function StreamingOptionsCard({
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#aaa]">
             {matchLabel
-              ? `Check viewing options before ${matchLabel}. Availability can vary by country and broadcaster.`
-              : "Check streaming options, Prime membership offers, and match-day devices before kickoff. Availability can vary by country and broadcaster."}
+              ? `Check official viewing options before ${matchLabel}. Availability can vary by country and broadcaster.`
+              : "Check official streaming options, Prime and Fire TV setup ideas, and match-day devices before kickoff. Availability can vary by country and broadcaster."}
           </p>
           <p className="mt-2 text-[10px] text-[#666]">
             As an Amazon Associate, WC26 Live may earn from qualifying purchases.
@@ -51,7 +51,7 @@ export default function StreamingOptionsCard({
             onClick={() => track("affiliate_click", undefined, { placement, slot: "prime_membership" })}
             className="rounded-lg bg-[#f0a500] px-4 py-2.5 text-center text-sm font-bold text-black hover:bg-[#d49500]"
           >
-            Amazon Prime
+            Prime / Fire TV setup
           </a>
           <Link
             href="/watch"

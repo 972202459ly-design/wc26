@@ -15,16 +15,19 @@ export default function Header() {
   const navLinks: { href: string; label: string; badge?: string }[] = [
     { href: "/", label: t("home") },
     { href: "/schedule", label: t("schedule") },
-    { href: "/bracket", label: t("bracket") },
-    { href: "/leaderboard", label: t("leaderboard") },
-    { href: "/leagues", label: "Leagues", badge: "NEW" },
-    { href: "/standings", label: t("standings") },
-    { href: "/groups", label: t("groups") },
-    { href: "/teams", label: t("teams") },
     { href: "/watch", label: "Watch", badge: "NEW" },
+    { href: "/bracket", label: t("bracket") },
+    { href: "/standings", label: t("standings") },
+    { href: "/teams", label: t("teams") },
+    { href: "/groups", label: t("groups") },
+    { href: "/leaderboard", label: t("leaderboard") },
+    { href: "/leagues", label: "Leagues" },
     { href: "/premium", label: t("premium") },
     { href: "/account", label: t("account") },
   ];
+  const mobileNavLinks = navLinks.filter((link) =>
+    ["/schedule", "/watch", "/bracket", "/teams"].includes(link.href)
+  );
 
   const isActive = (href: string) =>
     href === "/"
@@ -123,7 +126,7 @@ export default function Header() {
       {menuOpen && (
         <div className="fixed inset-x-0 top-14 bottom-0 z-40 overflow-y-auto bg-[#0a0a0a] md:hidden">
           <nav className="flex flex-col px-4 py-4">
-            {navLinks.map((link) => (
+            {mobileNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

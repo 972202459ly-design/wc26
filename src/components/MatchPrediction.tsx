@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, Lock } from "lucide-react";
+import { Eye, Lock, Sparkles, Star } from "lucide-react";
 import GameDisclaimer from "./GameDisclaimer";
 import PredictionSaveGate from "./PredictionSaveGate";
 import ProUpsellModal from "./ProUpsellModal";
@@ -36,6 +36,70 @@ interface PickRow {
   match_id: string; pick: string; stake: number; odds: number; status: string; payout: number;
 }
 type Outcome = "home" | "draw" | "away";
+
+const STAR_PLAYERS: Record<string, string[]> = {
+  Argentina: ["Lionel Messi", "Julian Alvarez", "Lautaro Martinez"],
+  Portugal: ["Cristiano Ronaldo", "Bruno Fernandes", "Bernardo Silva"],
+  France: ["Kylian Mbappe", "Antoine Griezmann", "Aurelien Tchouameni"],
+  Brazil: ["Vinicius Junior", "Rodrygo", "Neymar"],
+  England: ["Harry Kane", "Jude Bellingham", "Bukayo Saka"],
+  Spain: ["Lamine Yamal", "Pedri", "Gavi"],
+  Germany: ["Jamal Musiala", "Florian Wirtz", "Kai Havertz"],
+  Netherlands: ["Virgil van Dijk", "Cody Gakpo", "Frenkie de Jong"],
+  Italy: ["Gianluigi Donnarumma", "Federico Chiesa", "Nicolo Barella"],
+  USA: ["Christian Pulisic", "Weston McKennie", "Gio Reyna"],
+  Mexico: ["Santiago Gimenez", "Edson Alvarez", "Hirving Lozano"],
+  Canada: ["Alphonso Davies", "Jonathan David", "Tajon Buchanan"],
+  Uruguay: ["Federico Valverde", "Darwin Nunez", "Ronald Araujo"],
+  Belgium: ["Kevin De Bruyne", "Romelu Lukaku", "Jeremy Doku"],
+  Croatia: ["Luka Modric", "Josko Gvardiol", "Mateo Kovacic"],
+  Morocco: ["Achraf Hakimi", "Hakim Ziyech", "Sofyan Amrabat"],
+  Japan: ["Takefusa Kubo", "Kaoru Mitoma", "Daichi Kamada"],
+  "South Korea": ["Son Heung-min", "Kim Min-jae", "Lee Kang-in"],
+};
+
+function starsFor(team: string): string[] {
+  return STAR_PLAYERS[team] ?? [`${team}'s captain`, `${team}'s lead forward`, `${team}'s No. 10`];
+}
+
+function edgeLabel(home: string, away: string, pred: Pred) {
+  const ordered = [
+    { team: home, pct: pred.homePct },
+    { team: away, pct: pred.awayPct },
+    { team: "Draw", pct: pred.drawPct },
+  ].sort((a, b) => b.pct - a.pct);
+  const [top, second] = ordered;
+  const close = top.pct - second.pct <= 6;
+  return {
+    title: close ? "Too close to call" : `${top.team} has the edge`,
+    detail: close
+      ? `Only ${top.pct - second.pct} points separate the top outcomes.`
+      : `${top.pct}% model edge before kickoff.`,
+  };
+}
+
+function previewAngles(home: string, away: string, pred: Pred) {
+  const totalGoals = pred.lambdaHome + pred.lambdaAway;
+  const favorite = pred.homePct >= pred.awayPct ? home : away;
+  const underdog = favorite === home ? away : home;
+  return [
+    {
+      label: "Game script",
+      text:
+        totalGoals >= 2.7
+          ? "The model expects chances at both ends, so transitions and set pieces could swing the match."
+          : "The model points to a tighter game where the first goal may reshape everything.",
+    },
+    {
+      label: "Key battle",
+      text: `${favorite}'s attacking rhythm against ${underdog}'s defensive shape is the matchup to watch.`,
+    },
+    {
+      label: "What to watch",
+      text: "Watch the opening 20 minutes: pressing, tempo, and early shots should tell us who is settling faster.",
+    },
+  ];
+}
 
 export default function MatchPrediction({
   matchId, home, away, initialPred, initialAnalysis, initialStatus,
@@ -158,13 +222,17 @@ export default function MatchPrediction({
   const upcoming = status === "upcoming";
   const selOdds = sel ? rows.find((r) => r.key === sel)!.odds : 0;
   const pickLabel = (k: string) => (k === "home" ? home : k === "away" ? away : "Draw");
+  const edge = edgeLabel(home, away, pred);
+  const angles = previewAngles(home, away, pred);
+  const homeStars = starsFor(home);
+  const awayStars = starsFor(away);
 
   return (
     <section className="mx-auto mt-6 max-w-3xl px-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-[#f0a500]" />
-          <h2 className="text-sm font-bold uppercase tracking-wide text-white">AI Prediction &amp; Pick&apos;em</h2>
+          <Eye className="h-4 w-4 text-[#f0a500]" />
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white">Pre-match Briefing</h2>
         </div>
         {authed && points !== null && (
           <span className="text-xs text-[#aaa]">Your points: <span className="font-bold text-[#f0a500]">{points.toLocaleString()}</span></span>
@@ -172,8 +240,68 @@ export default function MatchPrediction({
       </div>
 
       <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5">
+        <div className="rounded-lg border border-[#2a2a2a] bg-[#0d0d0d] p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[#f0a500]">Match outlook</p>
+              <h3 className="mt-1 text-2xl font-bold text-white">{edge.title}</h3>
+              <p className="mt-1 text-sm text-[#aaa]">{edge.detail}</p>
+            </div>
+            <div className="rounded-lg bg-[#171717] px-3 py-2 text-sm text-[#bbb]">
+              Expected score: <span className="font-bold text-white">{pred.topHome}-{pred.topAway}</span>
+            </div>
+          </div>
+          {analysis && (
+            <p className="mt-4 text-sm leading-relaxed text-[#ddd]">{analysis}</p>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {angles.map((item) => (
+            <div key={item.label} className="rounded-lg border border-[#222] bg-[#0f0f0f] p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#f0a500]">{item.label}</p>
+              <p className="mt-1 text-sm leading-5 text-[#cfcfcf]">{item.text}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-[#222] bg-[#0f0f0f] p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Star className="h-4 w-4 text-[#f0a500]" />
+            <h3 className="text-sm font-bold uppercase tracking-wide text-white">Stars to watch</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { team: home, players: homeStars },
+              { team: away, players: awayStars },
+            ].map((group) => (
+              <div key={group.team}>
+                <p className="mb-2 text-xs font-semibold text-[#999]">{group.team}</p>
+                <div className="flex flex-wrap gap-2">
+                  {group.players.map((player) => (
+                    <span key={player} className="rounded-full bg-[#1a1a1a] px-3 py-1 text-xs font-semibold text-[#ddd]">
+                      {player}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] leading-5 text-[#666]">
+            Lineups are confirmed closer to kickoff; this list highlights notable players fans may be watching.
+          </p>
+        </div>
+
         {/* Outcome rows with model % and reward multiplier; selectable when predictions are open */}
-        <div className="space-y-2.5">
+        <div className="mt-5 border-t border-[#222] pt-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-white">Who wins?</h3>
+              <p className="text-xs text-[#888]">Make your pick after reading the preview.</p>
+            </div>
+            <span className="hidden text-xs text-[#777] sm:inline">Model probability</span>
+          </div>
+          <div className="space-y-2.5">
           {rows.map((r) => {
             const selected = sel === r.key;
             const clickable = upcoming && (!myPick || myPick.status === "open");
@@ -200,6 +328,7 @@ export default function MatchPrediction({
               </button>
             );
           })}
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-[#999]">
@@ -249,20 +378,17 @@ export default function MatchPrediction({
           )}
         </div>
 
-        {/* AI analysis — teaser shown to everyone (SEO + free users); full
-            breakdown is the premium edge, unlocked client-side for Pro. */}
-        {analysis && (
+        {/* Premium note — the teaser is visible above; full premium analysis
+            replaces it client-side when available. */}
+        {analysisLocked && (
           <div className="mt-4 border-t border-[#222] pt-4">
             <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#f0a500]">
-              <Sparkles className="h-3.5 w-3.5" /> AI Analyst
+              <Sparkles className="h-3.5 w-3.5" /> More pre-match notes
             </div>
-            <p className="text-sm leading-relaxed text-[#ddd]">{analysis}</p>
-            {analysisLocked && (
-              <Link href="/premium" className="mt-3 flex items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]">
-                <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
-                <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">full AI breakdown</b> &amp; value picks to predict smarter — <span className="text-[#f0a500]">go Pro</span>.</span>
-              </Link>
-            )}
+            <Link href="/premium" className="mt-3 flex items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3 transition-colors hover:bg-[#161616]">
+              <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
+              <span className="text-sm text-[#bbb]">Unlock the <b className="text-white">full match preview</b>, tactical notes, and value pick — <span className="text-[#f0a500]">go Pro</span>.</span>
+            </Link>
           </div>
         )}
       </div>

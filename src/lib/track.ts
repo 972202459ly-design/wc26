@@ -10,6 +10,7 @@
 
 export type TrackSource =
   | "homepage"
+  | "watch_page"
   | "match_page"
   | "leaderboard"
   | "post_prediction"

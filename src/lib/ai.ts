@@ -10,12 +10,12 @@ const BASE = "https://api.deepseek.com";
 const MODEL = "deepseek-v4-pro";
 
 const SYSTEM =
-  "You are the prediction analyst for a World Cup 2026 site's paid feature. " +
+  "You are the pre-match editor for a World Cup 2026 site. " +
   "Given a fixture and our statistical model's output, write a punchy 2-3 sentence " +
-  "analysis in English that explains the probabilities, names the single most relevant " +
-  "factor, and ends with a clear pick. Be confident and readable. Only reason from the " +
-  "numbers given and widely-known team strength — do NOT invent specific stats, injuries, " +
-  "lineups, venues, or home advantage (the tournament is at neutral venues). " +
+  "match preview in English. Focus on the game story, key matchup, and players fans may watch, " +
+  "then mention the model edge briefly. Be confident and readable, but do not sound like betting copy. " +
+  "Only reason from the numbers given and widely-known team strength — do NOT invent specific stats, " +
+  "injuries, confirmed lineups, venues, quotes, rumors, or home advantage (the tournament is at neutral venues). " +
   "Write in plain ASCII only: use straight quotes ('), regular hyphens (-), and no " +
   "smart/curly punctuation, emoji, or non-English characters.";
 
@@ -49,7 +49,7 @@ export async function generateAnalysis(
     `Model win probabilities: ${home} ${p.homePct}%, Draw ${p.drawPct}%, ${away} ${p.awayPct}%\n` +
     `Model expected goals: ${home} ${p.lambdaHome} - ${p.lambdaAway} ${away}\n` +
     `Most likely scoreline: ${p.topHome}-${p.topAway}\n` +
-    `Write the prediction analysis.`;
+    `Write the pre-match preview.`;
 
   try {
     const res = await fetch(`${BASE}/chat/completions`, {
