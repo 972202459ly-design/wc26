@@ -118,6 +118,9 @@ export default async function Footer() {
             <p className="text-xs text-[#888] leading-relaxed">
               {t("disclaimerText")}
             </p>
+            <p className="mt-3 text-xs leading-relaxed text-[#777]">
+              As an Amazon Associate, WC26 Live earns from qualifying purchases.
+            </p>
           </div>
         </div>
 

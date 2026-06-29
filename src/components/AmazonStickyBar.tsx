@@ -78,7 +78,9 @@ export default function AmazonStickyBar() {
           <p className="text-xs font-semibold text-white truncate leading-tight">
             {slot.headline}
           </p>
-          <p className="text-[10px] text-[#888] truncate">{slot.sub}</p>
+          <p className="text-[10px] text-[#888] truncate">
+            {slot.sub} · Sponsored
+          </p>
         </div>
         <a
           href={href}
