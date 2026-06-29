@@ -484,7 +484,21 @@ export async function getMatchByIdWithScore(id: string): Promise<Match | undefin
       stage: live.stage ?? base.stage,
     };
   } catch {
-    return base;
+    const live = (await getApiFootballScoreRows()).find((s) => s.match_id === id);
+    if (!base) return live ? dbRowToMatch(live) : undefined;
+    if (!live) return base;
+    return {
+      ...base,
+      homeScore: live.home_score ?? base.homeScore,
+      awayScore: live.away_score ?? base.awayScore,
+      status:
+        live.status === "FINISHED"
+          ? "finished"
+          : live.status === "IN_PLAY" || live.status === "PAUSED"
+            ? "live"
+            : base.status,
+      stage: live.stage ?? base.stage,
+    };
   }
 }
 
@@ -515,6 +529,17 @@ function dbRowToMatch(s: SyncedMatch, now: Date = new Date()): Match {
   };
 }
 
+async function getApiFootballScoreRows(): Promise<SyncedMatch[]> {
+  if (process.env.NEXT_PHASE === "phase-production-build") return [];
+  try {
+    const { getWorldCupFixtures } = await import("./apifootball");
+    return (await getWorldCupFixtures()).map((f) => f.synced);
+  } catch (err) {
+    console.error("API-Football score fallback error:", err);
+    return [];
+  }
+}
+
 /** All real fixtures with live scores/status merged from the DB. Static fixtures
  *  supply the group-stage structure; real knockout matchups (unknown at build
  *  time) come straight from the DB. TBD placeholders are dropped in favour of
@@ -525,7 +550,7 @@ export async function getFixturesWithScores(now: Date = new Date()): Promise<Mat
     const { getAllScores } = await import("./db");
     db = await getAllScores();
   } catch {
-    db = [];
+    db = await getApiFootballScoreRows();
   }
   const dbById = new Map(db.map((s) => [s.match_id, s]));
 
@@ -627,7 +652,7 @@ export async function getKnockoutBracket(): Promise<BracketRound[]> {
     const { getAllScores } = await import("./db");
     db = await getAllScores();
   } catch {
-    db = [];
+    db = await getApiFootballScoreRows();
   }
 
   return KNOCKOUT_ROUNDS.map((round) => {

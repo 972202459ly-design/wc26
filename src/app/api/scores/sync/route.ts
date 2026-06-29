@@ -60,8 +60,27 @@ export async function GET(request: Request) {
       });
     }
 
-    await ensureTable();
-    await ensureSubscribersTable();
+    let dbAvailable = true;
+    try {
+      await ensureTable();
+      await ensureSubscribersTable();
+    } catch (err) {
+      dbAvailable = false;
+      console.error("Sync DB unavailable; serving API-Football without persistence:", err);
+    }
+
+    if (!dbAvailable) {
+      const liveCount = matches.filter((m) => m.status === "IN_PLAY" || m.status === "PAUSED").length;
+      return NextResponse.json({
+        success: true,
+        source: "api-football",
+        persistence: "disabled-db-unavailable",
+        updated: 0,
+        total: matches.length,
+        live: liveCount,
+      });
+    }
+
     const halfTimeScores = new Map<number, { home: number; away: number }>();
     for (const f of fixtures) if (f.halfTime) halfTimeScores.set(f.synced.api_id, f.halfTime);
 

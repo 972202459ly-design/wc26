@@ -8,6 +8,7 @@ import {
 } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
 import { neon } from "@neondatabase/serverless";
+import { getWorldCupFixtures } from "@/lib/apifootball";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 15;
@@ -24,19 +25,29 @@ function teamGroup(teamName: string): string {
   return teams.find((t) => t.name === teamName)?.group ?? "";
 }
 
+function isConcreteFixture(match: { homeTeam: string; awayTeam: string }): boolean {
+  return match.homeTeam !== "tbd" && match.awayTeam !== "tbd";
+}
+
 export async function GET() {
   const now = Date.now();
 
   // Pull live scores from DB up front — we need each match's status to decide
   // what's live vs upcoming.
-  let dbMap = new Map<string, { home_score: number; away_score: number; status: string }>();
+  let dbMap = new Map<string, { home_score: number | null; away_score: number | null; status: string }>();
   let dbRows: any[] = [];
   try {
     const sql = neon(process.env.DATABASE_URL!);
     dbRows = (await sql`SELECT match_id, home_team, away_team, home_score, away_score, status, stage, utc_date FROM match_scores`) as any[];
     dbMap = new Map(dbRows.map((r) => [r.match_id, r]));
   } catch {
-    // Non-fatal — fall back to timestamp-derived status
+    try {
+      const fixtures = await getWorldCupFixtures();
+      dbRows = fixtures.map((f) => f.synced);
+      dbMap = new Map(dbRows.map((r) => [r.match_id, r]));
+    } catch (err) {
+      console.error("today-matches live fallback error:", err);
+    }
   }
 
   // Knockout fixtures aren't in the static schedule (teams unknown at build
@@ -61,7 +72,7 @@ export async function GET() {
         stage: r.stage ?? "GROUP_STAGE",
       };
     });
-  const allFixtures = [...staticMatches, ...koMatches];
+  const allFixtures = [...staticMatches.filter(isConcreteFixture), ...koMatches];
 
   // Annotate every fixture with its kickoff time + freshly-derived status, so
   // the window is "now"-centric rather than tied to the UTC calendar day (WC
