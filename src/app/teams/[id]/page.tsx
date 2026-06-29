@@ -14,6 +14,8 @@ import AdPlaceholder from "@/components/AdPlaceholder";
 import { getTranslations } from "next-intl/server";
 import { getServerLocale } from "@/i18n/request";
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return teams.map((t) => ({ id: t.id }));
 }
