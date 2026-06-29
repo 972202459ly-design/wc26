@@ -86,6 +86,45 @@ function localOffsetLabel() {
   }
 }
 
+function briefingTitle(home: string, away: string, pred: DayMatch["prediction"]) {
+  const favorite =
+    pred.homePct >= pred.awayPct
+      ? { team: home, pct: pred.homePct }
+      : { team: away, pct: pred.awayPct };
+  const gap = Math.abs(pred.homePct - pred.awayPct);
+
+  if (gap <= 6) return `${home} vs ${away} looks finely balanced`;
+  if (gap <= 16) return `${favorite.team} has a narrow pre-match edge`;
+  return `${favorite.team} enter as the side to watch`;
+}
+
+function briefingCards(home: string, away: string, pred: DayMatch["prediction"]) {
+  const favorite =
+    pred.homePct >= pred.awayPct
+      ? { team: home, pct: pred.homePct }
+      : { team: away, pct: pred.awayPct };
+  const underdog = favorite.team === home ? away : home;
+  const gap = Math.abs(pred.homePct - pred.awayPct);
+
+  return [
+    {
+      label: "Match outlook",
+      text:
+        gap <= 6
+          ? "The model sees a tight match, so the opening tempo and first clear chance could shape the night."
+          : `${favorite.team} carry the edge at ${favorite.pct}%, but knockout pressure keeps this alive.`,
+    },
+    {
+      label: "Key battle",
+      text: `${favorite.team}'s attacking rhythm against ${underdog}'s defensive shape is the matchup to watch.`,
+    },
+    {
+      label: "What to watch",
+      text: "Watch the first 20 minutes for pressing, transitions, and set-piece danger.",
+    },
+  ];
+}
+
 function Flag({ src, size = 36 }: { src: string; size?: number }) {
   if (!src) return null;
   return (
@@ -284,11 +323,7 @@ export default function FeaturedNextMatch() {
       : null;
 
   const pred = selected.prediction;
-  const probRows = [
-    { label: selected.home, pct: pred.homePct, color: "#f0a500" },
-    { label: "Draw", pct: pred.drawPct, color: "#6b7280" },
-    { label: selected.away, pct: pred.awayPct, color: "#3498db" },
-  ];
+  const briefing = briefingCards(selected.home, selected.away, pred);
   const topComments = [...comments].sort((a, b) => b.likes - a.likes).slice(0, 3);
 
   const dateLabel = localDayLabel(matches[0].utc_date);
@@ -476,27 +511,29 @@ export default function FeaturedNextMatch() {
           </div>
         )}
 
-        {/* Win probability bars */}
+        {/* Pre-match briefing */}
         <div className="px-6 pb-5">
           <div className="mb-2.5 flex items-center gap-1.5">
             <Sparkles className="h-3 w-3 text-[#f0a500]" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#555]">
-              {selected.status === "finished" ? "Pre-match Prediction" : "AI Win Probability"}
+              Pre-match Briefing
             </span>
           </div>
-          <div className="space-y-2">
-            {probRows.map((r) => (
-              <div key={r.label}>
-                <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-[#ccc]">{r.label}</span>
-                  <span className="font-semibold text-white">{r.pct}%</span>
-                </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#1e1e1e]">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${r.pct}%`, background: r.color }}
-                  />
-                </div>
+          <div className="rounded-lg border border-[#222] bg-[#0d0d0d] p-3">
+            <p className="text-sm font-bold leading-5 text-white">
+              {briefingTitle(selected.home, selected.away, pred)}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-[#888]">
+              Expected score: <span className="font-semibold text-[#ddd]">{pred.scoreHome}-{pred.scoreAway}</span>
+            </p>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {briefing.map((item) => (
+              <div key={item.label} className="rounded-lg border border-[#222] bg-[#0f0f0f] p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#f0a500]">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-[#cfcfcf]">{item.text}</p>
               </div>
             ))}
           </div>
@@ -526,7 +563,7 @@ export default function FeaturedNextMatch() {
                   >
                     <Lock className="h-4 w-4 shrink-0 text-[#f0a500]" />
                     <span className="text-sm text-[#ddd]">
-                      <b className="text-[#f0a500]">Unlock the full AI breakdown + value pick</b> with Pro — $7.99 →
+                      <b className="text-[#f0a500]">Unlock the full match briefing</b> with Pro
                     </span>
                   </Link>
                 )}
@@ -677,13 +714,13 @@ export default function FeaturedNextMatch() {
         {/* CTA */}
         <div className="flex flex-col items-center gap-3 border-t border-[#222] bg-black/30 px-6 py-4 sm:flex-row sm:justify-between">
           <span className="text-xs text-[#555]">
-            Make your prediction · beat the AI
+            Full preview, stars to watch and fan picks
           </span>
           <Link
             href={`/match/${selected.id}`}
             className="rounded-lg bg-[#f0a500] px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-[#d49500]"
           >
-            Make Your Prediction →
+            Open Match Center
           </Link>
         </div>
       </div>
