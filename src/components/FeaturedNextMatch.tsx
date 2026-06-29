@@ -533,7 +533,9 @@ export default function FeaturedNextMatch() {
               </>
             )}
             {!previewLoading && !preview?.teaser && (
-              <p className="text-sm text-[#555]">AI analysis loading…</p>
+              <p className="text-sm text-[#555]">
+                Pre-match briefing will appear closer to kickoff.
+              </p>
             )}
           </div>
         )}

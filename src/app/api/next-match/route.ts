@@ -42,6 +42,20 @@ function isConcreteStaticMatch(match: { homeTeam: string; awayTeam: string }): b
   return isConcreteTeam(match.homeTeam) && isConcreteTeam(match.awayTeam);
 }
 
+function fallbackPreview(home: string, away: string, pred: ReturnType<typeof predictMatch>): string {
+  const favorite =
+    pred.homePct >= pred.awayPct
+      ? { team: home, pct: pred.homePct }
+      : { team: away, pct: pred.awayPct };
+  const close = Math.abs(pred.homePct - pred.awayPct) <= 6;
+
+  if (close) {
+    return `${home} vs ${away} looks tight before kickoff, with the model showing only a small gap between the top outcomes. Watch the opening tempo, midfield control, and which side creates the first clear chance.`;
+  }
+
+  return `${favorite.team} has the pre-match edge at ${favorite.pct}%, but ${home} vs ${away} still depends on the early tempo and key attacking moments. Watch the first 20 minutes for pressing, transitions, and set-piece danger.`;
+}
+
 function scoreRowFromApiFixture(row: ScoreRow) {
   const home = row.home_team;
   const away = row.away_team;
@@ -64,7 +78,7 @@ function scoreRowFromApiFixture(row: ScoreRow) {
       scoreHome: p.topHome,
       scoreAway: p.topAway,
     },
-    preview: { teaser: null, full: null, locked: false },
+    preview: { teaser: fallbackPreview(home, away, p), full: null, locked: false },
     predictorCount: 0,
     totalPlayers: 0,
   });
@@ -169,7 +183,7 @@ export async function GET() {
     console.error("next-match stats error:", err);
   }
 
-  const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
+  const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : fallbackPreview(home, away, p);
 
   return NextResponse.json({
     id,

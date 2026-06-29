@@ -13,6 +13,20 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
+function fallbackPreview(home: string, away: string, pred: ReturnType<typeof predictMatch>): string {
+  const favorite =
+    pred.homePct >= pred.awayPct
+      ? { team: home, pct: pred.homePct }
+      : { team: away, pct: pred.awayPct };
+  const close = Math.abs(pred.homePct - pred.awayPct) <= 6;
+
+  if (close) {
+    return `${home} vs ${away} looks tight before kickoff, with the model showing only a small gap between the top outcomes. Watch the opening tempo, midfield control, and which side creates the first clear chance.`;
+  }
+
+  return `${favorite.team} has the pre-match edge at ${favorite.pct}%, but ${home} vs ${away} still depends on the early tempo and key attacking moments. Watch the first 20 minutes for pressing, transitions, and set-piece danger.`;
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -41,7 +55,7 @@ export async function GET(
   // Full AI breakdown is a Pro perk; everyone sees the teaser.
   const session = await getSession();
   const isPremium = session ? (await getTierByEmail(session.email)) === "premium" : false;
-  const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : null;
+  const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : fallbackPreview(home, away, pred);
 
   return NextResponse.json({
     teaser,
