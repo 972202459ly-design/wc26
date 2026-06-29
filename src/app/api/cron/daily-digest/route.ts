@@ -23,7 +23,8 @@ export const dynamic = "force-dynamic";
 // look-back window).
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  if (CRON_SECRET && searchParams.get("key") !== CRON_SECRET) {
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (CRON_SECRET && searchParams.get("key") !== CRON_SECRET && bearer !== CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

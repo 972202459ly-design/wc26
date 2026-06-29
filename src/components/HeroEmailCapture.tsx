@@ -37,8 +37,8 @@ export default function HeroEmailCapture() {
       <div className="mx-auto mb-3 max-w-md rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-4 text-left text-sm text-green-300">
         <p className="font-semibold">✓ You&apos;re subscribed!</p>
         <p className="mt-1 text-green-300/90">
-          We&apos;ll email you final scores and match previews during the World Cup. Check your
-          inbox (and spam folder) to confirm. You can unsubscribe from any email.
+          We&apos;ll send a daily World Cup digest when updates are available. You can unsubscribe
+          from any email.
         </p>
       </div>
     );
@@ -61,12 +61,12 @@ export default function HeroEmailCapture() {
           disabled={state === "loading"}
           className="shrink-0 rounded-lg bg-[#f0a500] px-6 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {state === "loading" ? "…" : "Get Free Alerts"}
+          {state === "loading" ? "..." : "Get Daily Email"}
         </button>
       </form>
       {msg && <p className="mt-1.5 text-xs text-red-400">{msg}</p>}
       <p className="mt-2 text-xs text-[#888]">
-        <span className="text-[#bbb]">Free</span> — final-score alerts &amp; match previews · no account needed.
+        <span className="text-[#bbb]">Free</span> daily digest for scores, upcoming matches and prediction links.
       </p>
       <p className="mt-0.5 text-[11px] text-[#666]">
         <Link href="/premium" className="text-[#f0a500]/80 hover:text-[#f0a500]">

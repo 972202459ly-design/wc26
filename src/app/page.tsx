@@ -111,16 +111,32 @@ export default async function HomePage() {
           <p className="hidden sm:block text-lg sm:text-xl text-[#aaa] mb-7 max-w-2xl mx-auto">
             {t("heroSubtitle")}
           </p>
-          {/* Email capture — above the fold, before AI module */}
-          <div className="mx-auto mb-6 max-w-md">
-            <p className="text-sm text-[#aaa] mb-3">
-              ⚡ Free final-score alerts &amp; match previews — straight to your inbox
-            </p>
-            <HeroEmailCapture />
+          <div className="mx-auto mb-6 flex max-w-xl flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href="/watch"
+              className="w-full rounded-lg bg-[#f0a500] px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-[#d49500] sm:w-auto"
+            >
+              Check Streaming Options
+            </Link>
+            <a
+              href={amazonSearchLink("Prime membership streaming sports")}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="w-full rounded-lg border border-[#f0a500]/60 px-6 py-3 text-sm font-bold text-[#f0a500] transition-colors hover:bg-[#f0a500] hover:text-black sm:w-auto"
+            >
+              Check Prime Options
+            </a>
           </div>
+          <p className="mx-auto mb-6 max-w-md text-[11px] leading-5 text-[#777]">
+            WC26 Live does not stream matches. Availability varies by country and broadcaster.
+          </p>
           <FeaturedNextMatch />
           <HomeSocialProof />
         </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <StreamingOptionsCard placement="home_before_matches" title="Watching World Cup 2026 online?" />
       </section>
 
       {/* Today / Upcoming / Recent results — the core SEO content */}
@@ -131,10 +147,6 @@ export default async function HomePage() {
         predictions={predictions}
         generatedAt={now.toISOString()}
       />
-
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <StreamingOptionsCard placement="home_after_matches" />
-      </section>
 
       {/* Standings snapshot */}
       <StandingsSnapshot />
@@ -241,8 +253,10 @@ export default async function HomePage() {
 
       {/* Email alerts */}
       <section className="max-w-2xl mx-auto px-4 pb-12 text-center">
-        <h2 className="text-lg font-bold text-white mb-1">{t("email.title")}</h2>
-        <p className="text-sm text-[#999] mb-4">{t("email.subtitle")}</p>
+        <h2 className="text-lg font-bold text-white mb-1">Get the daily World Cup email</h2>
+        <p className="text-sm text-[#999] mb-4">
+          A simple daily digest for scores, upcoming matches and prediction links. No account needed.
+        </p>
         <HeroEmailCapture />
       </section>
 
@@ -252,56 +266,67 @@ export default async function HomePage() {
           <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f0a500]/60 border border-[#f0a500]/20 px-2 py-0.5 rounded mb-4">
             {shopT("sponsored")}
           </span>
-          <h2 className="text-2xl font-bold mb-2">{shopT("title")}</h2>
+          <h2 className="text-2xl font-bold mb-2">Watch World Cup 2026 Online</h2>
           <p className="text-sm text-[#888] mb-6 max-w-lg mx-auto">
-            {shopT("description")}
+            Check Prime membership options, streaming devices and match-day setup before kickoff.
           </p>
-          <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto mb-5">
+          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto mb-5 sm:grid-cols-5">
+            {/* Prime membership */}
+            <a
+              href="https://www.amazon.com/amazonprime?tag=none03e04-20"
+              target="_blank" rel="noopener noreferrer sponsored"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
+            >
+              <span className="text-lg font-bold">Prime</span>
+              <span className="text-xs font-semibold text-center leading-tight">Prime Options</span>
+            </a>
             {/* Streaming device */}
             <a
               href={amazonSearchLink("Fire TV Stick 4K streaming device")}
-              target="_blank" rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer sponsored"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">📡</span>
-              <span className="text-xs font-semibold text-center leading-tight">{shopT("jerseys")}</span>
+              <span className="text-lg font-bold">TV</span>
+              <span className="text-xs font-semibold text-center leading-tight">Fire TV</span>
             </a>
             {/* Party Speaker */}
             <a
               href={amazonSearchLink("portable bluetooth speaker outdoor party")}
-              target="_blank" rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer sponsored"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">🔊</span>
-              <span className="text-xs font-semibold text-center leading-tight">{shopT("flags")}</span>
+              <span className="text-lg font-bold">Audio</span>
+              <span className="text-xs font-semibold text-center leading-tight">Speaker</span>
             </a>
             {/* Watch party supplies */}
             <a
               href={amazonSearchLink("soccer watch party supplies decorations")}
-              target="_blank" rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer sponsored"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">🎉</span>
-              <span className="text-xs font-semibold text-center leading-tight">{shopT("balls")}</span>
+              <span className="text-lg font-bold">Fan</span>
+              <span className="text-xs font-semibold text-center leading-tight">Watch Party</span>
             </a>
             {/* TV / projector for the watch party */}
             <a
-              href={amazonSearchLink("4K smart tv")}
-              target="_blank" rel="noopener noreferrer"
+              href={amazonSearchLink("4K smart tv streaming sports")}
+              target="_blank" rel="noopener noreferrer sponsored"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#222] hover:bg-[#2a2a2a] border border-[#333] hover:border-[#f0a500]/40 transition-all"
             >
-              <span className="text-2xl">📺</span>
-              <span className="text-xs font-semibold text-center leading-tight">TV &amp; Displays</span>
+              <span className="text-lg font-bold">4K</span>
+              <span className="text-xs font-semibold text-center leading-tight">4K TV</span>
             </a>
           </div>
           <a
-            href={amazonSearchLink("soccer watch party supplies streaming")}
-            target="_blank" rel="noopener noreferrer"
+            href="https://www.amazon.com/amazonprime?tag=none03e04-20"
+            target="_blank" rel="noopener noreferrer sponsored"
             className="inline-block px-8 py-3 text-sm font-bold rounded-lg bg-[#f0a500] text-black hover:bg-[#d49500] transition-colors"
           >
-            {shopT("browseAll")}
+            Check Prime Options
           </a>
-          <p className="text-[10px] text-[#555] mt-3">{shopT("affiliateNotice")}</p>
+          <p className="text-[10px] text-[#555] mt-3">
+            {shopT("affiliateNotice")} Streaming availability varies by country and broadcaster.
+          </p>
         </div>
       </section>
 
