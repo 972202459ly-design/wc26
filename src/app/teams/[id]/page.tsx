@@ -5,6 +5,7 @@ import {
   getTeamFlagUrl,
   getTeamIdByName,
   amazonSearchLink,
+  stageLabel,
 } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import Link from "next/link";
@@ -135,7 +136,7 @@ export default async function TeamPage({
           </h2>
           <div className="space-y-3">
             {live.map((m) => (
-              <MatchCard key={m.id} match={m} team={team.name} />
+              <MatchCard key={m.id} match={m} team={team.name} teamId={team.id} />
             ))}
           </div>
         </section>
@@ -149,7 +150,7 @@ export default async function TeamPage({
         ) : (
           <div className="space-y-3">
             {upcoming.map((m) => (
-              <MatchCard key={m.id} match={m} team={team.name} />
+              <MatchCard key={m.id} match={m} team={team.name} teamId={team.id} />
             ))}
           </div>
         )}
@@ -161,7 +162,7 @@ export default async function TeamPage({
           <h2 className="text-xl font-semibold mb-4">{t("results")}</h2>
           <div className="space-y-3">
             {finished.map((m) => (
-              <MatchCard key={m.id} match={m} team={team.name} />
+              <MatchCard key={m.id} match={m} team={team.name} teamId={team.id} />
             ))}
           </div>
         </section>
@@ -208,9 +209,11 @@ export default async function TeamPage({
 function MatchCard({
   match: m,
   team,
+  teamId,
 }: {
   match: Match;
   team: string;
+  teamId: string;
 }) {
   const dateObj = new Date(m.date + "T" + m.time);
   const dateStr = dateObj.toLocaleDateString("en-US", {
@@ -222,9 +225,13 @@ function MatchCard({
     .toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
     .replace(":00", "");
 
-  const isHome = m.homeTeam === team;
-  const homeFlag = getTeamFlagUrl(getTeamIdByName(m.homeTeam) || "");
-  const awayFlag = getTeamFlagUrl(getTeamIdByName(m.awayTeam) || "");
+  const homeId = getTeamIdByName(m.homeTeam);
+  const awayId = getTeamIdByName(m.awayTeam);
+  const isHome = homeId === teamId;
+  const homeFlag = getTeamFlagUrl(homeId || "");
+  const awayFlag = getTeamFlagUrl(awayId || "");
+  const homeName = homeId === teamId ? team : m.homeTeam;
+  const awayName = awayId === teamId ? team : m.awayTeam;
   const hasScore = m.homeScore !== null && m.awayScore !== null;
   const resultText = hasScore ? `${m.homeScore} - ${m.awayScore}` : "Result pending";
 
@@ -240,15 +247,15 @@ function MatchCard({
         <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-semibold text-white sm:text-base">
           <span className="inline-flex min-w-0 items-center gap-1.5">
             {homeFlag && <img src={homeFlag} alt="" className="h-3.5 w-5 shrink-0 rounded-sm" />}
-            <span className={m.homeTeam === team ? "text-white" : "text-[#aaa]"}>
-              {m.homeTeam}
+            <span className={homeId === teamId ? "text-white" : "text-[#aaa]"}>
+              {homeName}
             </span>
           </span>
           <span className="text-xs font-bold uppercase text-[#666]">vs</span>
           <span className="inline-flex min-w-0 items-center gap-1.5">
             {awayFlag && <img src={awayFlag} alt="" className="h-3.5 w-5 shrink-0 rounded-sm" />}
-            <span className={m.awayTeam === team ? "text-white" : "text-[#aaa]"}>
-              {m.awayTeam}
+            <span className={awayId === teamId ? "text-white" : "text-[#aaa]"}>
+              {awayName}
             </span>
           </span>
         </div>
@@ -264,7 +271,7 @@ function MatchCard({
             <div className="text-xs text-[#888]">{timeStr}</div>
           </>
         )}
-        <div className="text-xs text-[#555] uppercase">{m.stage.replace("_", " ")}</div>
+        <div className="text-xs text-[#555] uppercase">{stageLabel(m.stage)}</div>
       </div>
     </Link>
   );
