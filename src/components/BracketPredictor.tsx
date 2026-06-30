@@ -32,17 +32,23 @@ const REWARD_BY_ROUND: Record<string, number> = {
 
 function formatKickoff(date: string, time: string) {
   if (!date) return "TBD";
-  const iso = `${date}T${time || "00:00"}:00Z`;
+  const cleanTime = (time || "00:00").replace(/Z$/, "").slice(0, 5);
+  const kickoff = new Date(`${date}T${cleanTime}:00Z`);
+  if (Number.isNaN(kickoff.getTime())) return "TBD";
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(iso));
+  }).format(kickoff);
 }
 
 function isPickable(m: PredictorMatch) {
-  return m.status === "upcoming" && m.homeTeam !== "TBD" && m.awayTeam !== "TBD";
+  return (
+    m.status === "upcoming" &&
+    m.homeTeam.toLowerCase() !== "tbd" &&
+    m.awayTeam.toLowerCase() !== "tbd"
+  );
 }
 
 export default function BracketPredictor({
