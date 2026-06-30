@@ -6,8 +6,12 @@ import {
   liveStatus,
   amazonSearchLink,
   eventPerformers,
+  getTeamFlagUrl,
+  getTeamIdByName,
+  stageLabel,
 } from "@/lib/data";
 import { predictMatch } from "@/lib/predict";
+import { advanceProbabilities, aiAdvancePick, pickReward, pickTag } from "@/lib/pickem";
 import type { Match } from "@/lib/types";
 import FeaturedNextMatch from "@/components/FeaturedNextMatch";
 import HeroEmailCapture from "@/components/HeroEmailCapture";
@@ -60,6 +64,31 @@ export default async function HomePage() {
       predictions[m.id] = { homePct: p.homePct, drawPct: p.drawPct, awayPct: p.awayPct };
     }
   }
+  const pickemMatches = [...today, ...upcoming]
+    .filter((m) => liveStatus(m, now) === "upcoming")
+    .slice(0, 3)
+    .map((m) => {
+      const pred = predictMatch(m.homeTeam, m.awayTeam);
+      const probs = advanceProbabilities(pred);
+      const aiPick = aiAdvancePick(pred);
+      const aiTeam = aiPick === "home" ? m.homeTeam : m.awayTeam;
+      const homeReward = pickReward(probs.home, m.stage);
+      const awayReward = pickReward(probs.away, m.stage);
+      return {
+        match: m,
+        homeId: getTeamIdByName(m.homeTeam) ?? "",
+        awayId: getTeamIdByName(m.awayTeam) ?? "",
+        aiTeam,
+        homeReward,
+        awayReward,
+        homeTag: pickTag(probs.home),
+        awayTag: pickTag(probs.away),
+      };
+    });
+  const pickemPotential = pickemMatches.reduce(
+    (sum, item) => sum + Math.max(item.homeReward, item.awayReward),
+    0
+  );
 
   // Tournament-level SportsEvent — emitted only on the homepage so it never
   // collides with the per-fixture SportsEvent on match pages.
@@ -148,6 +177,72 @@ export default async function HomePage() {
           <HomeSocialProof />
         </div>
       </section>
+
+      {pickemMatches.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-8">
+          <div className="overflow-hidden rounded-2xl border border-[#f0a500]/30 bg-[#111]">
+            <div className="grid gap-0 lg:grid-cols-[0.9fr_1.4fr]">
+              <div className="border-b border-[#222] bg-gradient-to-br from-[#1a1a2e] to-[#0f0f0f] p-5 lg:border-b-0 lg:border-r">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#f0a500]">
+                  Today&apos;s Pick&apos;em
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-white">Beat the AI</h2>
+                <p className="mt-2 text-sm leading-6 text-[#aaa]">
+                  Pick who advances in the next knockout matches. No scores, no brackets, just one tap.
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-[#2a2a2a] bg-black/25 p-3">
+                    <div className="text-xs text-[#777]">Open picks</div>
+                    <div className="text-2xl font-bold text-white">{pickemMatches.length}</div>
+                  </div>
+                  <div className="rounded-lg border border-[#2a2a2a] bg-black/25 p-3">
+                    <div className="text-xs text-[#777]">Upside</div>
+                    <div className="text-2xl font-bold text-[#f0a500]">{pickemPotential}</div>
+                  </div>
+                </div>
+                <Link
+                  href="/predict"
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-[#f0a500] px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-[#d49500]"
+                >
+                  Make Today&apos;s Picks
+                </Link>
+              </div>
+
+              <div className="grid gap-3 p-4 md:grid-cols-3">
+                {pickemMatches.map(({ match, homeId, awayId, aiTeam, homeReward, awayReward, homeTag, awayTag }) => (
+                  <Link
+                    key={match.id}
+                    href="/predict"
+                    className="rounded-xl border border-[#222] bg-[#0d0d0d] p-4 transition-colors hover:border-[#f0a500]/60"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-2 text-[11px] text-[#777]">
+                      <span>{stageLabel(match.stage)}</span>
+                      <span>AI: <b className="text-[#f0a500]">{aiTeam}</b></span>
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { name: match.homeTeam, id: homeId, reward: homeReward, tag: homeTag },
+                        { name: match.awayTeam, id: awayId, reward: awayReward, tag: awayTag },
+                      ].map((team) => (
+                        <div key={team.name} className="flex items-center justify-between gap-2 rounded-lg border border-[#222] bg-[#111] px-3 py-2">
+                          <span className="flex min-w-0 items-center gap-2">
+                            {team.id && <img src={getTeamFlagUrl(team.id)} alt="" className="h-3.5 w-5 shrink-0 rounded-sm" />}
+                            <span className="truncate text-sm font-bold text-white">{team.name}</span>
+                          </span>
+                          <span className="shrink-0 text-right text-xs font-bold text-[#f0a500]">
+                            +{team.reward}
+                            <span className="ml-1 text-[#777]">{team.tag}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <StreamingOptionsCard placement="home_before_matches" title="Watching World Cup 2026 online?" />
