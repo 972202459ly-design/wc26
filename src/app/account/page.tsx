@@ -83,13 +83,13 @@ export default async function AccountPage({
 
             {session.tier === "premium" ? (
               <p className="mt-3 text-sm text-[#aaa]">
-                You have full access — AI predictions, the qualification simulator, and
+                You have full access — AI predictions, the bracket predictor, and
                 real-time multi-channel alerts all the way to the final.
               </p>
             ) : (
               <div className="mt-4">
                 <p className="text-sm text-[#aaa]">
-                  Unlock AI win predictions, the qualification simulator, and real-time
+                  Unlock AI win predictions, the bracket predictor, and real-time
                   alerts with a one-time Fan Pro.
                 </p>
                 <Link

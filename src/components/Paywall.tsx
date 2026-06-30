@@ -12,7 +12,7 @@ import TrackView from "./TrackView";
 export default function Paywall({
   teaser,
   title = "Unlock with Fan Pro",
-  description = "AI win predictions, the qualification simulator, and real-time alerts — one payment, all the way to the final.",
+  description = "AI win predictions, the bracket predictor, and real-time alerts — one payment, all the way to the final.",
   signedIn = false,
   source = "paywall",
 }: {

@@ -18,6 +18,7 @@ export type TrackSource =
   | "nav"
   | "account"
   | "league"
+  | "simulator"
   | "advertise";
 
 export function track(
