@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "World Cup 2026 Pick'em — Free Prediction Game",
+  title: "Beat the AI - World Cup Pick'em",
   description:
-    "Play the free WC26 Live Pick'em: predict 2026 FIFA World Cup matches with virtual points and AI win probabilities, then climb the global leaderboard. No money — just bragging rights.",
+    "Pick who advances in each World Cup knockout match, beat the AI, win virtual points, and join the daily challenge. Free to play, no gambling.",
   alternates: { canonical: "https://wc26live.org/predict" },
 };
 

@@ -138,11 +138,11 @@ export default function LiveStandings({
       )}
 
       <Link
-        href="/simulator"
+        href="/predict"
         className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-[#f0a500]/30 bg-gradient-to-r from-[#1a1a2e] to-[#111] px-5 py-3 transition-colors hover:border-[#f0a500]/60"
       >
         <span className="text-sm text-[#ddd]">
-          <b className="text-white">Build your bracket.</b> Pick every knockout winner and chase leaderboard rewards.
+          <b className="text-white">Beat the AI.</b> Pick who advances and win virtual points.
         </span>
         <span className="shrink-0 text-sm font-semibold text-[#f0a500]">Open →</span>
       </Link>

@@ -11,6 +11,9 @@ export interface SyncedMatch {
   away_team: string;
   home_score: number | null;
   away_score: number | null;
+  home_penalty_score?: number | null;
+  away_penalty_score?: number | null;
+  winner?: "home" | "away" | null;
   status: string;
   stage: string | null;
   group_name: string | null;
@@ -29,6 +32,9 @@ export async function ensureTable(): Promise<void> {
       away_team TEXT NOT NULL,
       home_score INTEGER,
       away_score INTEGER,
+      home_penalty_score INTEGER,
+      away_penalty_score INTEGER,
+      winner TEXT,
       status TEXT NOT NULL DEFAULT 'TIMED',
       stage TEXT,
       group_name TEXT,
@@ -36,6 +42,9 @@ export async function ensureTable(): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW()
     )
   `;
+  await getSql()`ALTER TABLE match_scores ADD COLUMN IF NOT EXISTS home_penalty_score INTEGER`;
+  await getSql()`ALTER TABLE match_scores ADD COLUMN IF NOT EXISTS away_penalty_score INTEGER`;
+  await getSql()`ALTER TABLE match_scores ADD COLUMN IF NOT EXISTS winner TEXT`;
   matchTableReady = true;
 }
 
@@ -48,8 +57,8 @@ export async function upsertMatches(ms: SyncedMatch[]): Promise<number> {
   if (ms.length === 0) return 0;
   await getSql()`
     INSERT INTO match_scores
-      (api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, updated_at)
-    SELECT api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, NOW()
+      (api_id, match_id, home_team, away_team, home_score, away_score, home_penalty_score, away_penalty_score, winner, status, stage, group_name, utc_date, updated_at)
+    SELECT api_id, match_id, home_team, away_team, home_score, away_score, home_penalty_score, away_penalty_score, winner, status, stage, group_name, utc_date, NOW()
     FROM UNNEST(
       ${ms.map((m) => m.api_id)}::int[],
       ${ms.map((m) => m.match_id)}::text[],
@@ -57,14 +66,20 @@ export async function upsertMatches(ms: SyncedMatch[]): Promise<number> {
       ${ms.map((m) => m.away_team)}::text[],
       ${ms.map((m) => m.home_score)}::int[],
       ${ms.map((m) => m.away_score)}::int[],
+      ${ms.map((m) => m.home_penalty_score ?? null)}::int[],
+      ${ms.map((m) => m.away_penalty_score ?? null)}::int[],
+      ${ms.map((m) => m.winner ?? null)}::text[],
       ${ms.map((m) => m.status)}::text[],
       ${ms.map((m) => m.stage)}::text[],
       ${ms.map((m) => m.group_name)}::text[],
       ${ms.map((m) => m.utc_date)}::text[]
-    ) AS t(api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date)
+    ) AS t(api_id, match_id, home_team, away_team, home_score, away_score, home_penalty_score, away_penalty_score, winner, status, stage, group_name, utc_date)
     ON CONFLICT (api_id) DO UPDATE SET
       home_score = EXCLUDED.home_score,
       away_score = EXCLUDED.away_score,
+      home_penalty_score = EXCLUDED.home_penalty_score,
+      away_penalty_score = EXCLUDED.away_penalty_score,
+      winner = EXCLUDED.winner,
       status = EXCLUDED.status,
       stage = EXCLUDED.stage,
       group_name = EXCLUDED.group_name,
@@ -76,11 +91,14 @@ export async function upsertMatches(ms: SyncedMatch[]): Promise<number> {
 
 export async function upsertMatch(m: SyncedMatch): Promise<void> {
   await getSql()`
-    INSERT INTO match_scores (api_id, match_id, home_team, away_team, home_score, away_score, status, stage, group_name, utc_date, updated_at)
-    VALUES (${m.api_id}, ${m.match_id}, ${m.home_team}, ${m.away_team}, ${m.home_score}, ${m.away_score}, ${m.status}, ${m.stage}, ${m.group_name}, ${m.utc_date}, NOW())
+    INSERT INTO match_scores (api_id, match_id, home_team, away_team, home_score, away_score, home_penalty_score, away_penalty_score, winner, status, stage, group_name, utc_date, updated_at)
+    VALUES (${m.api_id}, ${m.match_id}, ${m.home_team}, ${m.away_team}, ${m.home_score}, ${m.away_score}, ${m.home_penalty_score ?? null}, ${m.away_penalty_score ?? null}, ${m.winner ?? null}, ${m.status}, ${m.stage}, ${m.group_name}, ${m.utc_date}, NOW())
     ON CONFLICT (api_id) DO UPDATE SET
       home_score = ${m.home_score},
       away_score = ${m.away_score},
+      home_penalty_score = ${m.home_penalty_score ?? null},
+      away_penalty_score = ${m.away_penalty_score ?? null},
+      winner = ${m.winner ?? null},
       status = ${m.status},
       stage = ${m.stage},
       group_name = ${m.group_name},
@@ -277,11 +295,13 @@ export async function ensureGameSchema(): Promise<void> {
       odds REAL NOT NULL,
       status TEXT NOT NULL DEFAULT 'open',
       payout INTEGER NOT NULL DEFAULT 0,
+      pick_kind TEXT NOT NULL DEFAULT 'outcome',
       created_at TIMESTAMP DEFAULT NOW(),
       settled_at TIMESTAMP,
       UNIQUE(email, match_id)
     )
   `;
+  await sql`ALTER TABLE picks ADD COLUMN IF NOT EXISTS pick_kind TEXT NOT NULL DEFAULT 'outcome'`;
   gameSchemaReady = true;
 }
 
@@ -476,6 +496,32 @@ export async function placePick(
   return { ok: true, points: newBalance };
 }
 
+export async function placeAdvancePick(
+  email: string,
+  matchId: string,
+  pick: "home" | "away",
+  reward: number
+): Promise<{ ok: true; points: number } | { ok: false; error: string }> {
+  const e = email.toLowerCase().trim();
+  const sql = getSql();
+  await getOrCreatePlayer(e);
+
+  const existing = await getUserPick(e, matchId);
+  if (existing && existing.status !== "open") {
+    return { ok: false, error: "This match is already settled" };
+  }
+
+  const [player] = (await sql`SELECT points FROM subscribers WHERE email = ${e}`) as any[];
+  await sql`
+    INSERT INTO picks (email, match_id, pick, stake, odds, status, payout, pick_kind)
+    VALUES (${e}, ${matchId}, ${pick}, 0, ${reward}, 'open', 0, 'advance')
+    ON CONFLICT (email, match_id) DO UPDATE SET
+      pick = ${pick}, stake = 0, odds = ${reward}, status = 'open',
+      payout = 0, pick_kind = 'advance', created_at = NOW(), settled_at = NULL
+  `;
+  return { ok: true, points: player?.points ?? INITIAL_POINTS };
+}
+
 /**
  * Settle every open pick whose match has finished. Idempotent: only touches
  * status='open' rows, so it is safe to run on every score sync.
@@ -484,7 +530,8 @@ export async function settleOpenPicks(): Promise<number> {
   const sql = getSql();
   // Open picks joined to their finished match's result.
   const rows = await sql`
-    SELECT p.id, p.email, p.pick, p.stake, p.odds, m.home_score, m.away_score
+    SELECT p.id, p.email, p.pick, p.stake, p.odds, p.pick_kind,
+      m.home_score, m.away_score, m.winner
     FROM picks p
     JOIN match_scores m ON m.match_id = p.match_id
     WHERE p.status = 'open' AND m.status = 'FINISHED'
@@ -492,9 +539,16 @@ export async function settleOpenPicks(): Promise<number> {
   `;
   let settled = 0;
   for (const r of rows as any[]) {
-    const result = r.home_score > r.away_score ? "home" : r.home_score < r.away_score ? "away" : "draw";
+    const result =
+      r.pick_kind === "advance" && r.winner
+        ? r.winner
+        : r.home_score > r.away_score
+          ? "home"
+          : r.home_score < r.away_score
+            ? "away"
+            : "draw";
     const won = r.pick === result;
-    const payout = won ? Math.round(r.stake * r.odds) : 0;
+    const payout = won ? (r.pick_kind === "advance" ? Math.round(r.odds) : Math.round(r.stake * r.odds)) : 0;
     await sql`UPDATE picks SET status = ${won ? "won" : "lost"}, payout = ${payout}, settled_at = NOW() WHERE id = ${r.id}`;
     if (won) {
       await sql`UPDATE subscribers SET points = points + ${payout} WHERE email = ${r.email}`;

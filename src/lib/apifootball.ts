@@ -58,6 +58,9 @@ export async function getWorldCupFixtures(): Promise<ApiFixture[]> {
     const home = f.teams.home.name;
     const away = f.teams.away.name;
     const ht = f.score?.halftime;
+    const penalty = f.score?.penalty;
+    const homeWinner = f.teams.home.winner === true;
+    const awayWinner = f.teams.away.winner === true;
     return {
       synced: {
         api_id: f.fixture.id,
@@ -66,6 +69,9 @@ export async function getWorldCupFixtures(): Promise<ApiFixture[]> {
         away_team: away,
         home_score: f.goals?.home ?? null,
         away_score: f.goals?.away ?? null,
+        home_penalty_score: penalty?.home ?? null,
+        away_penalty_score: penalty?.away ?? null,
+        winner: homeWinner ? "home" : awayWinner ? "away" : null,
         status: mapStatus(f.fixture.status?.short ?? "NS"),
         stage: mapStage(f.league?.round ?? ""),
         group_name: null,

@@ -19,6 +19,7 @@ export type TrackSource =
   | "account"
   | "league"
   | "simulator"
+  | "predict"
   | "advertise";
 
 export function track(

@@ -16,6 +16,7 @@ export default function Header() {
     { href: "/", label: t("home") },
     { href: "/schedule", label: t("schedule") },
     { href: "/watch", label: "Watch", badge: "NEW" },
+    { href: "/predict", label: "Pick'em", badge: "PLAY" },
     { href: "/bracket", label: t("bracket") },
     { href: "/standings", label: t("standings") },
     { href: "/teams", label: t("teams") },
@@ -26,7 +27,7 @@ export default function Header() {
     { href: "/account", label: t("account") },
   ];
   const mobileNavLinks = navLinks.filter((link) =>
-    ["/schedule", "/watch", "/bracket", "/teams"].includes(link.href)
+    ["/schedule", "/watch", "/predict", "/bracket", "/teams"].includes(link.href)
   );
 
   const isActive = (href: string) =>

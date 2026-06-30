@@ -32,6 +32,9 @@ export async function GET(
 
       match.homeScore = live.home_score;
       match.awayScore = live.away_score;
+      match.homePenaltyScore = live.home_penalty_score ?? null;
+      match.awayPenaltyScore = live.away_penalty_score ?? null;
+      match.winner = live.winner ?? null;
       match.status = statusMap[live.status] ?? "upcoming";
 
       // Live text-commentary events for in-play / finished matches.

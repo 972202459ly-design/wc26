@@ -41,9 +41,9 @@ export default async function HomePage() {
   const shopT = await getTranslations("home.shop");
   const ctaT = await getTranslations("home.cta");
   const quickLinks = [
+    { href: "/predict", label: "Beat the AI" },
     { href: "/watch", label: "How to Watch" },
     { href: "/schedule", label: navT("schedule") },
-    { href: "/bracket", label: "Bracket" },
     { href: "/teams", label: navT("teams") },
   ];
   const trendingItems = buildTrendingItems(

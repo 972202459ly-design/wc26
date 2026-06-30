@@ -27,6 +27,7 @@ export const EVENT_NAMES = [
   "trending_click",
   "quick_nav_click",
   "bracket_pick",
+  "advance_pick",
   "email_subscribed",
   "private_league_created",
   "private_league_invite_joined",
@@ -47,6 +48,7 @@ export const VALID_SOURCES = [
   "account",
   "league",
   "simulator",
+  "predict",
   "advertise",
   "unknown",
 ] as const;

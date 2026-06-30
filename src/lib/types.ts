@@ -4,6 +4,9 @@ export interface Match {
   awayTeam: string;
   homeScore: number | null;
   awayScore: number | null;
+  homePenaltyScore?: number | null;
+  awayPenaltyScore?: number | null;
+  winner?: "home" | "away" | null;
   status: "upcoming" | "live" | "finished";
   minute: number | null;
   date: string;

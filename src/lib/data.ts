@@ -475,6 +475,9 @@ export async function getMatchByIdWithScore(id: string): Promise<Match | undefin
       ...base,
       homeScore: live.home_score ?? base.homeScore,
       awayScore: live.away_score ?? base.awayScore,
+      homePenaltyScore: live.home_penalty_score ?? null,
+      awayPenaltyScore: live.away_penalty_score ?? null,
+      winner: live.winner ?? null,
       status:
         live.status === "FINISHED"
           ? "finished"
@@ -491,6 +494,9 @@ export async function getMatchByIdWithScore(id: string): Promise<Match | undefin
       ...base,
       homeScore: live.home_score ?? base.homeScore,
       awayScore: live.away_score ?? base.awayScore,
+      homePenaltyScore: live.home_penalty_score ?? null,
+      awayPenaltyScore: live.away_penalty_score ?? null,
+      winner: live.winner ?? null,
       status:
         live.status === "FINISHED"
           ? "finished"
@@ -520,6 +526,9 @@ function dbRowToMatch(s: SyncedMatch, now: Date = new Date()): Match {
     awayTeam: s.away_team,
     homeScore: s.home_score,
     awayScore: s.away_score,
+    homePenaltyScore: s.home_penalty_score ?? null,
+    awayPenaltyScore: s.away_penalty_score ?? null,
+    winner: s.winner ?? null,
     status,
     minute: null,
     date,
@@ -568,6 +577,9 @@ export async function getFixturesWithScores(now: Date = new Date()): Promise<Mat
           ...m,
           homeScore: s.home_score ?? m.homeScore,
           awayScore: s.away_score ?? m.awayScore,
+          homePenaltyScore: s.home_penalty_score ?? null,
+          awayPenaltyScore: s.away_penalty_score ?? null,
+          winner: s.winner ?? null,
           status,
           stage: s.stage ?? m.stage,
         }
@@ -619,6 +631,9 @@ export interface BracketMatch {
   awayTeam: string;
   homeScore: number | null;
   awayScore: number | null;
+  homePenaltyScore?: number | null;
+  awayPenaltyScore?: number | null;
+  winner?: "home" | "away" | null;
   status: Match["status"];
   date: string;
   time: string;
@@ -664,6 +679,9 @@ export async function getKnockoutBracket(): Promise<BracketRound[]> {
           awayTeam: s.away_team,
           homeScore: s.home_score,
           awayScore: s.away_score,
+          homePenaltyScore: s.home_penalty_score ?? null,
+          awayPenaltyScore: s.away_penalty_score ?? null,
+          winner: s.winner ?? null,
           status:
             s.status === "FINISHED"
               ? "finished"
@@ -682,6 +700,9 @@ export async function getKnockoutBracket(): Promise<BracketRound[]> {
             awayTeam: m.awayTeam,
             homeScore: m.homeScore,
             awayScore: m.awayScore,
+            homePenaltyScore: null,
+            awayPenaltyScore: null,
+            winner: null,
             status: m.status,
             date: m.date,
             time: m.time,

@@ -45,6 +45,9 @@ export default function MatchDetail({
           ...prev,
           homeScore: live.home_score ?? prev.homeScore,
           awayScore: live.away_score ?? prev.awayScore,
+          homePenaltyScore: live.home_penalty_score ?? prev.homePenaltyScore,
+          awayPenaltyScore: live.away_penalty_score ?? prev.awayPenaltyScore,
+          winner: live.winner ?? prev.winner,
           status:
             live.status === "FINISHED"
               ? "finished"
@@ -76,6 +79,14 @@ export default function MatchDetail({
     match.homeScore !== null && match.awayScore !== null
       ? `${match.homeScore} - ${match.awayScore}`
       : "vs";
+  const resultNote =
+    match.status === "finished" && match.winner
+      ? match.homePenaltyScore != null && match.awayPenaltyScore != null
+        ? `${match.winner === "home" ? match.homeTeam : match.awayTeam} advance ${match.homePenaltyScore}-${match.awayPenaltyScore} on penalties`
+        : match.homeScore === match.awayScore
+          ? `${match.winner === "home" ? match.homeTeam : match.awayTeam} advance after extra time`
+          : `${match.winner === "home" ? match.homeTeam : match.awayTeam} advance`
+      : null;
 
   const shareUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://wc26live.org"}/match/${match.id}`;
   const shareText = `${match.homeTeam} ${match.homeScore ?? 0}-${match.awayScore ?? 0} ${match.awayTeam}${isLive ? " 🔴 LIVE" : ""} — World Cup 2026`;
@@ -110,6 +121,9 @@ export default function MatchDetail({
           {match.awayTeam}
           {awayFlag && <img src={awayFlag} alt="" className="w-6 h-4.5 inline-block ml-2 align-middle" />}
         </h1>
+        {resultNote && (
+          <p className="mb-4 text-sm font-semibold text-green-400">{resultNote}</p>
+        )}
 
         <p className="text-[#888] mb-6">
           {match.venue && <>{match.venue} &middot; </>}
