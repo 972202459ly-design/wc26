@@ -86,7 +86,11 @@ export default function MatchDetail({
         : match.homeScore === match.awayScore
           ? `${match.winner === "home" ? match.homeTeam : match.awayTeam} advance after extra time`
           : `${match.winner === "home" ? match.homeTeam : match.awayTeam} advance`
-      : null;
+      : match.status === "finished" &&
+          match.homeScore === match.awayScore &&
+          match.stage !== "GROUP_STAGE"
+        ? "Penalty winner pending confirmation"
+        : null;
 
   const shareUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://wc26live.org"}/match/${match.id}`;
   const shareText = `${match.homeTeam} ${match.homeScore ?? 0}-${match.awayScore ?? 0} ${match.awayTeam}${isLive ? " 🔴 LIVE" : ""} — World Cup 2026`;

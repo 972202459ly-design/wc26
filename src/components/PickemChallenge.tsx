@@ -71,6 +71,7 @@ function resultLine(m: PickemMatch) {
   }
   if (winner && m.homeScore === m.awayScore) return `${winner} advance after extra time`;
   if (winner) return `${winner} advance`;
+  if (m.homeScore === m.awayScore && m.stage !== "GROUP_STAGE") return "Penalty winner pending confirmation";
   return "Final";
 }
 
