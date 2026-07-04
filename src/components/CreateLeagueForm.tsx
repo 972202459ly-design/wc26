@@ -28,6 +28,12 @@ export default function CreateLeagueForm() {
         const instance = await initializePaddle({
           environment: process.env.NEXT_PUBLIC_PADDLE_ENV === "production" ? "production" : "sandbox",
           token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!,
+          // Restore the button if the user closes the overlay without paying —
+          // otherwise it stays stuck on "Opening checkout…". On success Paddle
+          // redirects to the successUrl (the activating page), so no reset there.
+          eventCallback: (event) => {
+            if (event?.name === "checkout.closed") setBusy(false);
+          },
         });
         if (instance) setPaddle(instance);
       } catch {
@@ -76,7 +82,9 @@ export default function CreateLeagueForm() {
         settings: {
           displayMode: "overlay",
           theme: "dark",
-          successUrl: `${window.location.origin}/leagues/${data.league.code}/leaderboard?created=1`,
+          // The webhook flips `paid` asynchronously — land on an activating page
+          // that polls for it, so the host never sees the "not active yet" board.
+          successUrl: `${window.location.origin}/leagues/${data.league.code}/activating`,
         },
       });
     } catch {

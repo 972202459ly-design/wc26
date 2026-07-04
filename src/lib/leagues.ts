@@ -229,7 +229,7 @@ export async function getUserLeagues(email: string): Promise<UserLeague[]> {
 export async function getLeagueLeaderboard(leagueId: number): Promise<LeagueMemberRow[]> {
   await ensureLeaguesSchema();
   const rows = (await getSql()`
-    SELECT m.email, m.role, s.username, s.points
+    SELECT m.email, m.role, s.id, s.username, s.points
     FROM league_members m
     LEFT JOIN subscribers s ON s.email = m.email
     WHERE m.league_id = ${leagueId}
@@ -238,14 +238,16 @@ export async function getLeagueLeaderboard(leagueId: number): Promise<LeagueMemb
   return rows.map((r, i) => ({
     rank: i + 1,
     email: r.email,
-    name: r.username || maskEmail(r.email),
+    name: publicName(r.username, r.id),
     points: r.points ?? 1000,
     isOwner: r.role === "owner",
   }));
 }
 
-function maskEmail(email: string): string {
-  const [name, domain] = email.split("@");
-  if (!domain) return "player";
-  return `${name.slice(0, 2)}***@${domain}`;
+/** Public display name — never expose the email (or its structure). Falls back
+ *  to a stable, anonymous "Player #<id>" until the player sets a nickname. */
+function publicName(username: string | null | undefined, id: number | null): string {
+  const nick = username?.trim();
+  if (nick) return nick;
+  return id != null ? `Player #${id}` : "Player";
 }

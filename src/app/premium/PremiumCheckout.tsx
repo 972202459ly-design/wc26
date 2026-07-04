@@ -13,7 +13,8 @@ const plans = [
     description: "Your competitive edge for the whole tournament — one payment, no recurring charges, all the way to the July 19 final.",
     features: [
       "🧠 AI Match Intelligence — full analyst breakdown & value picks on every match",
-      "🏆 Beat the leaderboard — +500 bonus Pick'em points every day (free gets 200)",
+      "📊 Your performance analytics — accuracy, streaks, best teams & trends",
+      "🏟️ Private leagues — create a group and invite friends & coworkers",
       "⚡ Real-time goal & kickoff alerts — never miss a moment to predict",
       "🚫 Completely ad-free",
     ],
@@ -76,9 +77,9 @@ export default function PremiumCheckout() {
         </span>
         <h1 className="text-4xl font-bold mb-4">Win the Leaderboard</h1>
         <p className="text-lg text-[#888] max-w-xl mx-auto">
-          You&apos;re not buying emails — you&apos;re buying the edge. AI match
-          intelligence, a daily points boost, and insider insight to outpredict
-          everyone and top the global Pick&apos;em rankings.
+          Everyone plays for the same points — Pro just gives you a sharper read.
+          AI match intelligence, your own performance analytics, and insider
+          insight to outpredict everyone on skill, not a paid points boost.
         </p>
       </div>
 

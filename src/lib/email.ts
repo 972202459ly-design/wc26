@@ -605,7 +605,7 @@ function digestProBlock(): string {
   return `
     <div style="background:#1a1a2e;border:1px solid #f0a500;border-radius:8px;padding:14px 16px;margin-top:14px;text-align:center">
       <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:6px">🏆 Want the edge?</div>
-      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Pro unlocks the full AI breakdown + value pick on every match and earns you <b style="color:#f0a500">+500 points a day</b> (free gets 200) — climb the leaderboard faster, all the way to the July 19 final.</div>
+      <div style="color:#aaa;font-size:12px;margin-bottom:10px">Pro unlocks the full AI breakdown + value pick on every match, plus your own performance analytics and private leagues — <b style="color:#f0a500">everyone plays for the same points</b>, so you climb on sharper reads, not a paid boost. All the way to the July 19 final.</div>
       <a href="https://wc26live.org/premium" style="display:inline-block;padding:8px 20px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700">Go Pro — $7.99 one-time →</a>
     </div>`;
 }
@@ -692,8 +692,9 @@ export async function sendDailyDigestEmail(
 
 // ── Pro pitch (re-engagement → upgrade) ───────────────────────────────
 // Targeted at engaged free players (those who have predicted). They already
-// value the game, so we sell the Pro edge: full AI + value picks, +500/day,
-// one payment to the final.
+// value the game, so we sell the Pro edge: full AI + value picks, personal
+// analytics, private leagues — one payment to the final. Never a points boost:
+// everyone plays for the same daily points, so the board stays fair.
 
 function proPitchHtml(
   top: { name: string; points: number }[],
@@ -713,7 +714,8 @@ function proPitchHtml(
       <div style="color:#f0a500;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Fan Pro — $7.99 one-time</div>
       <div style="font-size:14px;color:#ddd;line-height:1.9">
         🧠 <b style="color:#fff">Full AI breakdown + value pick</b> on every match (free only sees the summary)<br>
-        🏆 <b style="color:#fff">+500 points every day</b> to climb faster (free gets 200)<br>
+        📊 <b style="color:#fff">Your performance analytics</b> — accuracy, streaks & best teams<br>
+        🏟️ <b style="color:#fff">Private leagues</b> — invite friends &amp; coworkers to your own board<br>
         ⚡ <b style="color:#fff">Real-time goal & kickoff alerts</b> — never miss a chance to predict<br>
         🎫 <b style="color:#fff">One payment, all the way to the final</b> — not a subscription
       </div>
@@ -746,7 +748,7 @@ function proPitchHtml(
 
 function proPitchText(myRank: DigestRank | null): string {
   const r = myRank ? `You're #${myRank.rank} with ${myRank.points} points. ` : "";
-  return `${r}Get Fan Pro ($7.99 one-time): full AI breakdown + value picks on every match, +500 points/day, real-time alerts, all the way to the July 19 final. https://wc26live.org/premium`;
+  return `${r}Get Fan Pro ($7.99 one-time): full AI breakdown + value picks on every match, personal analytics, private leagues, real-time alerts, all the way to the July 19 final. Same points for everyone. https://wc26live.org/premium`;
 }
 
 export async function sendProPitchEmail(

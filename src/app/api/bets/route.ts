@@ -26,7 +26,9 @@ export async function GET() {
     username: player.username,
     tier: player.tier,
     points,
-    picks,
+    // Outcome stakes only — advance (knockout) picks live under /api/advance-picks
+    // and now coexist in the picks table on the same match.
+    picks: picks.filter((p: any) => p.pick_kind !== "advance"),
   });
 }
 

@@ -63,14 +63,14 @@ export default async function LeaderboardPage() {
         </Link>
       </div>
 
-      {/* Pro boost banner — the +500/day edge for climbing */}
+      {/* Pro banner — a skill edge (AI insight), never a points advantage */}
       <Link
         href="/premium"
         className="mb-4 flex items-center gap-3 rounded-xl border border-[#f0a500]/30 bg-gradient-to-r from-[#1a1a2e] to-[#111] px-5 py-3 transition-colors hover:border-[#f0a500]/60"
       >
-        <span className="text-xl">🏆</span>
+        <span className="text-xl">🧠</span>
         <span className="text-sm text-[#ddd]">
-          <b className="text-[#f0a500]">Pro players earn +500 points a day</b> (free gets 200) — plus the full AI breakdown on every match. Climb faster for $7.99 →
+          <b className="text-[#f0a500]">Climb with the full AI breakdown on every match</b> — value picks, form &amp; injuries, plus your own performance analytics. Same points for everyone, $7.99 →
         </span>
       </Link>
 

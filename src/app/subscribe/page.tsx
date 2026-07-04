@@ -16,7 +16,7 @@ const PREMIUM_FEATURES = [
   "Instant goal alerts with scorer, the second they happen",
   "Kickoff reminders before every match",
   "Full AI analysis & value picks on every match",
-  "+500 daily Pick'em points and completely ad-free",
+  "Private leagues, personal analytics & completely ad-free",
 ];
 
 export default function SubscribePage() {

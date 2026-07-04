@@ -243,8 +243,12 @@ export async function upsertAnalysis(matchId: string, analysis: string): Promise
 // gambling (keeps Paddle + AdSense compliant). Identity = email (same as auth).
 
 export const INITIAL_POINTS = 1000;
+// Daily top-up is identical for every tier — points are the leaderboard's
+// currency, so paying for more would make it pay-to-win and break trust. Pro's
+// value is AI analysis, alerts, no ads, personal analytics and private leagues,
+// never a scoring advantage.
 export const DAILY_TOPUP_FREE = 200;
-export const DAILY_TOPUP_PREMIUM = 500;
+export const DAILY_TOPUP_PREMIUM = DAILY_TOPUP_FREE;
 
 export interface Player {
   email: string;
@@ -298,10 +302,20 @@ export async function ensureGameSchema(): Promise<void> {
       pick_kind TEXT NOT NULL DEFAULT 'outcome',
       created_at TIMESTAMP DEFAULT NOW(),
       settled_at TIMESTAMP,
-      UNIQUE(email, match_id)
+      UNIQUE(email, match_id, pick_kind)
     )
   `;
   await sql`ALTER TABLE picks ADD COLUMN IF NOT EXISTS pick_kind TEXT NOT NULL DEFAULT 'outcome'`;
+  // Migrate legacy tables: the old UNIQUE(email, match_id) let an advance pick
+  // clobber the outcome pick on the same match (and vice-versa). Widen the key
+  // to include pick_kind so both can coexist. Idempotent across warm instances.
+  await sql`ALTER TABLE picks DROP CONSTRAINT IF EXISTS picks_email_match_id_key`;
+  try {
+    await sql`ALTER TABLE picks ADD CONSTRAINT picks_email_match_id_pick_kind_key UNIQUE (email, match_id, pick_kind)`;
+  } catch (e) {
+    // 42710 duplicate_object — constraint already present from a prior run.
+    if (!String((e as any)?.message || e).includes("already exists")) throw e;
+  }
   gameSchemaReady = true;
 }
 
@@ -342,9 +356,14 @@ export async function dailyTopup(email: string): Promise<number> {
   return player.points; // already topped up today
 }
 
-export async function getUserPick(email: string, matchId: string): Promise<Pick | null> {
+export async function getUserPick(
+  email: string,
+  matchId: string,
+  kind: "outcome" | "advance" = "outcome"
+): Promise<Pick | null> {
   const rows = await getSql()`
-    SELECT * FROM picks WHERE email = ${email.toLowerCase().trim()} AND match_id = ${matchId}
+    SELECT * FROM picks
+    WHERE email = ${email.toLowerCase().trim()} AND match_id = ${matchId} AND pick_kind = ${kind}
   `;
   return (rows as unknown as Pick[])[0] ?? null;
 }
@@ -472,7 +491,7 @@ export async function placePick(
   const sql = getSql();
   await getOrCreatePlayer(e);
 
-  const existing = await getUserPick(e, matchId);
+  const existing = await getUserPick(e, matchId, "outcome");
   if (existing && existing.status !== "open") {
     return { ok: false, error: "This match is already settled" };
   }
@@ -487,9 +506,9 @@ export async function placePick(
   const newBalance = effective - stake;
   await sql`UPDATE subscribers SET points = ${newBalance} WHERE email = ${e}`;
   await sql`
-    INSERT INTO picks (email, match_id, pick, stake, odds, status)
-    VALUES (${e}, ${matchId}, ${pick}, ${stake}, ${odds}, 'open')
-    ON CONFLICT (email, match_id) DO UPDATE SET
+    INSERT INTO picks (email, match_id, pick, stake, odds, status, pick_kind)
+    VALUES (${e}, ${matchId}, ${pick}, ${stake}, ${odds}, 'open', 'outcome')
+    ON CONFLICT (email, match_id, pick_kind) DO UPDATE SET
       pick = ${pick}, stake = ${stake}, odds = ${odds}, status = 'open',
       payout = 0, created_at = NOW(), settled_at = NULL
   `;
@@ -506,7 +525,7 @@ export async function placeAdvancePick(
   const sql = getSql();
   await getOrCreatePlayer(e);
 
-  const existing = await getUserPick(e, matchId);
+  const existing = await getUserPick(e, matchId, "advance");
   if (existing && existing.status !== "open") {
     return { ok: false, error: "This match is already settled" };
   }
@@ -515,7 +534,7 @@ export async function placeAdvancePick(
   await sql`
     INSERT INTO picks (email, match_id, pick, stake, odds, status, payout, pick_kind)
     VALUES (${e}, ${matchId}, ${pick}, 0, ${reward}, 'open', 0, 'advance')
-    ON CONFLICT (email, match_id) DO UPDATE SET
+    ON CONFLICT (email, match_id, pick_kind) DO UPDATE SET
       pick = ${pick}, stake = 0, odds = ${reward}, status = 'open',
       payout = 0, pick_kind = 'advance', created_at = NOW(), settled_at = NULL
   `;
@@ -591,19 +610,19 @@ export interface LeaderRow {
 
 export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
   const rows = await getSql()`
-    SELECT s.email, s.username, s.points, s.preferences, s.favorite_team, s.created_at,
+    SELECT s.id, s.username, s.points, s.preferences, s.favorite_team, s.created_at,
       COUNT(p.id) FILTER (WHERE p.status IN ('won','lost')) AS bets,
       COUNT(p.id) FILTER (WHERE p.status = 'won') AS wins
     FROM subscribers s
     LEFT JOIN picks p ON p.email = s.email
     WHERE s.preferences != 'bot'
-    GROUP BY s.email, s.username, s.points, s.preferences, s.favorite_team, s.created_at
+    GROUP BY s.id, s.username, s.points, s.preferences, s.favorite_team, s.created_at
     ORDER BY s.points DESC, s.created_at ASC
     LIMIT ${limit}
   `;
   return (rows as any[]).map((r, i) => ({
     rank: i + 1,
-    name: r.username || maskEmail(r.email),
+    name: publicName(r.username, r.id),
     points: r.points,
     wins: Number(r.wins),
     bets: Number(r.bets),
@@ -637,14 +656,14 @@ export interface RankedPlayer {
  *  1000-point starting score), so the board shows the whole community. */
 export async function getRankedPlayers(): Promise<RankedPlayer[]> {
   const rows = (await getSql()`
-    SELECT email, username, points
+    SELECT id, email, username, points
     FROM subscribers
     WHERE preferences != 'bot'
     ORDER BY points DESC, created_at ASC
   `) as any[];
   return rows.map((r, i) => ({
     email: r.email,
-    name: r.username || maskEmail(r.email),
+    name: publicName(r.username, r.id),
     points: r.points,
     rank: i + 1,
   }));
@@ -722,10 +741,12 @@ export async function getTeamLeaderboard(limit = 48): Promise<TeamLeaderRow[]> {
   }));
 }
 
-function maskEmail(email: string): string {
-  const [name, domain] = email.split("@");
-  if (!domain) return "player";
-  return `${name.slice(0, 2)}***@${domain}`;
+/** Public display name for a player. Never leak the email (or its structure) on
+ *  a public board — fall back to a stable, anonymous "Player #<id>" until the
+ *  player sets a nickname. */
+function publicName(username: string | null | undefined, id: number): string {
+  const nick = username?.trim();
+  return nick ? nick : `Player #${id}`;
 }
 
 // ─── Subscriptions (Paddle) ───────────────────────────────────────────
