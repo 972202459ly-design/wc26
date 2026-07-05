@@ -1,10 +1,10 @@
 name: Daily Digest
 
+# Manual only — the daily send is now a human-approved matchday briefing
+# (drafted and triggered by Claude via /api/cron/matchday-briefing), not an
+# unattended auto-send. Kept as workflow_dispatch in case the old templated
+# digest endpoint is ever needed again.
 on:
-  schedule:
-    # Once a day at 13:00 UTC — after overnight results settle, before the
-    # day's matches kick off.
-    - cron: "0 13 * * *"
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Call daily-digest endpoint
         # Reuses the existing DAILY_PICKS_URL secret — its value must point at
-        # the digest endpoint: https://wc26live.org/api/cron/daily-digest?key=<CRON_SECRET>
+        # the digest endpoint: https://www.wc26live.org/api/cron/daily-digest?key=<CRON_SECRET>
+        # -L follows the non-www -> www redirect; without it, curl -f treats the
+        # 308 as success and silently never reaches the real endpoint (this is
+        # why digests went missing on 2026-07-01 to 2026-07-03 with a green run).
         run: |
-          curl -s -f "${{ secrets.DAILY_PICKS_URL }}" || echo "Daily Digest skipped (no DAILY_PICKS_URL configured)"
+          curl -s -f -L --max-redirs 3 "${{ secrets.DAILY_PICKS_URL }}" || echo "Daily Digest skipped (no DAILY_PICKS_URL configured)"

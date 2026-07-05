@@ -13,5 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call prematch endpoint
+        # -L follows the non-www -> www redirect; without it, curl -f treats a
+        # 308 as success and silently never reaches the real endpoint.
         run: |
-          curl -s -f "${{ secrets.PREMATCH_URL }}" || echo "Prematch skipped (no PREMATCH_URL configured)"
+          curl -s -f -L --max-redirs 3 "${{ secrets.PREMATCH_URL }}" || echo "Prematch skipped (no PREMATCH_URL configured)"

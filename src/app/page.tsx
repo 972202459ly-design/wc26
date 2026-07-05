@@ -146,6 +146,7 @@ export default async function HomePage() {
           <p className="mx-auto mb-6 max-w-md text-[11px] leading-5 text-[#777]">
             WC26 Live does not stream matches. Availability varies by country and broadcaster.
           </p>
+          <HeroEmailCapture />
           <HeroQuickLinks links={quickLinks} />
           <FeaturedNextMatch />
           <HomeSocialProof />
@@ -175,15 +176,6 @@ export default async function HomePage() {
       {/* Matchday sponsor (or house ad → /advertise when unsold) */}
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <SponsorSlot placement="matchday" />
-      </section>
-
-      {/* Email alerts */}
-      <section className="max-w-2xl mx-auto px-4 pb-12 text-center">
-        <h2 className="text-lg font-bold text-white mb-1">Get the daily World Cup email</h2>
-        <p className="text-sm text-[#999] mb-4">
-          A simple daily digest for scores, upcoming matches and prediction links. No account needed.
-        </p>
-        <HeroEmailCapture />
       </section>
 
       {/* Shop — Amazon Affiliate (kept after all primary content) */}

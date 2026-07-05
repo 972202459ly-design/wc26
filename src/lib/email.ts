@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getSponsor } from "@/lib/sponsor";
+import { getTeamFlagUrl, getTeamIdByName, amazonSearchLink } from "@/lib/data";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
@@ -687,6 +688,172 @@ export async function sendDailyDigestEmail(
     subject,
     (email) => digestHtml(results, picks, top, rankByEmail.get(email) ?? null, settledByEmail.get(email) ?? null, email, !premium.has(email)),
     digestText(results, picks)
+  );
+}
+
+// ── Matchday Briefing (manual, editorial-style) ───────────────────────
+// Replaces the automated Daily Digest as the human-in-the-loop daily send:
+// on a match day Claude drafts a short recap of yesterday and a preview of
+// today (plain narrative, not auto-generated), the human approves a preview
+// send to their own inbox, then it goes to the full list. Match data still
+// comes from the DB — only the narrative paragraphs are hand-written.
+
+function stripHtml(s: string): string {
+  return s.replace(/<[^>]+>/g, "");
+}
+
+// Small inline flag icon next to a team name — empty string (no broken img)
+// when the name doesn't map to a known team.
+function teamFlagImg(teamName: string): string {
+  const id = getTeamIdByName(teamName);
+  const url = id ? getTeamFlagUrl(id) : "";
+  if (!url) return "";
+  return `<img src="${url}" width="18" height="13" alt="" style="vertical-align:middle;border-radius:2px;margin-right:6px">`;
+}
+
+// Plain <img> banner (no CSS backgrounds/absolute positioning — those don't
+// render reliably in Outlook/older clients).
+function briefingBannerHtml(): string {
+  return `<img src="https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1200&q=60&auto=format" alt="World Cup 2026" width="600" style="display:block;width:100%;max-width:600px;height:auto;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:18px">`;
+}
+
+// Amazon affiliate promo — same tag/links the site uses (watch-party gear),
+// lowest priority in the stack (below the paid sponsor slot and Pro upsell).
+function amazonPromoBlock(): string {
+  const items = [
+    { label: "Fire TV Stick 4K", kw: "Fire TV Stick 4K streaming device" },
+    { label: "Watch Party Supplies", kw: "soccer watch party supplies decorations" },
+  ];
+  const links = items
+    .map(
+      (i) =>
+        `<a href="${amazonSearchLink(i.kw)}" style="display:inline-block;margin:4px 6px;padding:8px 16px;border:1px solid #333;border-radius:6px;color:#f0a500;text-decoration:none;font-size:12px;font-weight:600">${esc(i.label)} →</a>`
+    )
+    .join("");
+  return `
+    <div style="border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px;margin-top:14px;text-align:center">
+      <div style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Match Day Setup</div>
+      ${links}
+      <div style="color:#555;font-size:10px;margin-top:8px">As an Amazon Associate we earn from qualifying purchases.</div>
+    </div>`;
+}
+
+function briefingResultRow(r: RecapResult): string {
+  const url = `https://wc26live.org/match/${r.match_id}`;
+  const meta = stageLabel(r.stage);
+  return `
+    <a href="${url}" style="display:flex;justify-content:space-between;align-items:center;text-decoration:none;padding:10px 0;border-bottom:1px solid #222">
+      <span style="font-size:14px;color:#ddd">${teamFlagImg(r.home_team)}${esc(r.home_team)} <span style="color:#666">vs</span> ${teamFlagImg(r.away_team)}${esc(r.away_team)}${meta ? ` <span style="color:#555;font-size:11px">· ${meta}</span>` : ""}</span>
+      <span style="font-size:15px;font-weight:700;color:#2ecc71">${r.home_score}-${r.away_score}</span>
+    </a>`;
+}
+
+function briefingPickRow(p: DailyPick): string {
+  const url = `https://wc26live.org/match/${p.match_id}`;
+  return `
+    <a href="${url}" style="display:flex;justify-content:space-between;align-items:center;text-decoration:none;padding:10px 0;border-bottom:1px solid #222">
+      <span style="font-size:14px;color:#ddd">${teamFlagImg(p.home_team)}${esc(p.home_team)} <span style="color:#666">vs</span> ${teamFlagImg(p.away_team)}${esc(p.away_team)}</span>
+      <span style="font-size:12px;color:#f0a500">🧠 ${esc(p.favorite)} ${p.favoritePct}% · ${formatDate(p.utc_date)}</span>
+    </a>`;
+}
+
+function matchdayBriefingHtml(
+  recapText: string,
+  previewText: string,
+  results: RecapResult[],
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  myRank: DigestRank | null,
+  myPicks: PersonalPick[] | null,
+  email: string,
+  showPro: boolean
+): string {
+  const parts: string[] = [briefingBannerHtml()];
+
+  if (recapText) {
+    parts.push(digestSectionTitle("📰 Yesterday"));
+    parts.push(`<div style="color:#ddd;font-size:15px;line-height:1.7;margin-bottom:14px">${recapText}</div>`);
+    if (myPicks && myPicks.length) parts.push(digestPersonalBlock(results, myPicks));
+    if (results.length) parts.push(`<div style="margin-bottom:8px">${results.map(briefingResultRow).join("")}</div>`);
+  }
+
+  if (previewText) {
+    parts.push(digestSectionTitle("🔮 Today"));
+    parts.push(`<div style="color:#ddd;font-size:15px;line-height:1.7;margin-bottom:14px">${previewText}</div>`);
+    if (picks.length) parts.push(`<div style="margin-bottom:8px">${picks.map(briefingPickRow).join("")}</div>`);
+    parts.push(`
+      <div style="text-align:center;margin:14px 0 4px">
+        <a href="https://wc26live.org/predict" style="display:inline-block;padding:12px 28px;background:#f0a500;color:#000;text-decoration:none;border-radius:6px;font-size:15px;font-weight:700">Make Your Predictions →</a>
+      </div>`);
+  }
+
+  parts.push(digestLeaderboard(top, myRank));
+  parts.push(sponsorBlock());
+  if (showPro) parts.push(digestProBlock());
+  parts.push(amazonPromoBlock());
+
+  const subtitle = picks.length
+    ? `${picks.length} match${picks.length > 1 ? "es" : ""} today`
+    : "Yesterday's World Cup recap";
+  return wrapHtml("", subtitle, parts.join(""), email);
+}
+
+function matchdayBriefingText(
+  recapText: string,
+  previewText: string,
+  results: RecapResult[],
+  picks: DailyPick[]
+): string {
+  const r = recapText
+    ? `YESTERDAY\n${stripHtml(recapText)}\n\n` +
+      results.map((x) => `${x.home_team} ${x.home_score}-${x.away_score} ${x.away_team}`).join("\n") +
+      "\n\n"
+    : "";
+  const p = previewText
+    ? `TODAY\n${stripHtml(previewText)}\n\n` +
+      picks.map((x) => `${x.home_team} vs ${x.away_team} — AI: ${x.favorite} ${x.favoritePct}%`).join("\n") +
+      "\n\n"
+    : "";
+  return `${r}${p}Play & climb the leaderboard: https://wc26live.org/predict`;
+}
+
+export async function sendMatchdayBriefingEmail(
+  subscribers: { email: string; preferences?: string }[],
+  recapText: string,
+  previewText: string,
+  results: RecapResult[],
+  picks: DailyPick[],
+  top: { name: string; points: number }[],
+  rankByEmail: Map<string, DigestRank>,
+  settledByEmail: Map<string, PersonalPick[]>
+): Promise<{ sent: number; failed: number }> {
+  if (subscribers.length === 0) return { sent: 0, failed: 0 };
+  const premium = new Set(subscribers.filter((s) => s.preferences === "premium").map((s) => s.email));
+  // Date in the subject keeps each day's send out of Gmail's "same
+  // conversation" bucket — otherwise Gmail treats consecutive identical
+  // subjects as one thread and collapses the (byte-identical) leaderboard/
+  // sponsor/footer tail as "already seen" quoted content behind a "..." you
+  // have to click to expand.
+  const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const subject = picks.length
+    ? `⚽ WC26 Briefing (${dateLabel}) — ${picks.length} match${picks.length > 1 ? "es" : ""} today`
+    : `📰 WC26 Briefing (${dateLabel}) — yesterday's recap`;
+  return sendBatch(
+    subscribers,
+    subject,
+    (email) =>
+      matchdayBriefingHtml(
+        recapText,
+        previewText,
+        results,
+        picks,
+        top,
+        rankByEmail.get(email) ?? null,
+        settledByEmail.get(email) ?? null,
+        email,
+        !premium.has(email)
+      ),
+    matchdayBriefingText(recapText, previewText, results, picks)
   );
 }
 
