@@ -57,9 +57,24 @@ export async function GET(
   const isPremium = session ? (await getTierByEmail(session.email)) === "premium" : false;
   const teaser = full ? full.split(/(?<=[.!?])\s/)[0] : fallbackPreview(home, away, pred);
 
-  return NextResponse.json({
-    teaser,
-    full: isPremium ? full : null,
-    locked: !isPremium && !!full,
-  });
+  return NextResponse.json(
+    {
+      teaser,
+      full: isPremium ? full : null,
+      locked: !isPremium && !!full,
+    },
+    // Anonymous visitors (the vast majority) all get the identical
+    // teaser-only response, so it's safe to let the CDN serve it for a
+    // minute instead of invoking this function — and re-running the AI
+    // generation — on every request. Logged-in requests are never cached:
+    // their response depends on session/tier and must stay per-request.
+    session
+      ? { headers: { Vary: "Cookie" } }
+      : {
+          headers: {
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+            Vary: "Cookie",
+          },
+        }
+  );
 }
