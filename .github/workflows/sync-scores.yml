@@ -2,18 +2,24 @@ name: Sync Match Scores
 
 on:
   schedule:
-    # Every 5 minutes during match hours (8:00-23:59 UTC) — GitHub's practical
-    # minimum. For true real-time goal alerts, an external 1-min cron
-    # (cron-job.org) also hits SYNC_URL; this workflow is the reliable baseline.
-    - cron: "*/5 8-23 * * *"
-    # After-hours sync (0:00-5:59 UTC) for late/early matches
-    - cron: "*/5 0-5 * * *"
+    # Every 5 minutes, all day — the gate step below skips the actual call
+    # (and the Vercel Function Invocation it costs) unless a match is within
+    # its live window, so this schedule being wide is cheap.
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for a live match window
+        id: gate
+        run: node scripts/should-sync.mjs
+        continue-on-error: true
+
       - name: Call sync endpoint
+        if: steps.gate.outcome == 'success'
         run: |
           curl -s -f -L --max-redirs 3 "${{ secrets.SYNC_URL }}" || echo "Sync skipped (no SYNC_URL configured)"
