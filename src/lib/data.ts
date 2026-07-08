@@ -672,42 +672,47 @@ export async function getKnockoutBracket(): Promise<BracketRound[]> {
 
   return KNOCKOUT_ROUNDS.map((round) => {
     const dbRows = db.filter((s) => s.stage && round.stages.includes(s.stage));
-    const list: BracketMatch[] = dbRows.length
-      ? dbRows.map((s) => ({
-          id: s.match_id,
-          homeTeam: s.home_team,
-          awayTeam: s.away_team,
-          homeScore: s.home_score,
-          awayScore: s.away_score,
-          homePenaltyScore: s.home_penalty_score ?? null,
-          awayPenaltyScore: s.away_penalty_score ?? null,
-          winner: s.winner ?? null,
-          status:
-            s.status === "FINISHED"
-              ? "finished"
-              : s.status === "IN_PLAY" || s.status === "PAUSED"
-                ? "live"
-                : "upcoming",
-          date: s.utc_date.slice(0, 10),
-          time: s.utc_date.slice(11, 16),
-          venue: "",
-        }))
-      : matches
-          .filter((m) => round.stages.includes(m.stage))
-          .map((m) => ({
-            id: m.id,
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
-            homePenaltyScore: null,
-            awayPenaltyScore: null,
-            winner: null,
-            status: m.status,
-            date: m.date,
-            time: m.time,
-            venue: m.venue,
-          }));
+    const fromDb: BracketMatch[] = dbRows.map((s) => ({
+      id: s.match_id,
+      homeTeam: s.home_team,
+      awayTeam: s.away_team,
+      homeScore: s.home_score,
+      awayScore: s.away_score,
+      homePenaltyScore: s.home_penalty_score ?? null,
+      awayPenaltyScore: s.away_penalty_score ?? null,
+      winner: s.winner ?? null,
+      status:
+        s.status === "FINISHED"
+          ? "finished"
+          : s.status === "IN_PLAY" || s.status === "PAUSED"
+            ? "live"
+            : "upcoming",
+      date: s.utc_date.slice(0, 10),
+      time: s.utc_date.slice(11, 16),
+      venue: "",
+    }));
+    // A round can be partially synced (API-Football only publishes a fixture
+    // once its bracket slot is decided), so fill any slot the DB hasn't
+    // picked up yet from the static skeleton instead of dropping it — a
+    // missing quarter-final looked like a bug, not an undecided TBD match.
+    const dbDates = new Set(fromDb.map((m) => m.date));
+    const fallback: BracketMatch[] = matches
+      .filter((m) => round.stages.includes(m.stage) && !dbDates.has(m.date))
+      .map((m) => ({
+        id: m.id,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        homePenaltyScore: null,
+        awayPenaltyScore: null,
+        winner: null,
+        status: m.status,
+        date: m.date,
+        time: m.time,
+        venue: m.venue,
+      }));
+    const list = [...fromDb, ...fallback];
     return { key: round.key, label: round.label, matches: list.sort(byKickoff) };
   });
 }
