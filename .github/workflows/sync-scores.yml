@@ -6,6 +6,11 @@ on:
     # (and the Vercel Function Invocation it costs) unless a match is within
     # its live window, so this schedule being wide is cheap.
     - cron: "*/5 * * * *"
+    # Once a day, force a sync past the gate. Bracket progressions (the next
+    # round's matchups) land on API-Football between live windows, so without
+    # this the new pairings stay invisible until the next kickoff. Costs one
+    # extra Function Invocation per day.
+    - cron: "0 6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -18,6 +23,13 @@ jobs:
         id: gate
         run: node scripts/should-sync.mjs
         continue-on-error: true
+
+      # github.event.schedule identifies WHICH cron fired, so this stays exact
+      # even when GitHub runs scheduled workflows minutes late.
+      - name: Daily forced catch-up
+        if: github.event.schedule == '0 6 * * *'
+        run: |
+          curl -s -f -L --max-redirs 3 "${{ secrets.SYNC_URL }}&force=1" || echo "Forced sync failed (check SYNC_URL)"
 
       - name: Call sync endpoint
         if: steps.gate.outcome == 'success'
