@@ -52,7 +52,13 @@ export async function GET(request: Request) {
       if (Number.isNaN(ko)) return false;
       return now >= ko - WINDOW_BEFORE && now <= ko + WINDOW_AFTER;
     });
-    if (!anyActive) {
+    // force=1 bypasses the gate for manual catch-ups: bracket progressions
+    // (next round's matchups) land on API-Football BETWEEN live windows, so a
+    // round that ends right at a sync can leave the following round unsynced
+    // until the next kickoff. Status transitions still drive emails, so a
+    // forced run outside a window sends nothing.
+    const force = searchParams.get("force") === "1";
+    if (!anyActive && !force) {
       return NextResponse.json({
         success: true,
         skipped: "no active matches — db untouched",
